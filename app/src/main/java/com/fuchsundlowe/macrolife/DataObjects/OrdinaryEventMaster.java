@@ -10,9 +10,9 @@ import java.util.Calendar;
  */
 @Entity(primaryKeys = {"hashID"})
 public class OrdinaryEventMaster extends DataMasterClass {
-    public OrdinaryEventMaster(String taskName, SourceType originalSourceOfTask,
-                               Calendar originalCreationTime, int taskUniqueIdentifier) {
-
+    public OrdinaryEventMaster() {
+        // Empty constructor as I expect that Room will find way to populate it via
+        // base class.
     }
 
     /*

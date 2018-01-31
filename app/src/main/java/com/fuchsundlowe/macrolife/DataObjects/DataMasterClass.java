@@ -20,9 +20,9 @@ public abstract class DataMasterClass {
     // Variables list;
     protected int hashID;
     protected String taskName;
-    protected int taskStartTime;
-    protected int taskEndTime;
-    protected int taskCreatedTimeStamp;
+    protected Calendar taskStartTime;
+    protected Calendar taskEndTime;
+    protected Calendar taskCreatedTimeStamp;
     protected boolean taskCompleted;
     @Ignore
     protected SourceType taskOriginalSource ; // Should this be made available? In what way?
@@ -41,30 +41,32 @@ public abstract class DataMasterClass {
         this.taskName = taskName;
     }
 
-    public int getTaskStartTime() {
+    public Calendar getTaskStartTime() {
         return this.taskStartTime;
     }
-    public void setTaskStartTime(int taskStartTime) {
+    public void setTaskStartTime(Calendar taskStartTime) {
         this.taskStartTime = taskStartTime;
     }
 
     // Returns true if end time is after the beginning, and false if end time is before start time.
-    public boolean setTaskEndTime(int taskEndTime) {
-        Date startTimeAsDate = new Date(this.getTaskStartTime());
-        Date endTimeAsDate = new Date(taskEndTime);
-        // TODO: Implement this, needs to format to date and time and convert to calendar, check comapt
-        this.taskEndTime = taskEndTime;
-        return false;
-
+    public boolean setTaskEndTime(Calendar taskEndTime) {
+        Calendar startTime = this.getTaskStartTime();
+        if (taskEndTime.after(startTime)) {
+            // TODO: Implement this, needs to format to date and time and convert to calendar, check comapt
+            this.taskEndTime = taskEndTime;
+            return true;
+        } else {
+            return false;
+        }
     }
-    public int getTaskEndTime() {
+    public Calendar getTaskEndTime() {
         return this.taskEndTime;
     }
 
-    public int getTaskCreatedTimeStamp() {
+    public Calendar getTaskCreatedTimeStamp() {
         return this.taskCreatedTimeStamp;
     }
-    public void setTaskCreatedTimeStamp(int taskCreatedTimeStamp) {
+    public void setTaskCreatedTimeStamp(Calendar taskCreatedTimeStamp) {
         this.taskCreatedTimeStamp = taskCreatedTimeStamp;
     }
 
@@ -78,17 +80,10 @@ public abstract class DataMasterClass {
         return this.taskOriginalSource;
     }
 
-    public int getOriginalCreationTimeOfTask() {
-        return this.taskCreatedTimeStamp;
-    }
-
-    public int taskUniqueIdentifier() {
-        return this.hashID;
-    }
 
     // Testing of the Enum class for Source
 
-    public enum SourceType {
+    public enum  SourceType {
         local, googleCalendar, yahooCalendar, other;
     }
 }

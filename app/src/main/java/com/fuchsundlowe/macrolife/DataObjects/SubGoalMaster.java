@@ -1,5 +1,7 @@
 package com.fuchsundlowe.macrolife.DataObjects;
 
+import android.arch.persistence.room.Ignore;
+
 import java.util.ArrayList;
 import java.util.Calendar;
 
@@ -12,6 +14,7 @@ public class SubGoalMaster extends DataMasterClass {
     // Instance variables:
     private int parentID;
     private int parentSubGoal;
+    @Ignore
     private ArrayList<Integer> childrenGoalsIDs;
     // TODO: private color; unclear how I will implement color selection
 

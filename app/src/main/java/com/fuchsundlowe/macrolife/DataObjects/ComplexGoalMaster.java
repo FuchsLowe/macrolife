@@ -14,10 +14,10 @@ import java.util.Calendar;
  and has accompaning calls and additional variables.
  *
  */
-@Entity(primaryKeys = {"hashID"})
 public class ComplexGoalMaster extends DataMasterClass {
 
     // Variables:
+    @Ignore
     private ArrayList<Integer> subTasks;
     private String purpose;
     // TODO: How will I store color?

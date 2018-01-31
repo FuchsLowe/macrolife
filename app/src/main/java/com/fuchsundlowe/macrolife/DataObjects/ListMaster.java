@@ -1,5 +1,7 @@
 package com.fuchsundlowe.macrolife.DataObjects;
 
+import android.arch.persistence.room.Ignore;
+
 import java.util.ArrayList;
 import java.util.Calendar;
 
@@ -10,14 +12,16 @@ import java.util.Calendar;
  */
 
 public class ListMaster extends DataMasterClass {
+    // Instance Variables:
+    @Ignore
+    private ArrayList<Integer> subGoalsList;
+
     // TODO: Needs complete implementation, needs better constructor
     public ListMaster(String taskName, SourceType originalSourceOfTask,
                       Calendar originalCreationTime, int taskUniqueIdentifier) {
 
 
     }
-
-    private ArrayList<Integer> subGoalsList;
 
     public ArrayList<Integer> getAllSubGoalsIDs() {
         return this.subGoalsList;

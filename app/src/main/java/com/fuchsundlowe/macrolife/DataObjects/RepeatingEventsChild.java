@@ -1,5 +1,7 @@
 package com.fuchsundlowe.macrolife.DataObjects;
 
+import android.arch.persistence.room.Ignore;
+
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
@@ -13,6 +15,7 @@ public class RepeatingEventsChild {
     private int parentID;
     private Calendar startTime;
     private Calendar endTime;
+    @Ignore
     private ArrayList<Integer> pictureIDs;
 
     public RepeatingEventsChild(int parentID, Calendar startTime,

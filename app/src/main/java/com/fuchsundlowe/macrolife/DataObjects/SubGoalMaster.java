@@ -11,7 +11,6 @@ public class SubGoalMaster extends DataMasterClass {
     public SubGoalMaster(String taskName, SourceType originalSourceOfTask,
                          Calendar originalCreationTime, int taskUniqueIdentifier,
                          int masterGoalID, ArrayList<Integer> childrenGoals) {
-        super(taskName, originalSourceOfTask, originalCreationTime, taskUniqueIdentifier);
         this.mainComplexGoal = masterGoalID;
         this.appendChildrenGoals(childrenGoals);
     }

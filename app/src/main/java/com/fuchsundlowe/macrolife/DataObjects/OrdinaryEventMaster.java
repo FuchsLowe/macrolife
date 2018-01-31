@@ -10,7 +10,6 @@ import java.util.Calendar;
 public class OrdinaryEventMaster extends DataMasterClass {
     public OrdinaryEventMaster(String taskName, SourceType originalSourceOfTask,
                                Calendar originalCreationTime, int taskUniqueIdentifier) {
-        super(taskName, originalSourceOfTask, originalCreationTime, taskUniqueIdentifier);
     }
 
     /*

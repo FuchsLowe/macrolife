@@ -1,94 +1,87 @@
 package com.fuchsundlowe.macrolife.DataObjects;
 
 
+import android.arch.persistence.room.Entity;
+import android.arch.persistence.room.Ignore;
+import android.arch.persistence.room.PrimaryKey;
+
 import java.util.Calendar;
+import java.util.Date;
 
 /**
  This class is the superclass of all data objects used in this software. It provides common
  values and their respective getters and setters.
+ TODO: The calendar class is useless here. I need to accept integer and then I need to create
+ 1. Change calendar to int and create implementation for calendar to return
+
+ calendar out of it.
  */
 
 public abstract class DataMasterClass {
 
     // Variables list;
-    private String taskName;
-    private Calendar taskStartTime;
-    private boolean isTaskCompleted;
-    private final int hashID;
-    private Calendar taskCreatedTimeStamp;
-    private Calendar taskEndTime;
-    private final SourceType taskOriginalSource ; // Should this be made available? In what way?
+    @PrimaryKey
+    protected int hashID;
+    protected String taskName;
+    protected int taskStartTime;
+    protected int taskEndTime;
+    protected int taskCreatedTimeStamp;
+    protected boolean taskCompleted;
+    @Ignore
+    protected SourceType taskOriginalSource ; // Should this be made available? In what way?
 
-    // private byte picture; How Should I store picture id to the class? Should It be array?
+    // public constructor - none
 
-    // public constructor
-    public DataMasterClass(String taskName,
-                                      SourceType originalSourceOfTask,
-                                      Calendar originalCreationTime,
-                                      int taskUniqueIdentifier) {
-
-        this.taskName = taskName;
-        this.taskOriginalSource = originalSourceOfTask;
-        this.taskCreatedTimeStamp = originalCreationTime;
-        this.hashID = taskUniqueIdentifier;
-
-    }
 
     // public getters and setters for variables and support methods
+    public int getHashID() { return this.hashID;}
+    public void setHashID(int hashID) {this.hashID = hashID;}
 
     public String getTaskName(){
         return this.taskName;
     }
-    public void changeTaskName(String newTaskName) {
-        this.taskName = newTaskName;
+    public void setTaskName(String taskName) {
+        this.taskName = taskName;
     }
 
-    public Calendar getTaskStartTime() {
+    public int getTaskStartTime() {
         return this.taskStartTime;
     }
-    public void setNewTaskStartTime(Calendar newTaskStartTime) {
-        this.taskStartTime = newTaskStartTime;
-    }
-    // Returns true if end time is after the beginning, and false if end time is before start time.
-    public boolean setNewTaskEndTime(Calendar endTime) {
-        if (this.taskStartTime.after(endTime)) {
-            return false;
-        }
-        this.taskEndTime = endTime;
-        return true;
+    public void setTaskStartTime(int taskStartTime) {
+        this.taskStartTime = taskStartTime;
     }
 
-    public Calendar getTaskEndTimeAsCalendar() {
+    // Returns true if end time is after the beginning, and false if end time is before start time.
+    public boolean setTaskEndTime(int taskEndTime) {
+        Date startTimeAsDate = new Date(this.getTaskStartTime());
+        Date endTimeAsDate = new Date(taskEndTime);
+        // TODO: Implement this, needs to format to date and time and convert to calendar, check comapt
+        this.taskEndTime = taskEndTime;
+        return false;
+
+    }
+    public int getTaskEndTime() {
         return this.taskEndTime;
     }
 
-    /* Returns either 0 if there is no end Task time,
-    * -1 if there is error and positive if value is possible
-    */
-    public int getTaskDurationInSeconds() {
-       try {
-           int timeValue = this.getTaskEndTimeAsCalendar().compareTo(this.getTaskStartTime());
-
-           return timeValue;
-
-       } catch (NullPointerException error) {
-        return -1;
-       }
+    public int getTaskCreatedTimeStamp() {
+        return this.taskCreatedTimeStamp;
+    }
+    public void setTaskCreatedTimeStamp(int taskCreatedTimeStamp) {
+        this.taskCreatedTimeStamp = taskCreatedTimeStamp;
     }
 
+    public void setTaskCompleted(boolean taskCompleted) {
+        this.taskCompleted = taskCompleted;
+    }
     public boolean isTaskCompleted() {
-        return this.isTaskCompleted;
+        return this.taskCompleted;
     }
-
-    public void setTaskCompletionState(boolean isTaskCompleted) {
-        this.isTaskCompleted = isTaskCompleted;
-    }
-
     public SourceType getTaskOriginalSource() {
         return this.taskOriginalSource;
     }
 
-    public Calendar getOriginalCreationTimeOfTask() {
+    public int getOriginalCreationTimeOfTask() {
         return this.taskCreatedTimeStamp;
     }
 

@@ -10,7 +10,7 @@ import java.util.Calendar;
 public class ListMaster extends DataMasterClass {
     public ListMaster(String taskName, SourceType originalSourceOfTask,
                       Calendar originalCreationTime, int taskUniqueIdentifier) {
-        super(taskName, originalSourceOfTask, originalCreationTime, taskUniqueIdentifier);
+
 
     }
 

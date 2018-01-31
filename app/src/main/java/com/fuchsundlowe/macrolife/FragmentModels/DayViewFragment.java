@@ -11,6 +11,11 @@ import android.view.ViewGroup;
 import com.fuchsundlowe.macrolife.R;
 
 /**
+ * This class provides day view fragment for app. Main features expected here are:
+ *  Chronological view of the daily duties.
+ *  Requests information to fill in this specific day based on day atribute.
+ *  TODO: How will the top be inc. into this? SInce at top we will have day unnasigned events.
+ *
  * A simple {@link Fragment} subclass.
  * Activities that contain this fragment must implement the
  * {@link DayViewFragment.OnFragmentInteractionListener} interface

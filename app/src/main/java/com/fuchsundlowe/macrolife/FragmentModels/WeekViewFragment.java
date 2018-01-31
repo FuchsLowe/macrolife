@@ -10,7 +10,8 @@ import android.view.ViewGroup;
 
 import com.fuchsundlowe.macrolife.R;
 
-/**
+/** Displays a week overview with detail representation of tasks found at each day
+ * TODO: How will the top be inc. into this? SInce at top we will have day unnasigned events.
  * A simple {@link Fragment} subclass.
  * Activities that contain this fragment must implement the
  * {@link WeekViewFragment.OnFragmentInteractionListener} interface

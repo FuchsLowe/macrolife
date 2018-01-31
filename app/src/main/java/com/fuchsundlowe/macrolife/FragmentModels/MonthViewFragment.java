@@ -11,6 +11,8 @@ import android.view.ViewGroup;
 import com.fuchsundlowe.macrolife.R;
 
 /**
+ * Creates a month representation where you will have overview of the entire month with activities.
+ * TODO: How will the top be inc. into this? SInce at top we will have day unnasigned events.
  * A simple {@link Fragment} subclass.
  * Activities that contain this fragment must implement the
  * {@link MonthViewFragment.OnFragmentInteractionListener} interface

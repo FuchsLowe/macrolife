@@ -11,6 +11,8 @@ import android.view.ViewGroup;
 import com.fuchsundlowe.macrolife.R;
 
 /**
+ * This class shows all tasks grouped into their respective categories.
+ * Kinda like tableView...
  * A simple {@link Fragment} subclass.
  * Activities that contain this fragment must implement the
  * {@link ListViewFragment.OnFragmentInteractionListener} interface

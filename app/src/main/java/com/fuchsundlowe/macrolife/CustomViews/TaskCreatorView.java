@@ -14,6 +14,10 @@ import com.fuchsundlowe.macrolife.R;
 
 /**
  * TODO: document your custom view class.
+ * This view appears when invoked and displays the fill in form for tasks.
+ * Depending on the type of task you select ( after first enetring name ), you then get
+ * custom table for filling in the data or in case of repeating event are prompted for
+ * enetring data graphically via callendar view...
  */
 public class TaskCreatorView extends View {
     private String mExampleString; // TODO: use a default from R.string...

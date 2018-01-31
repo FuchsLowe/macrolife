@@ -5,9 +5,12 @@ import java.util.Calendar;
 
 /**
  * Created by macbook on 1/29/18.
+ * This class holds list objects and is used to create views that dispaly list like goals.
+ * Examples would be grocelry list etc.
  */
 
 public class ListMaster extends DataMasterClass {
+    // TODO: Needs complete implementation, needs better constructor
     public ListMaster(String taskName, SourceType originalSourceOfTask,
                       Calendar originalCreationTime, int taskUniqueIdentifier) {
 

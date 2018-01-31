@@ -9,18 +9,15 @@ import java.util.Calendar;
 import java.util.Date;
 
 /**
- This class is the superclass of all data objects used in this software. It provides common
+ This class is the superclass of most data objects used in this software. It provides common
  values and their respective getters and setters.
  TODO: The calendar class is useless here. I need to accept integer and then I need to create
- 1. Change calendar to int and create implementation for calendar to return
 
- calendar out of it.
  */
 
 public abstract class DataMasterClass {
 
     // Variables list;
-    @PrimaryKey
     protected int hashID;
     protected String taskName;
     protected int taskStartTime;

@@ -9,46 +9,45 @@ import java.util.List;
  */
 
 public class RepeatingEventsChild {
+    // Instance variables
     private int parentID;
     private Calendar startTime;
-    private int durationOfEvent;
+    private Calendar endTime;
     private ArrayList<Integer> pictureIDs;
 
     public RepeatingEventsChild(int parentID, Calendar startTime,
-                                int durationOfEvent, ArrayList<Integer> pictureIDs) {
+                                Calendar endTime, ArrayList<Integer> pictureIDs) {
         this.parentID = parentID;
         this.startTime = startTime;
-        this.durationOfEvent = durationOfEvent;
+        this.endTime = endTime;
         this.pictureIDs = pictureIDs;
 
 
     }
-
+    // Methods:
     public int getParentID() {
         return this.parentID;
     }
     public Calendar getStartTime() {
         return this.startTime;
     }
-
     public void setStartTime(Calendar newTime) {
         this.startTime = newTime;
     }
 
-    public int getDurationOfEvent() {
-        return this.durationOfEvent;
+    public Calendar getEndTime() {
+        return this.endTime;
     }
 
-    public void setDurationOfEvent(int newDurationOfEvent) {
-        this.durationOfEvent = newDurationOfEvent;
+    public void setEndTime(Calendar endTime) {
+        this.endTime = endTime;
     }
 
     public ArrayList<Integer> getPictureIDs() {
         return this.pictureIDs;
     }
-
-    public void addPictureID(int newIdToAdd) {
-        this.pictureIDs.add(newIdToAdd);
+    public void setPictureIDs() {
+        // TODO: Consider this implementation
     }
 
     public boolean isTherePicture() {

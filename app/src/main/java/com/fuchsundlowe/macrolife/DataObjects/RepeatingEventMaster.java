@@ -1,10 +1,13 @@
 package com.fuchsundlowe.macrolife.DataObjects;
 
+import android.arch.persistence.room.Ignore;
+
 import java.util.Calendar;
 
 /**
  * Created by macbook on 1/29/18.
  * This Class holds a specific set of days and occupation times
+ * This class also holds a set of repeating schemas.
  */
 
 public class RepeatingEventMaster extends DataMasterClass {

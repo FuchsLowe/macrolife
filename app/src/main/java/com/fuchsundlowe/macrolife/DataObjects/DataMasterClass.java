@@ -1,12 +1,6 @@
 package com.fuchsundlowe.macrolife.DataObjects;
 
-
-import android.arch.persistence.room.Entity;
-import android.arch.persistence.room.Ignore;
-import android.arch.persistence.room.PrimaryKey;
-
 import java.util.Calendar;
-import java.util.Date;
 
 /**
  This class is the superclass of most data objects used in this software. It provides common
@@ -18,13 +12,12 @@ import java.util.Date;
 public abstract class DataMasterClass {
 
     // Variables list;
-    protected int hashID;
-    protected String taskName;
-    protected Calendar taskStartTime;
-    protected Calendar taskEndTime;
-    protected Calendar taskCreatedTimeStamp;
-    protected boolean taskCompleted;
-    @Ignore
+    public int hashID;
+    public String taskName;
+    public Calendar taskStartTime;
+    public Calendar taskEndTime;
+    public Calendar taskCreatedTimeStamp;
+    public boolean taskCompleted;
     protected SourceType taskOriginalSource ; // Should this be made available? In what way?
 
     // public constructor - none

@@ -13,7 +13,7 @@ import java.util.Calendar;
 
 public class ListMaster extends DataMasterClass {
     // Instance Variables:
-    @Ignore
+
     private ArrayList<Integer> subGoalsList;
 
     // TODO: Needs complete implementation, needs better constructor

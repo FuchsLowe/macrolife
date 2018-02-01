@@ -8,7 +8,6 @@ import java.util.Calendar;
  * Created by macbook on 1/29/18.
  * This is a holder class for ordinary Tasks
  */
-@Entity(primaryKeys = {"hashID"})
 public class OrdinaryEventMaster extends DataMasterClass {
     public OrdinaryEventMaster() {
         // Empty constructor as I expect that Room will find way to populate it via

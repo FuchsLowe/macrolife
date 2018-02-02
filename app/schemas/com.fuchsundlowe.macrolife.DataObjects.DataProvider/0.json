@@ -1,0 +1,63 @@
+{
+  "formatVersion": 1,
+  "database": {
+    "version": 0,
+    "identityHash": "b79fe3b732ae1a1cab16fd280c15329b",
+    "entities": [
+      {
+        "tableName": "OrdinaryEventMaster",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`hashID` INTEGER NOT NULL, `taskName` TEXT, `taskStartTime` INTEGER, `taskEndTime` INTEGER, `taskCreatedTimeStamp` INTEGER, `taskCompleted` INTEGER NOT NULL, PRIMARY KEY(`hashID`))",
+        "fields": [
+          {
+            "fieldPath": "hashID",
+            "columnName": "hashID",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "taskName",
+            "columnName": "taskName",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "taskStartTime",
+            "columnName": "taskStartTime",
+            "affinity": "INTEGER",
+            "notNull": false
+          },
+          {
+            "fieldPath": "taskEndTime",
+            "columnName": "taskEndTime",
+            "affinity": "INTEGER",
+            "notNull": false
+          },
+          {
+            "fieldPath": "taskCreatedTimeStamp",
+            "columnName": "taskCreatedTimeStamp",
+            "affinity": "INTEGER",
+            "notNull": false
+          },
+          {
+            "fieldPath": "taskCompleted",
+            "columnName": "taskCompleted",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "columnNames": [
+            "hashID"
+          ],
+          "autoGenerate": false
+        },
+        "indices": [],
+        "foreignKeys": []
+      }
+    ],
+    "setupQueries": [
+      "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, \"b79fe3b732ae1a1cab16fd280c15329b\")"
+    ]
+  }
+}

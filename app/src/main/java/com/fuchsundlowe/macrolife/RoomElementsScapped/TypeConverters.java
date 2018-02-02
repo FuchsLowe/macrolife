@@ -1,6 +1,8 @@
-package com.fuchsundlowe.macrolife.DataObjects;
+package com.fuchsundlowe.macrolife.RoomElementsScapped;
 
 import android.arch.persistence.room.TypeConverter;
+
+import com.fuchsundlowe.macrolife.DataObjects.DataMasterClass;
 
 import java.util.Calendar;
 import java.util.Date;
@@ -14,14 +16,23 @@ public class TypeConverters {
 
     @TypeConverter
     public static Calendar fromLongToCalendar(long value) {
-        Date tempDate = new Date(value);
-        Calendar calendarValue = Calendar.getInstance();
-        calendarValue.setTime(tempDate);
-        return calendarValue;
+            Date tempDate = new Date(value);
+            Calendar calendarValue = Calendar.getInstance();
+            calendarValue.setTime(tempDate);
+            if (calendarValue != null) {
+                return calendarValue;
+            } else {
+                // TODO: This needs to be addressed
+                return Calendar.getInstance();
+            }
     }
     @TypeConverter
-    public static long fromCalendarToInt(Calendar calendar) {
-        return calendar.getTimeInMillis();
+    public static long fromCalendarToLong(Calendar calendar) {
+        if (calendar != null) {
+            return calendar.getTimeInMillis();
+        } else {
+            return 0;
+        }
     }
     @TypeConverter
     public static boolean fromIntToBoolean(int number) {

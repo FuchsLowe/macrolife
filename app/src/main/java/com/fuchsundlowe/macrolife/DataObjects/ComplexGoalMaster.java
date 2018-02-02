@@ -1,9 +1,5 @@
 package com.fuchsundlowe.macrolife.DataObjects;
 
-import android.arch.persistence.room.Entity;
-import android.arch.persistence.room.Ignore;
-import android.arch.persistence.room.PrimaryKey;
-
 import java.util.ArrayList;
 import java.util.Calendar;
 
@@ -17,7 +13,7 @@ import java.util.Calendar;
 public class ComplexGoalMaster extends DataMasterClass {
 
     // Variables:
-    @Ignore
+
     private ArrayList<Integer> subTasks;
     private String purpose;
     // TODO: How will I store color?

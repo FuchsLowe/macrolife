@@ -21,7 +21,7 @@ public abstract class DataMasterClass {
     protected int hashID;
     protected String taskName;
     protected Calendar taskStartTime;
-    protected Calendar taskEndTime;
+    public Calendar taskEndTime;
     protected Calendar taskCreatedTimeStamp;
     protected boolean taskCompleted;
     @Ignore

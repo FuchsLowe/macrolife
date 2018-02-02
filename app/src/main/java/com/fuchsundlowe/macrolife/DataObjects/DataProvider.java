@@ -7,8 +7,9 @@ import android.arch.persistence.room.*;
  * This is the class that manages Room database implemnetation.
  */
 
-@Database(version = 0, entities = {OrdinaryEventMaster.class})
+@Database(version = 1, entities = {OrdinaryEventMaster.class})
 @android.arch.persistence.room.TypeConverters({TypeConverters.class})
 public abstract class DataProvider extends RoomDatabase {
 
+    public abstract DAO daoObject();
 }

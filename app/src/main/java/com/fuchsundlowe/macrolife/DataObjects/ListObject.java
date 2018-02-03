@@ -1,6 +1,10 @@
 package com.fuchsundlowe.macrolife.DataObjects;
 
+import android.content.Context;
+
 import com.fuchsundlowe.macrolife.EngineClasses.StorageMaster;
+
+import java.util.Random;
 
 /**
  * Created by macbook on 1/29/18.
@@ -21,11 +25,18 @@ public class ListObject {
 
     //Constructor:
     public ListObject(String taskName, boolean taskStatus,
-                      int masterID, int hashID, StorageMaster storageMaster) {
+                      int masterID, int hashID, StorageMaster storageMaster,
+                      Context context) {
+        this.storageMaster = StorageMaster.getInstance(context);
         this.taskName = taskName;
         this.taskStatus = taskStatus;
         this.masterID = masterID;
-        this.hashID = hashID;
+
+        if ((Integer) hashID != null) {
+            this.hashID = hashID;
+        } else {
+            this.hashID = this.createNextID();
+        }
         this.storageMaster = storageMaster;
         if (!amIStored()) {
             this.storeMe();
@@ -69,4 +80,15 @@ public class ListObject {
     private boolean amIStored(){
         return storageMaster.amIStored(this);
     }
+
+    private int createNextID() {
+        Random random = new Random();
+        int newHash;
+        do {
+            newHash = random.nextInt(Integer.MAX_VALUE - 1);
+        } while (storageMaster.checkIfIDisAssigned(newHash));
+        return newHash;
+    }
+
+
 }

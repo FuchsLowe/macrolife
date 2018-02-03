@@ -1,18 +1,15 @@
 package com.fuchsundlowe.macrolife.DataObjects;
 
-
-import android.arch.persistence.room.Entity;
 import android.arch.persistence.room.Ignore;
-import android.arch.persistence.room.PrimaryKey;
+
+import com.fuchsundlowe.macrolife.EngineClasses.StorageMaster;
 
 import java.util.Calendar;
-import java.util.Date;
+import java.util.Random;
 
 /**
  This class is the superclass of most data objects used in this software. It provides common
  values and their respective getters and setters.
- TODO: The calendar class is useless here. I need to accept integer and then I need to create
-
  */
 
 public abstract class DataMasterClass {
@@ -25,9 +22,11 @@ public abstract class DataMasterClass {
     protected Calendar taskCreatedTimeStamp;
     protected boolean taskCompleted;
     @Ignore
-    protected SourceType taskOriginalSource ; // Should this be made available? In what way?
+    private StorageMaster storageMaster;
+    @Ignore
+    private SourceType taskOriginalSource ; // Should this be made available? In what way?
 
-    // public constructor - none
+    // public constructor -
 
 
     // public getters and setters for variables and support methods
@@ -76,10 +75,24 @@ public abstract class DataMasterClass {
     public boolean isTaskCompleted() {
         return this.taskCompleted;
     }
+
+    public int generateNewHashID() {
+        Random random = new Random();
+        return random.nextInt(Integer.MAX_VALUE - 1);
+    }
+
     public SourceType getTaskOriginalSource() {
         return this.taskOriginalSource;
     }
 
+    private int createNextID() {
+        Random random = new Random();
+        int newHash;
+        do {
+            newHash = random.nextInt(Integer.MAX_VALUE - 1);
+        } while (storageMaster.checkIfIDisAssigned(newHash));
+        return newHash;
+    }
 
     // Testing of the Enum class for Source
 

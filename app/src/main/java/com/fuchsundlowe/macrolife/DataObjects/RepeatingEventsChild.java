@@ -10,7 +10,7 @@ import java.util.List;
  * Created by macbook on 1/30/18.
  */
 
-public class RepeatingEventsChild {
+public class RepeatingEventsChild extends DataMasterClass{
     // Instance variables
     private int parentID;
     private Calendar startTime;

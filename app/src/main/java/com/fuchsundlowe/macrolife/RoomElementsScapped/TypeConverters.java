@@ -1,9 +1,8 @@
 package com.fuchsundlowe.macrolife.RoomElementsScapped;
 
 import android.arch.persistence.room.TypeConverter;
-
 import com.fuchsundlowe.macrolife.DataObjects.DataMasterClass;
-
+import com.fuchsundlowe.macrolife.DataObjects.SourceType;
 import java.util.Calendar;
 import java.util.Date;
 
@@ -52,16 +51,16 @@ public class TypeConverters {
     }
 
     @TypeConverter
-    public static DataMasterClass.SourceType fromNumberToSource(int number) {
+    public static SourceType fromNumberToSource(int number) {
         switch (number) {
-            case 0: return DataMasterClass.SourceType.local;
-            case 1: return DataMasterClass.SourceType.googleCalendar;
-            case 2: return DataMasterClass.SourceType.yahooCalendar;
-            default: return DataMasterClass.SourceType.other;
+            case 0: return SourceType.local;
+            case 1: return SourceType.googleCalendar;
+            case 2: return SourceType.yahooCalendar;
+            default: return SourceType.other;
         }
     }
     @TypeConverter
-    public static int fromSourceTypeToInt( DataMasterClass.SourceType type) {
+    public static int fromSourceTypeToInt( SourceType type) {
         switch (type){
             case local: return 0;
             case googleCalendar: return 1;
@@ -69,5 +68,4 @@ public class TypeConverters {
             default: return -1;
         }
     }
-
 }

@@ -17,15 +17,7 @@ public class RepeatingEventsChild extends DataMasterClass{
     private Calendar endTime;
     private ArrayList<Integer> pictureIDs;
 
-    public RepeatingEventsChild(int parentID, Calendar startTime,
-                                Calendar endTime, ArrayList<Integer> pictureIDs) {
-        this.parentID = parentID;
-        this.startTime = startTime;
-        this.endTime = endTime;
-        this.pictureIDs = pictureIDs;
 
-
-    }
     // Methods:
     public int getParentID() {
         return this.parentID;

@@ -2,8 +2,9 @@ package com.fuchsundlowe.macrolife.DataObjects;
 
 import android.arch.persistence.room.Ignore;
 
-import java.util.ArrayList;
+import com.fuchsundlowe.macrolife.EngineClasses.StorageMaster;
 import java.util.Calendar;
+import java.util.Set;
 
 /**
  * Created by macbook on 1/29/18.
@@ -14,22 +15,31 @@ import java.util.Calendar;
 public class ListMaster extends DataMasterClass {
     // Instance Variables:
 
-    private ArrayList<Integer> subGoalsList;
+    // Constructor:
+    public ListMaster(int hashID, String taskName, Calendar taskStartTime,
+                      Calendar taskEndTime, Calendar taskCreatedTimeStamp,
+                      boolean taskCompleted, SourceType taskOriginalSource,
+                      StorageMaster storageMaster) {
 
-    // TODO: Needs complete implementation, needs better constructor
-    public ListMaster(String taskName, SourceType originalSourceOfTask,
-                      Calendar originalCreationTime, int taskUniqueIdentifier) {
+        super(hashID, taskName, taskStartTime, taskEndTime,
+                taskCreatedTimeStamp, taskCompleted, taskOriginalSource,
+                storageMaster);
 
 
     }
 
-    public ArrayList<Integer> getAllSubGoalsIDs() {
-        return this.subGoalsList;
+    // Methods:
+
+    public Set<ListObject> getChildren() {
+        return getStorageMaster().getListObjectsOfParent(this.getHashID());
     }
-    public void addNewGoal(int newGoalId) {
-        this.subGoalsList.add(newGoalId);
-    }
-    public void setSubGoalsList( ArrayList<Integer> newList) {
-        this.subGoalsList = newList;
+
+    @Override
+    public void updateMe() {
+        if (this.getStorageMaster().checkIfIDisAssigned(this.getHashID())) {
+            this.getStorageMaster().updateObject(this);
+        } else {
+            this.getStorageMaster().insertObject(this);
+        }
     }
 }

@@ -1,5 +1,6 @@
 package com.fuchsundlowe.macrolife.DataObjects;
 
+import android.arch.persistence.room.Ignore;
 import android.content.Context;
 
 import com.fuchsundlowe.macrolife.EngineClasses.StorageMaster;
@@ -21,12 +22,14 @@ public class ListObject {
     private boolean taskStatus;
     private int masterID;
     private int hashID;
+    @Ignore
     private StorageMaster storageMaster;
 
     //Constructor:
     public ListObject(String taskName, boolean taskStatus,
                       int masterID, int hashID, StorageMaster storageMaster,
                       Context context) {
+        this.storageMaster = storageMaster;
         this.storageMaster = StorageMaster.getInstance(context);
         this.taskName = taskName;
         this.taskStatus = taskStatus;
@@ -36,10 +39,7 @@ public class ListObject {
             this.hashID = hashID;
         } else {
             this.hashID = this.createNextID();
-        }
-        this.storageMaster = storageMaster;
-        if (!amIStored()) {
-            this.storeMe();
+            this.updateMe();
         }
     }
 
@@ -71,12 +71,15 @@ public class ListObject {
         return this.hashID;
     }
 
+
     public void updateMe() {
-        storageMaster.updateObject(this);
+        if (this.storageMaster.checkIfIDisAssigned(this.getHashID())) {
+            this.storageMaster.updateObject(this);
+        } else {
+            this.storageMaster.insertObject(this);
+        }
     }
-    private void storeMe() {
-        storageMaster.insertObject(this);
-    }
+
     private boolean amIStored(){
         return storageMaster.amIStored(this);
     }

@@ -2,6 +2,8 @@ package com.fuchsundlowe.macrolife.DataObjects;
 
 import android.arch.persistence.room.Entity;
 
+import com.fuchsundlowe.macrolife.EngineClasses.StorageMaster;
+
 import java.util.Calendar;
 
 /**
@@ -9,13 +11,25 @@ import java.util.Calendar;
  * This is a holder class for ordinary Tasks
  */
 public class OrdinaryEventMaster extends DataMasterClass {
-    public OrdinaryEventMaster() {
-        // Empty constructor as I expect that Room will find way to populate it via
-        // base class.
+
+
+    public OrdinaryEventMaster(int hashID, String taskName, Calendar taskStartTime,
+                               Calendar taskEndTime, Calendar taskCreatedTimeStamp,
+                               boolean taskCompleted, SourceType taskOriginalSource,
+                               StorageMaster storageMaster) {
+        super(hashID, taskName, taskStartTime, taskEndTime,
+                taskCreatedTimeStamp, taskCompleted,
+                taskOriginalSource, storageMaster);
+
+
     }
 
-    /*
-    TODO: Unclear if this needs any extra implementation...
-    Maybe if I do isEvent then I can hold some recommendations for such day or event...
-     */
+    @Override
+    public void updateMe() {
+        if (this.getStorageMaster().checkIfIDisAssigned(this.getHashID())) {
+            this.getStorageMaster().updateObject(this);
+        } else {
+            this.getStorageMaster().insertObject(this);
+        }
+    }
 }

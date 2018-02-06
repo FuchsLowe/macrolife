@@ -11,9 +11,7 @@ import java.util.Calendar;
  */
 
 public class RepeatingEventMaster extends DataMasterClass {
-    public RepeatingEventMaster(String taskName, SourceType originalSourceOfTask,
-                                Calendar originalCreationTime, int taskUniqueIdentifier) {
-    }
+
 
 
     /* TODO: How Will I create and implement such functionality...?

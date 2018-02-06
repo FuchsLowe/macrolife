@@ -1,9 +1,7 @@
 package com.fuchsundlowe.macrolife.DataObjects;
 
 import android.arch.persistence.room.Ignore;
-
 import com.fuchsundlowe.macrolife.EngineClasses.StorageMaster;
-
 import java.util.Calendar;
 import java.util.Random;
 
@@ -21,12 +19,31 @@ public abstract class DataMasterClass {
     public Calendar taskEndTime;
     protected Calendar taskCreatedTimeStamp;
     protected boolean taskCompleted;
+    private SourceType taskOriginalSource ;
     @Ignore
     private StorageMaster storageMaster;
-    @Ignore
-    private SourceType taskOriginalSource ; // Should this be made available? In what way?
 
     // public constructor -
+    public DataMasterClass(int hashID, String taskName, Calendar taskStartTime,
+                           Calendar taskEndTime, Calendar taskCreatedTimeStamp,
+                           boolean taskCompleted, SourceType taskOriginalSource,
+                           StorageMaster storageMaster) {
+
+        this.taskName = taskName;
+        this.taskStartTime = taskStartTime;
+        this.taskEndTime = taskEndTime;
+        this.taskCreatedTimeStamp = taskCreatedTimeStamp;
+        this.taskCompleted = taskCompleted;
+        this.taskOriginalSource = taskOriginalSource;
+        this.storageMaster = storageMaster;
+
+        if ((Integer)hashID == null ){
+            if (storageMaster != null) {
+                this.hashID = this.createNextID();
+
+            }
+        }
+    }
 
 
     // public getters and setters for variables and support methods
@@ -76,14 +93,6 @@ public abstract class DataMasterClass {
         return this.taskCompleted;
     }
 
-    public int generateNewHashID() {
-        Random random = new Random();
-        return random.nextInt(Integer.MAX_VALUE - 1);
-    }
-
-    public SourceType getTaskOriginalSource() {
-        return this.taskOriginalSource;
-    }
 
     private int createNextID() {
         Random random = new Random();
@@ -94,10 +103,19 @@ public abstract class DataMasterClass {
         return newHash;
     }
 
-    // Testing of the Enum class for Source
+    public StorageMaster getStorageMaster() {return this.storageMaster; }
 
-    public enum  SourceType {
-        local, googleCalendar, yahooCalendar, other;
+
+    public void setTaskOriginalSource(SourceType type) {
+        this.taskOriginalSource = type;
     }
+
+    public SourceType getTaskOriginalSource() {
+        return this.taskOriginalSource;
+    }
+
+    // This method must check if there is stored ID and if yes update, if no insert. It also
+    // should manage insertion into dataMaster class
+    public abstract void updateMe();
 }
 

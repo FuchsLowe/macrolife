@@ -3,6 +3,8 @@ package com.fuchsundlowe.macrolife.EngineClasses;
 import android.arch.persistence.room.Room;
 import android.content.Context;
 import com.fuchsundlowe.macrolife.DataObjects.*;
+
+import java.util.HashSet;
 import java.util.Set;
 
 /**
@@ -31,6 +33,15 @@ public class StorageMaster {
 
     public Set<ComplexGoalMaster> getComplexGoals() {
         return allComplexGoals;
+    }
+
+    public ComplexGoalMaster getComplexGoalBy(int id) {
+        for (ComplexGoalMaster goalMaster: getComplexGoals()) {
+            if (goalMaster.getHashID() == id) {
+                return goalMaster;
+            }
+        }
+        return null; // TODO: Is this a problem? Will this ever happen?
     }
 
     public void insertObject(ComplexGoalMaster object){
@@ -108,6 +119,16 @@ public class StorageMaster {
             if (value.getHashID() == myID) { return true; }
         }
         return false;
+    }
+
+    public Set<ListObject> getListObjectsOfParent(int parentID) {
+        Set<ListObject> listObjects = new HashSet<ListObject>();
+        for (ListObject list: getListObjects()) {
+            if (list.getMasterID() == parentID) {
+                listObjects.add(list);
+            }
+        }
+        return listObjects;
     }
 
 
@@ -213,6 +234,35 @@ public class StorageMaster {
             if (value.getHashID() == myID) { return true; }
         }
         return false;
+    }
+
+    public Set<Integer> getIDsOfSubGoalfMaster(int withMasterID) {
+        HashSet<Integer> hashSet = new HashSet<>();
+        for (SubGoalMaster subGoal: getAllSubGoalMasters()) {
+            if (subGoal.getHashID() == withMasterID) {
+                hashSet.add(subGoal.getHashID());
+            }
+        }
+        return hashSet;
+    }
+    // Used to retrive the set of subgoals associated with master ID
+    public Set<SubGoalMaster> getSubGoalsOfMaster(int withMasterID) {
+        HashSet<SubGoalMaster> hashSet = new HashSet<>();
+        for (SubGoalMaster goal: getAllSubGoalMasters()) {
+            if (goal.getParentID() == withMasterID) {
+                hashSet.add(goal);
+            }
+        }
+        return hashSet;
+    }
+    // Used to retrive a single instance SubGoalMaster via ID
+    public SubGoalMaster getSubGoalMasterBy(int ID) {
+        for (SubGoalMaster goal: getAllSubGoalMasters()) {
+            if (goal.getHashID() == ID) {
+                return goal;
+            }
+        }
+        return null;
     }
 
     // onCreation:

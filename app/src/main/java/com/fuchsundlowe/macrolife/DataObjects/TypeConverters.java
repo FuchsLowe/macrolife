@@ -1,8 +1,6 @@
 package com.fuchsundlowe.macrolife.DataObjects;
 
 import android.arch.persistence.room.TypeConverter;
-import com.fuchsundlowe.macrolife.DataObjects.DayOfWeek;
-import com.fuchsundlowe.macrolife.DataObjects.SourceType;
 import java.util.Calendar;
 import java.util.Date;
 

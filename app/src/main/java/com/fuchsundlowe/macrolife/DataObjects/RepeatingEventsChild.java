@@ -1,6 +1,7 @@
 package com.fuchsundlowe.macrolife.DataObjects;
 
 import android.arch.persistence.room.Entity;
+import android.arch.persistence.room.Ignore;
 
 import com.fuchsundlowe.macrolife.EngineClasses.StorageMaster;
 import java.util.Calendar;
@@ -11,7 +12,7 @@ import java.util.Random;
  * Created by macbook on 1/30/18.
  * A simple holder that doesn't inherit from DataMaster class
  */
-@Entity
+@Entity(primaryKeys = {"hashID"})
 public class RepeatingEventsChild {
 
     // Instance variables
@@ -20,16 +21,17 @@ public class RepeatingEventsChild {
     private Calendar endTime;
     private DayOfWeek dayOfWeek;
     private int hashID;
+    @Ignore
     private StorageMaster storageMaster;
 
-    public RepeatingEventsChild(int parentID, Calendar startTime, StorageMaster storageMaster,
-                                Calendar endTime, DayOfWeek day, int hashID) {
+    public RepeatingEventsChild(int parentID, Calendar startTime,
+                                Calendar endTime, DayOfWeek dayOfWeek, int hashID) {
 
         this.parentID = parentID;
-        this.dayOfWeek = day;
+        this.dayOfWeek = dayOfWeek;
         this.startTime = startTime;
         this.endTime = endTime;
-        this.storageMaster = storageMaster;
+        this.storageMaster = StorageMaster.optionalStorageMaster();
         if ((Integer) hashID == null) {
             this.hashID = this.createNextID();
         } else {
@@ -39,8 +41,15 @@ public class RepeatingEventsChild {
 
 
     // Methods:
+    public void setHashID(int hashID) {
+        this.hashID = hashID;
+    }
+
     public int getParentID() {
         return this.parentID;
+    }
+    public void setParentID(int parentID){
+        this.parentID = parentID;
     }
     public Calendar getStartTime() {
         return this.startTime;
@@ -54,7 +63,7 @@ public class RepeatingEventsChild {
     }
 
     // Returns true if it can end time comes after begin time, false otherwise.
-    public boolean setEndTime(Calendar endTime) {
+    public boolean setEndTimeWithReturn(Calendar endTime) {
         Calendar startTime = this.getStartTime();
         if (endTime.after(getStartTime())) {
             this.endTime = endTime;
@@ -62,6 +71,10 @@ public class RepeatingEventsChild {
         } else {
             return false;
         }
+    }
+    @Deprecated
+    public void setEndTime(Calendar endTime) {
+        this.endTime = endTime;
     }
 
     public DayOfWeek getDayOfWeek() {

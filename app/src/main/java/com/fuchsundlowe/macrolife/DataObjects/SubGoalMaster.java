@@ -11,7 +11,7 @@ import java.util.Set;
  * This is sub goal of Complex goal master.
  * TODO: Eventually will need the implememtation of location as a refference in system.
  */
-@Entity
+@Entity(primaryKeys = {"hashID"})
 public class SubGoalMaster extends DataMasterClass {
     // Instance variables:
     private int parentID; // Is reference to a ComplexGoalMaster, a must
@@ -23,13 +23,12 @@ public class SubGoalMaster extends DataMasterClass {
     // Constructor:
     public SubGoalMaster(int hashID, String taskName, Calendar taskStartTime,
                          Calendar taskEndTime, Calendar taskCreatedTimeStamp,
-                         boolean taskCompleted, SourceType taskOriginalSource,
-                         StorageMaster storageMaster, int parentID,
+                         boolean taskCompleted, SourceType taskOriginalSource, int parentID,
                          int parentSubGoal) {
 
         super(hashID, taskName, taskStartTime, taskEndTime,
                 taskCreatedTimeStamp, taskCompleted,
-                taskOriginalSource, storageMaster);
+                taskOriginalSource);
         this.parentID=parentID;
         this.parentSubGoal=parentSubGoal;
     }

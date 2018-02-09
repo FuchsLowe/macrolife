@@ -12,19 +12,17 @@ import java.util.Set;
  * This class holds list objects and is used to create views that dispaly list like goals.
  * Examples would be grocelry list etc.
  */
-@Entity
+@Entity(primaryKeys = {"hashID"})
 public class ListMaster extends DataMasterClass {
     // Instance Variables:
 
     // Constructor:
     public ListMaster(int hashID, String taskName, Calendar taskStartTime,
                       Calendar taskEndTime, Calendar taskCreatedTimeStamp,
-                      boolean taskCompleted, SourceType taskOriginalSource,
-                      StorageMaster storageMaster) {
+                      boolean taskCompleted, SourceType taskOriginalSource) {
 
         super(hashID, taskName, taskStartTime, taskEndTime,
-                taskCreatedTimeStamp, taskCompleted, taskOriginalSource,
-                storageMaster);
+                taskCreatedTimeStamp, taskCompleted, taskOriginalSource);
 
 
     }

@@ -32,7 +32,7 @@ import java.util.Set;
             3.1. Here you designate each template per week...
         4. Once that month is done, you are asked if you want this to be repeated till end of period...
          */
-@Entity
+@Entity(primaryKeys = {"hashID"})
 public class RepeatingEventMaster extends DataMasterClass {
 
     // Variables:
@@ -41,10 +41,9 @@ public class RepeatingEventMaster extends DataMasterClass {
 
     public RepeatingEventMaster(int hashID, String taskName, Calendar taskStartTime,
                                 Calendar taskEndTime, Calendar taskCreatedTimeStamp,
-                                boolean taskCompleted, SourceType taskOriginalSource,
-                                StorageMaster storageMaster) {
+                                boolean taskCompleted, SourceType taskOriginalSource) {
         super(hashID, taskName, taskStartTime, taskEndTime, taskCreatedTimeStamp,
-                taskCompleted, taskOriginalSource, storageMaster);
+                taskCompleted, taskOriginalSource);
         // Called to fill in the values for subEvents.
         populateMe();
     }

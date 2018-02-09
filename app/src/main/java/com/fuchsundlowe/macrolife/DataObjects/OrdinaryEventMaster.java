@@ -10,17 +10,16 @@ import java.util.Calendar;
  * Created by macbook on 1/29/18.
  * This is a holder class for ordinary Tasks
  */
-@Entity
+@Entity(primaryKeys = {"hashID"})
 public class OrdinaryEventMaster extends DataMasterClass {
 
 
     public OrdinaryEventMaster(int hashID, String taskName, Calendar taskStartTime,
                                Calendar taskEndTime, Calendar taskCreatedTimeStamp,
-                               boolean taskCompleted, SourceType taskOriginalSource,
-                               StorageMaster storageMaster) {
+                               boolean taskCompleted, SourceType taskOriginalSource) {
         super(hashID, taskName, taskStartTime, taskEndTime,
                 taskCreatedTimeStamp, taskCompleted,
-                taskOriginalSource, storageMaster);
+                taskOriginalSource);
 
 
     }

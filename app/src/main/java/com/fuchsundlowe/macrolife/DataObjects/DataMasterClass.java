@@ -28,8 +28,7 @@ public abstract class DataMasterClass {
     // public constructor -
     public DataMasterClass(int hashID, String taskName, Calendar taskStartTime,
                            Calendar taskEndTime, Calendar taskCreatedTimeStamp,
-                           boolean taskCompleted, SourceType taskOriginalSource,
-                           StorageMaster storageMaster) {
+                           boolean taskCompleted, SourceType taskOriginalSource) {
 
         this.taskName = taskName;
         this.taskStartTime = taskStartTime;
@@ -37,7 +36,7 @@ public abstract class DataMasterClass {
         this.taskCreatedTimeStamp = taskCreatedTimeStamp;
         this.taskCompleted = taskCompleted;
         this.taskOriginalSource = taskOriginalSource;
-        this.storageMaster = storageMaster;
+        this.storageMaster = StorageMaster.optionalStorageMaster();
 
         if ((Integer)hashID == null ){
             if (storageMaster != null) {

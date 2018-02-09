@@ -30,6 +30,10 @@ public class StorageMaster implements BaseViewInterface{
         return self;
     }
 
+    public static StorageMaster optionalStorageMaster() {
+        return self;
+    }
+
     // ComplexGoalMaster
     private Set<ComplexGoalMaster> allComplexGoals; // HashSet<>
 

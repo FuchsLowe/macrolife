@@ -11,7 +11,7 @@ import java.util.Set;
  and has accompaning calls and additional variables.
  *
  */
-@Entity
+@Entity(primaryKeys = {"hashID"})
 public class ComplexGoalMaster extends DataMasterClass {
 
     // Variables:
@@ -20,12 +20,12 @@ public class ComplexGoalMaster extends DataMasterClass {
     public ComplexGoalMaster(int hashID, String taskName, Calendar taskStartTime,
                              Calendar taskEndTime, Calendar taskCreatedTimeStamp,
                              boolean taskCompleted, SourceType taskOriginalSource,
-                             StorageMaster storageMaster, String purpose) {
+                             String purpose) {
 
         super(hashID, taskName, taskStartTime,
                 taskEndTime, taskCreatedTimeStamp,
-                taskCompleted, taskOriginalSource,
-                storageMaster);
+                taskCompleted, taskOriginalSource
+                );
 
         this.purpose = purpose;
 

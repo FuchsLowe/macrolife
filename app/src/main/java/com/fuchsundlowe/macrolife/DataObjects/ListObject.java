@@ -15,7 +15,7 @@ import java.util.Random;
  * USed as subelement in grocery lists and alike.
  * TODO: To delete self on request? How will I manage this?
  */
-@Entity
+@Entity(primaryKeys = {"hashID"})
 public class ListObject {
     // Local Variables
     private String taskName;
@@ -27,10 +27,8 @@ public class ListObject {
 
     //Constructor:
     public ListObject(String taskName, boolean taskStatus,
-                      int masterID, int hashID, StorageMaster storageMaster,
-                      Context context) {
-        this.storageMaster = storageMaster;
-        this.storageMaster = StorageMaster.getInstance(context);
+                      int masterID, int hashID) {
+        this.storageMaster = StorageMaster.optionalStorageMaster();
         this.taskName = taskName;
         this.taskStatus = taskStatus;
         this.masterID = masterID;
@@ -55,7 +53,8 @@ public class ListObject {
     public void setTaskStatus(boolean taskStatus) {
         this.taskStatus = taskStatus;
     }
-    public boolean isTaskDone() {
+    // Returns true if status is done and false if not
+    public boolean getTaskStatus() {
         return this.taskStatus;
     }
 

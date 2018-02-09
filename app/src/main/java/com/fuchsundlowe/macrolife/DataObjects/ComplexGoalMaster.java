@@ -1,8 +1,7 @@
 package com.fuchsundlowe.macrolife.DataObjects;
 
+import android.arch.persistence.room.Entity;
 import com.fuchsundlowe.macrolife.EngineClasses.StorageMaster;
-
-
 import java.util.Calendar;
 import java.util.Set;
 
@@ -12,6 +11,7 @@ import java.util.Set;
  and has accompaning calls and additional variables.
  *
  */
+@Entity
 public class ComplexGoalMaster extends DataMasterClass {
 
     // Variables:

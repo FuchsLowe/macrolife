@@ -21,6 +21,7 @@ public abstract class DataMasterClass {
     protected Calendar taskCreatedTimeStamp;
     protected boolean taskCompleted;
     private SourceType taskOriginalSource ;
+
     @Ignore
     private StorageMaster storageMaster;
 

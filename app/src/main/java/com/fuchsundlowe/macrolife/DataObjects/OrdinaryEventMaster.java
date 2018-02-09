@@ -10,6 +10,7 @@ import java.util.Calendar;
  * Created by macbook on 1/29/18.
  * This is a holder class for ordinary Tasks
  */
+@Entity
 public class OrdinaryEventMaster extends DataMasterClass {
 
 

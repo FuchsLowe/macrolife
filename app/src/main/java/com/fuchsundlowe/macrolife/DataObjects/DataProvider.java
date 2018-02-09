@@ -10,7 +10,7 @@ import android.arch.persistence.room.*;
 @Database(version = 1, entities = {ComplexGoalMaster.class, ListMaster.class, ListObject.class,
                                     OrdinaryEventMaster.class, RepeatingEventsChild.class,
                                     RepeatingEventMaster.class, SubGoalMaster.class})
-@android.arch.persistence.room.TypeConverters({TypeConverters.class})
+@android.arch.persistence.room.TypeConverters({TypeConverter.class})
 public abstract class DataProvider extends RoomDatabase {
 
     public abstract DAO daoObject();

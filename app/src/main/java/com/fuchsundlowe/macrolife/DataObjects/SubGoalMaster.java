@@ -1,5 +1,6 @@
 package com.fuchsundlowe.macrolife.DataObjects;
 
+import android.arch.persistence.room.Entity;
 import android.arch.persistence.room.Ignore;
 import com.fuchsundlowe.macrolife.EngineClasses.StorageMaster;
 import java.util.Calendar;
@@ -10,7 +11,7 @@ import java.util.Set;
  * This is sub goal of Complex goal master.
  * TODO: Eventually will need the implememtation of location as a refference in system.
  */
-
+@Entity
 public class SubGoalMaster extends DataMasterClass {
     // Instance variables:
     private int parentID; // Is reference to a ComplexGoalMaster, a must

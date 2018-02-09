@@ -1,5 +1,7 @@
 package com.fuchsundlowe.macrolife.DataObjects;
 
+import android.arch.persistence.room.Entity;
+
 import com.fuchsundlowe.macrolife.EngineClasses.StorageMaster;
 import java.util.Calendar;
 import java.util.Random;
@@ -9,7 +11,7 @@ import java.util.Random;
  * Created by macbook on 1/30/18.
  * A simple holder that doesn't inherit from DataMaster class
  */
-
+@Entity
 public class RepeatingEventsChild {
 
     // Instance variables

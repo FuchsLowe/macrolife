@@ -1,5 +1,6 @@
 package com.fuchsundlowe.macrolife.DataObjects;
 
+import android.arch.persistence.room.Entity;
 import android.arch.persistence.room.Ignore;
 
 import com.fuchsundlowe.macrolife.EngineClasses.StorageMaster;
@@ -31,6 +32,7 @@ import java.util.Set;
             3.1. Here you designate each template per week...
         4. Once that month is done, you are asked if you want this to be repeated till end of period...
          */
+@Entity
 public class RepeatingEventMaster extends DataMasterClass {
 
     // Variables:

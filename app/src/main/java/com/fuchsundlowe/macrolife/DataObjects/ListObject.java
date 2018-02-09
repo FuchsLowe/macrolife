@@ -1,5 +1,6 @@
 package com.fuchsundlowe.macrolife.DataObjects;
 
+import android.arch.persistence.room.Entity;
 import android.arch.persistence.room.Ignore;
 import android.content.Context;
 
@@ -14,7 +15,7 @@ import java.util.Random;
  * USed as subelement in grocery lists and alike.
  * TODO: To delete self on request? How will I manage this?
  */
-
+@Entity
 public class ListObject {
     // Local Variables
     private String taskName;

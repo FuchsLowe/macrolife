@@ -1,5 +1,6 @@
 package com.fuchsundlowe.macrolife.DataObjects;
 
+import android.arch.persistence.room.Entity;
 import android.arch.persistence.room.Ignore;
 
 import com.fuchsundlowe.macrolife.EngineClasses.StorageMaster;
@@ -11,7 +12,7 @@ import java.util.Set;
  * This class holds list objects and is used to create views that dispaly list like goals.
  * Examples would be grocelry list etc.
  */
-
+@Entity
 public class ListMaster extends DataMasterClass {
     // Instance Variables:
 

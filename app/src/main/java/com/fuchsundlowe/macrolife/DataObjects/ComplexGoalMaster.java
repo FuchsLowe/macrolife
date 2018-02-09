@@ -30,7 +30,7 @@ public class ComplexGoalMaster extends DataMasterClass {
         this.purpose = purpose;
 
 
-    }
+    } 
     /*
      *TODO: How will I store color?
      * First define what type of colors do I support,

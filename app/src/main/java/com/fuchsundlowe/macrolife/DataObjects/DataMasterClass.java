@@ -6,8 +6,9 @@ import java.util.Calendar;
 import java.util.Random;
 
 /**
- This class is the superclass of most data objects used in this software. It provides common
- values and their respective getters and setters.
+ *This class is the superclass of most data objects used in this software. It provides common
+ *values and their respective getters and setters.
+ * TODO: How will children of classess handle delete of their parents? This needs to be cascade delete
  */
 
 public abstract class DataMasterClass {
@@ -40,7 +41,7 @@ public abstract class DataMasterClass {
         if ((Integer)hashID == null ){
             if (storageMaster != null) {
                 this.hashID = this.createNextID();
-
+                updateMe();
             }
         }
     }
@@ -68,7 +69,6 @@ public abstract class DataMasterClass {
     public boolean setTaskEndTime(Calendar taskEndTime) {
         Calendar startTime = this.getTaskStartTime();
         if (taskEndTime.after(startTime)) {
-            // TODO: Implement this, needs to format to date and time and convert to calendar, check comapt
             this.taskEndTime = taskEndTime;
             return true;
         } else {
@@ -117,5 +117,6 @@ public abstract class DataMasterClass {
     // This method must check if there is stored ID and if yes update, if no insert. It also
     // should manage insertion into dataMaster class
     public abstract void updateMe();
+
 }
 

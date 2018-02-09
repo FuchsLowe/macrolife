@@ -3,6 +3,7 @@ package com.fuchsundlowe.macrolife.EngineClasses;
 import android.arch.persistence.room.Room;
 import android.content.Context;
 import com.fuchsundlowe.macrolife.DataObjects.*;
+import com.fuchsundlowe.macrolife.Interfaces.BaseViewInterface;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -12,9 +13,10 @@ import java.util.Set;
  * Purpose of this class is to store all data that will be used in app.
  * It loads database on creation of the app, does abstarction over the way it stores data
  * Manages all calls from data objects
+ * TODO: Shoudl all children remove themselves if no parent is alive?
  */
 
-public class StorageMaster {
+public class StorageMaster implements BaseViewInterface{
     // Database Class:
     private DataProvider dataBase;
     private DAO dataAccessObject;
@@ -54,7 +56,11 @@ public class StorageMaster {
     }
 
     public void deleteObject(ComplexGoalMaster object) {
-        allComplexGoals.add(object);
+        for (SubGoalMaster subGoal: this.getSubGoalsOfMaster(object.getHashID())) {
+            this.deleteObject(subGoal);
+        }
+
+        allComplexGoals.remove(object);
         dataAccessObject.deleteTask(object);
     }
 
@@ -82,7 +88,11 @@ public class StorageMaster {
     }
 
     public void deleteObject(ListMaster object) {
-        allListMasters.add(object);
+        for (ListObject subGoal: getListObjectsOfParent(object.getHashID())) {
+            this.deleteObject(subGoal);
+        }
+
+        allListMasters.remove(object);
         dataAccessObject.deleteTask(object);
     }
 
@@ -132,8 +142,6 @@ public class StorageMaster {
     }
 
 
-
-
     // OrdinaryEventMaster
     private Set<OrdinaryEventMaster> allOrdinaryEventMasters;
     public Set<OrdinaryEventMaster> getAllOrdinaryEventMasters() {
@@ -175,6 +183,10 @@ public class StorageMaster {
         dataAccessObject.updateTask(object);
     }
     public void deleteObject(RepeatingEventMaster object) {
+        for (RepeatingEventsChild subTask: getAllRepeatChildrenByParent(object.getHashID())) {
+            deleteObject(subTask);
+        }
+
         allRepeatingEventMasters.remove(object); // Removes it from heap here
         dataAccessObject.deleteTask(object); // Removes it from permanent storage
     }
@@ -184,6 +196,15 @@ public class StorageMaster {
             if (value.getHashID() == myID) { return true; }
         }
         return false;
+    }
+
+    public RepeatingEventMaster getMasterByInt(int masterID) {
+        for (RepeatingEventMaster master: this.getAllRepeatingEventMasterss()) {
+            if (master.getHashID() == masterID) {
+                return master;
+            }
+        }
+        return null;
     }
     // RepeatingEventChild
     private Set<RepeatingEventsChild> allRepeatingEventChildren;
@@ -209,6 +230,16 @@ public class StorageMaster {
             if (value.getHashID() == myID) { return true; }
         }
         return false;
+    }
+
+    public Set<RepeatingEventsChild> getAllRepeatChildrenByParent(int parentId) {
+        Set<RepeatingEventsChild> hashSet = new HashSet<RepeatingEventsChild>();
+        for (RepeatingEventsChild child: getAllRepeatingEventChildren()) {
+            if (child.getParentID() == parentId) {
+                hashSet.add(child);
+            }
+        }
+        return hashSet;
     }
     // SubGoalMaster
     private Set<SubGoalMaster> allSubGoalMasters;
@@ -305,6 +336,9 @@ public class StorageMaster {
         return false;
 
     }
+
+    // DatabaseConnector interface methods:
+
     public void closeDatabase() {
         dataBase.close();
     }

@@ -12,7 +12,6 @@ import java.util.Random;
  * Small data holder that doesn't inherit from DataMasterClass
  * Holds single enrty and is used exclusivlely as subgoal for listMaster
  * USed as subelement in grocery lists and alike.
- * TODO: To add itself to data if created anew
  * TODO: To delete self on request? How will I manage this?
  */
 

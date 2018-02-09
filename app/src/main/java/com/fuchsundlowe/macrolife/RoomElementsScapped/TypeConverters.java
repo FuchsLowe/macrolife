@@ -1,7 +1,7 @@
 package com.fuchsundlowe.macrolife.RoomElementsScapped;
 
 import android.arch.persistence.room.TypeConverter;
-import com.fuchsundlowe.macrolife.DataObjects.DataMasterClass;
+import com.fuchsundlowe.macrolife.DataObjects.DayOfWeek;
 import com.fuchsundlowe.macrolife.DataObjects.SourceType;
 import java.util.Calendar;
 import java.util.Date;
@@ -66,6 +66,32 @@ public class TypeConverters {
             case googleCalendar: return 1;
             case yahooCalendar: return 2;
             default: return -1;
+        }
+    }
+
+    @TypeConverter
+    public static DayOfWeek fromIntToDay(int value) {
+        switch (value) {
+            case 1: return DayOfWeek.monday;
+            case 2: return DayOfWeek.tuesday;
+            case 3: return DayOfWeek.wednesday;
+            case 4: return DayOfWeek.thursday;
+            case 5: return DayOfWeek.friday;
+            case 6: return DayOfWeek.saturday;
+            default: return DayOfWeek.sunday;
+        }
+    }
+
+    @TypeConverter
+    public static int fromDayToInt(DayOfWeek day) {
+        switch (day) {
+            case monday: return 1;
+            case tuesday: return 2;
+            case wednesday: return 3;
+            case thursday: return 4;
+            case friday: return 5;
+            case saturday: return 6;
+            default: return 7;
         }
     }
 }

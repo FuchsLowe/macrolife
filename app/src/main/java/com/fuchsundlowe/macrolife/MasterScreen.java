@@ -2,6 +2,9 @@ package com.fuchsundlowe.macrolife;
 
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.Log;
+import android.view.MotionEvent;
+import android.view.View;
 
 import com.fuchsundlowe.macrolife.FragmentModels.DayViewFragment;
 
@@ -9,6 +12,8 @@ import com.fuchsundlowe.macrolife.FragmentModels.DayViewFragment;
 public class MasterScreen extends AppCompatActivity {
 
 
+
+    DayViewFragment day;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -18,10 +23,13 @@ public class MasterScreen extends AppCompatActivity {
         // my database insatnce here
 
         // Adding the fragment for testing now:
-        DayViewFragment day =  new DayViewFragment();
+        day =  new DayViewFragment();
         getSupportFragmentManager().beginTransaction().add(R.id.masterContainer,
                 day).commit();
 
+
+
     }
+
 
 }

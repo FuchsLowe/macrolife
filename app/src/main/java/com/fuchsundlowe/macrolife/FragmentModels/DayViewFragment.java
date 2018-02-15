@@ -3,11 +3,16 @@ package com.fuchsundlowe.macrolife.FragmentModels;
 import android.content.Context;
 import android.net.Uri;
 import android.os.Bundle;
+import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.FrameLayout;
+import android.widget.ScrollView;
 
+import com.fuchsundlowe.macrolife.CustomViews.SimpleChronoView;
 import com.fuchsundlowe.macrolife.R;
 
 /**
@@ -21,13 +26,28 @@ public class DayViewFragment extends Fragment {
 
     //private OnFragmentInteractionListener mListener;
 
-
-    //
+    private ScrollView center;
+    private FrameLayout topBar;
 
     public DayViewFragment() {
         // Required empty public constructor
     }
 
+    // MyImpplementation:
+    private void addGraphics() {
+        center.addView(new SimpleChronoView(getContext()));
+
+    }
+
+    public void scrollTo(int hour) {
+        if (hour >= 0 && hour <=24) {
+            int slices = center.getHeight() / 24;
+            center.scrollTo(0,slices * hour);
+        }
+    }
+
+
+    // Life-cycle events:
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -42,11 +62,18 @@ public class DayViewFragment extends Fragment {
         return inflater.inflate(R.layout.day_layout, container, false);
     }
 
+    @Override
+    public void onActivityCreated(@Nullable Bundle savedInstanceState) {
+        super.onActivityCreated(savedInstanceState);
+        center = getView().findViewById(R.id.center);
+        topBar = getView().findViewById(R.id.top_bar);
+        addGraphics();
 
+    }
 
     @Override
-    public void onAttach(Context context) {
-        super.onAttach(context);
+    public void onStart() {
+        super.onStart();
 
     }
 
@@ -71,4 +98,10 @@ public class DayViewFragment extends Fragment {
         void onFragmentInteraction(Uri uri);
     }
      */
+
+    // Touch events:
+
+
+
+
 }

@@ -8,6 +8,7 @@ import com.fuchsundlowe.macrolife.DataObjects.RepeatingEventMaster;
 import com.fuchsundlowe.macrolife.DataObjects.RepeatingEventsChild;
 import com.fuchsundlowe.macrolife.DataObjects.SubGoalMaster;
 
+import java.util.Calendar;
 import java.util.Set;
 
 /**
@@ -15,36 +16,34 @@ import java.util.Set;
  */
 
 public interface BaseViewInterface {
-    // Needs to listen to the updates from dataClass
-    // Holds a data to be displayed for the purpose of the View subclasses
-    // Should it contain a class calls for location management? Like to call to check if its too close
 
-    /*
-     * What will this interface communicate?
-     * Delivery of data
-     * Deletion of data
-     */
 
-    public Set<ComplexGoalMaster> getComplexGoals();
-    public void deleteObject(ComplexGoalMaster object);
+    Set<ComplexGoalMaster> getComplexGoals();
+    void deleteObject(ComplexGoalMaster object);
+    Set<ComplexGoalMaster> getComplexGoalsByDay(Calendar day);
 
-    public Set<ListMaster>getAllListMasters();
-    public void deleteObject(ListMaster object);
+    Set<ListMaster>getAllListMasters();
+    void deleteObject(ListMaster object);
+    Set<ListMaster>getAllListMastersByDay(Calendar day);
 
-    public Set<ListObject>getListObjects();
-    public void deleteObject(ListObject object);
+    Set<ListObject>getListObjects();
+    void deleteObject(ListObject object);
 
-    public Set<OrdinaryEventMaster>getAllOrdinaryEventMasters();
-    public void deleteObject(OrdinaryEventMaster object);
+    Set<OrdinaryEventMaster>getAllOrdinaryEventMasters();
+    void deleteObject(OrdinaryEventMaster object);
+    Set<OrdinaryEventMaster>getAllOrdinaryTasksByDay(Calendar day);
 
-    public Set<RepeatingEventMaster>getAllRepeatingEventMasterss();
-    public void deleteObject(RepeatingEventMaster object);
+    Set<RepeatingEventMaster>getAllRepeatingEventMasterss();
+    void deleteObject(RepeatingEventMaster object);
+    Set<RepeatingEventMaster>getAllRepeatingEventMastersByDay(Calendar day);
 
-    public Set<RepeatingEventsChild>getAllRepeatingEventChildren();
-    public void deleteObject(RepeatingEventsChild object);
+    Set<RepeatingEventsChild>getAllRepeatingEventChildren();
+    void deleteObject(RepeatingEventsChild object);
+    Set<RepeatingEventsChild>getAllRepeatingChildrenByParent(int parentId);
 
-    public Set<SubGoalMaster>getAllSubGoalMasters();
-    public void deleteObject(SubGoalMaster object);
+    Set<SubGoalMaster>getAllSubGoalMasters();
+    void deleteObject(SubGoalMaster object);
+    Set<SubGoalMaster>getAllSubGoalsByMasterId(int masterID);
 
-    public void closeDatabase();
+    void closeDatabase();
 }

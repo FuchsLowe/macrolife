@@ -2,6 +2,8 @@ package com.fuchsundlowe.macrolife;
 
 import org.junit.Test;
 
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
 import java.util.Random;
 
 import static org.junit.Assert.*;
@@ -15,9 +17,14 @@ public class ExampleUnitTest {
 
     @Test
     public void addition_isCorrect() throws Exception {
-        Random random = new Random();
-        for (int i = 0; i<22; i++) {
-            System.out.print(i);
-        }
+        Calendar day = Calendar.getInstance();
+
+        SimpleDateFormat toDay = new SimpleDateFormat("EEEE");
+
+        SimpleDateFormat toDate = new SimpleDateFormat("MMMM dd, yyyy");
+
+        System.out.print(toDay.format(day.getTime()));
+        System.out.print("\n");
+        System.out.print(toDate.format(day.getTime()));
     }
 }

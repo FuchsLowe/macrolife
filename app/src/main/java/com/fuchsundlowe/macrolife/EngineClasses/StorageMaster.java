@@ -341,6 +341,8 @@ public class StorageMaster implements BaseViewInterface{
 
     }
 
+
+
     // DatabaseConnector interface methods:
 
     public void closeDatabase() {

@@ -3,6 +3,7 @@ package com.fuchsundlowe.macrolife.FragmentModels;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -25,16 +26,12 @@ public class TopBarFragment extends Fragment {
 
     public void setDay(Calendar day) {
         this.day = day;
-        topLabel.setText(getDate());
-        bottomLabel.setText(getDate());
+
     }
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        topLabel = getView().findViewById(R.id.topLabel);
-        bottomLabel = getView().findViewById(R.id.bottomLabel);
-
     }
 
     @Override
@@ -44,16 +41,46 @@ public class TopBarFragment extends Fragment {
                container,false);
        return rootView;
     }
+
+    @Override
+    public void onActivityCreated(@Nullable Bundle savedInstanceState) {
+        super.onActivityCreated(savedInstanceState);
+
+        topLabel = getView().findViewById(R.id.topLabel);
+        bottomLabel = getView().findViewById(R.id.bottomLabel);
+        if (day != null) {
+            topLabel.setText(getDay());
+            bottomLabel.setText(getDate());
+        }
+
+    }
+
+    @Override
+    public void onStart() {
+        super.onStart();
+
+//        topLabel.setText(getDay());
+//        bottomLabel.setText(getDate());
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+
+    }
+
     // TODO: To define the size of text and overall position metrics, color etc
     // Implememntation of support methods:
     private String getDay() {
         SimpleDateFormat format = new SimpleDateFormat("EEEE");
-        return format.format(this.day.getTime());
+        String value = format.format(this.day.getTime());
+        return value;
     }
 
     private String getDate() {
         SimpleDateFormat format = new SimpleDateFormat("MMMM dd, yyyy");
-        return  format.format(this.day.getTime());
+        String value = format.format(this.day.getTime());
+        return  value;
     }
 
 

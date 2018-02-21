@@ -5,6 +5,7 @@ import android.content.Context;
 import com.fuchsundlowe.macrolife.DataObjects.*;
 import com.fuchsundlowe.macrolife.Interfaces.BaseViewInterface;
 
+import java.util.Calendar;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -55,6 +56,8 @@ public class StorageMaster implements BaseViewInterface{
         dataAccessObject.insertTask(object);
     }
 
+
+
     public void updateObject(ComplexGoalMaster object) {
         dataAccessObject.updateTask(object);
     }
@@ -66,6 +69,21 @@ public class StorageMaster implements BaseViewInterface{
 
         allComplexGoals.remove(object);
         dataAccessObject.deleteTask(object);
+    }
+
+    @Override
+    public Set<ComplexGoalMaster> getComplexGoalsByDay(Calendar day) {
+        Set<ComplexGoalMaster> tempSet = new HashSet<>();
+        day.set(Calendar.HOUR_OF_DAY, 0);
+        day.set(Calendar.MINUTE, 0);
+        for (ComplexGoalMaster goal: getComplexGoals()) {
+            if (checkIfBelongsTimeWise(goal.getTaskStartTime(), goal.getTaskEndTime(), day) ) {
+                tempSet.add(goal);
+            }
+
+        }
+
+        return tempSet;
     }
 
     public boolean amIStored(ComplexGoalMaster object) {
@@ -98,6 +116,21 @@ public class StorageMaster implements BaseViewInterface{
 
         allListMasters.remove(object);
         dataAccessObject.deleteTask(object);
+    }
+
+    @Override
+    public Set<ListMaster> getAllListMastersByDay(Calendar day) {
+        Set<ListMaster> tempSet = new HashSet<>();
+        day.set(Calendar.HOUR_OF_DAY, 0);
+        day.set(Calendar.MINUTE, 0);
+        for (ListMaster goal: getAllListMasters()) {
+            if (checkIfBelongsTimeWise(goal.getTaskStartTime(), goal.getTaskEndTime(), day) ) {
+                tempSet.add(goal);
+            }
+
+        }
+
+        return tempSet;
     }
 
     public boolean amIStored(ListMaster object) {
@@ -164,6 +197,22 @@ public class StorageMaster implements BaseViewInterface{
         allOrdinaryEventMasters.remove(object); // Removes it from heap here
         dataAccessObject.deleteTask(object); // Removes it from permanent storage
     }
+
+    @Override
+    public Set<OrdinaryEventMaster> getAllOrdinaryTasksByDay(Calendar day) {
+        Set<OrdinaryEventMaster> tempSet = new HashSet<>();
+        day.set(Calendar.HOUR_OF_DAY, 0);
+        day.set(Calendar.MINUTE, 0);
+        for (OrdinaryEventMaster goal: getAllOrdinaryEventMasters()) {
+            if (checkIfBelongsTimeWise(goal.getTaskStartTime(), goal.getTaskEndTime(), day) ) {
+                tempSet.add(goal);
+            }
+
+        }
+
+        return tempSet;
+    }
+
     public boolean amIStored(OrdinaryEventMaster object) {
         int myID = object.getHashID();
         for (OrdinaryEventMaster value: getAllOrdinaryEventMasters()) {
@@ -187,13 +236,29 @@ public class StorageMaster implements BaseViewInterface{
         dataAccessObject.updateTask(object);
     }
     public void deleteObject(RepeatingEventMaster object) {
-        for (RepeatingEventsChild subTask: getAllRepeatChildrenByParent(object.getHashID())) {
+        for (RepeatingEventsChild subTask: getAllRepeatingChildrenByParent(object.getHashID())) {
             deleteObject(subTask);
         }
 
         allRepeatingEventMasters.remove(object); // Removes it from heap here
         dataAccessObject.deleteTask(object); // Removes it from permanent storage
     }
+
+    @Override
+    public Set<RepeatingEventMaster> getAllRepeatingEventMastersByDay(Calendar day) {
+        Set<RepeatingEventMaster> tempSet = new HashSet<>();
+        day.set(Calendar.HOUR_OF_DAY, 0);
+        day.set(Calendar.MINUTE, 0);
+        for (RepeatingEventMaster goal: getAllRepeatingEventMasterss()) {
+            if (checkIfBelongsTimeWise(goal.getTaskStartTime(), goal.getTaskEndTime(), day) ) {
+                tempSet.add(goal);
+            }
+
+        }
+
+        return tempSet;
+    }
+
     public boolean amIStored(RepeatingEventMaster object) {
         int myID = object.getHashID();
         for (RepeatingEventMaster value: getAllRepeatingEventMasterss()) {
@@ -228,6 +293,9 @@ public class StorageMaster implements BaseViewInterface{
         allRepeatingEventChildren.remove(object); // Removes it from heap here
         dataAccessObject.deleteTask(object); // Removes it from permanent storage
     }
+
+
+
     public boolean amIStored(RepeatingEventsChild object) {
         int myID = object.getHashID();
         for (RepeatingEventsChild value: getAllRepeatingEventChildren()) {
@@ -236,7 +304,8 @@ public class StorageMaster implements BaseViewInterface{
         return false;
     }
 
-    public Set<RepeatingEventsChild> getAllRepeatChildrenByParent(int parentId) {
+
+    public Set<RepeatingEventsChild> getAllRepeatingChildrenByParent(int parentId) {
         Set<RepeatingEventsChild> hashSet = new HashSet<RepeatingEventsChild>();
         for (RepeatingEventsChild child: getAllRepeatingEventChildren()) {
             if (child.getParentID() == parentId) {
@@ -263,6 +332,18 @@ public class StorageMaster implements BaseViewInterface{
         allSubGoalMasters.remove(object); // Removes it from heap here
         dataAccessObject.deleteTask(object); // Removes it from permanent storage
     }
+
+    @Override
+    public Set<SubGoalMaster> getAllSubGoalsByMasterId(int masterID) {
+        Set<SubGoalMaster> temp = new HashSet<>();
+        for (SubGoalMaster subGoal: getAllSubGoalMasters()) {
+            if (subGoal.getParentID() == masterID) {
+                temp.add(subGoal);
+            }
+        }
+        return temp;
+    }
+
     public boolean amIStored(SubGoalMaster object) {
         int myID = object.getHashID();
         for (SubGoalMaster value: getAllSubGoalMasters()) {
@@ -340,8 +421,14 @@ public class StorageMaster implements BaseViewInterface{
         return false;
 
     }
-
-
+    // Returns true if a date falls between start and end time
+    private boolean checkIfBelongsTimeWise(Calendar startTime, Calendar endTime, Calendar checkTime) {
+        if (checkTime.after(startTime) && checkTime.before(endTime)) {
+            return true;
+        } else {
+            return false;
+        }
+    }
 
     // DatabaseConnector interface methods:
 

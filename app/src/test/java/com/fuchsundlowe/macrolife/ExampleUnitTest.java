@@ -4,7 +4,9 @@ import org.junit.Test;
 
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
+import java.util.HashSet;
 import java.util.Random;
+import java.util.Set;
 
 import static org.junit.Assert.*;
 
@@ -17,14 +19,25 @@ public class ExampleUnitTest {
 
     @Test
     public void addition_isCorrect() throws Exception {
-        Calendar day = Calendar.getInstance();
+       Calendar start = Calendar.getInstance();
+       Calendar end = Calendar.getInstance();
+       Calendar inBetween = Calendar.getInstance();
 
-        SimpleDateFormat toDay = new SimpleDateFormat("EEEE");
+       start.set(2008,2,3,0,0);
+       end.set(2008,2,3,16,11);
 
-        SimpleDateFormat toDate = new SimpleDateFormat("MMMM dd, yyyy");
+       inBetween.set(2009,2,3,4,12);
 
-        System.out.print(toDay.format(day.getTime()));
-        System.out.print("\n");
-        System.out.print(toDate.format(day.getTime()));
+       System.out.print(checkIfBelongsTimeWise(start,end,inBetween));
+
+    }
+
+    // Returns true if a date falls between start and end time
+    private boolean checkIfBelongsTimeWise(Calendar startTime, Calendar endTime, Calendar checkTime) {
+        if (checkTime.after(startTime) && checkTime.before(endTime)) {
+            return true;
+        } else {
+            return false;
+        }
     }
 }

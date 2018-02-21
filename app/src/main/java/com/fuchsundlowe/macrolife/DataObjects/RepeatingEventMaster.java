@@ -66,7 +66,7 @@ public class RepeatingEventMaster extends DataMasterClass {
 
         // Needs to find all children of this class
         Set<RepeatingEventsChild> children = this.getStorageMaster().
-                getAllRepeatChildrenByParent(this.getHashID());
+                getAllRepeatingChildrenByParent(this.getHashID());
 
         // Arranges them in right order
         for (RepeatingEventsChild child: children) {

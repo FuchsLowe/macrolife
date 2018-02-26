@@ -3,7 +3,6 @@ package com.fuchsundlowe.macrolife.FragmentModels;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -37,7 +36,7 @@ public class TopBarFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-       ViewGroup rootView = (ViewGroup) inflater.inflate(R.layout.top_bar,
+       ViewGroup rootView = (ViewGroup) inflater.inflate(R.layout.day_view_top_bar,
                container,false);
        return rootView;
     }

@@ -7,6 +7,7 @@ import android.view.MotionEvent;
 import android.view.View;
 
 import com.fuchsundlowe.macrolife.FragmentModels.DayViewFragment;
+import com.fuchsundlowe.macrolife.FragmentModels.SimpleListFragment;
 
 
 public class MasterScreen extends AppCompatActivity {
@@ -14,6 +15,7 @@ public class MasterScreen extends AppCompatActivity {
 
 
     DayViewFragment day;
+    SimpleListFragment list;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -23,9 +25,10 @@ public class MasterScreen extends AppCompatActivity {
         // my database insatnce here
 
         // Adding the fragment for testing now:
-        day =  new DayViewFragment();
+        //day =  new DayViewFragment();
+        list = new SimpleListFragment();
         getSupportFragmentManager().beginTransaction().add(R.id.masterContainer,
-                day).commit();
+                list).commit();
 
 
 

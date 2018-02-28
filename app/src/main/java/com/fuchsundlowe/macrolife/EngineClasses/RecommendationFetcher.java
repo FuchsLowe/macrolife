@@ -7,4 +7,5 @@ package com.fuchsundlowe.macrolife.EngineClasses;
  */
 
 public class RecommendationFetcher {
+
 }

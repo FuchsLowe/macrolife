@@ -45,9 +45,10 @@ public class DayViewFragment extends Fragment {
 
     public DayViewFragment() {
         // Required empty public constructor
-        dataMaster = StorageMaster.optionalStorageMaster();
+        dataMaster = StorageMaster.getInstance(getContext());
         // TODO: Temp solution:
         currentDay = new DayHolder(Calendar.getInstance(), dataMaster);
+
     }
 
 
@@ -57,7 +58,6 @@ public class DayViewFragment extends Fragment {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
 
         // We are expecting a passed day in form of long to be delivered
         if (savedInstanceState != null) {

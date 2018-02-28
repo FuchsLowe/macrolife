@@ -271,6 +271,7 @@ public class StorageMaster implements BaseViewInterface{
         for (RepeatingEventMaster master: this.getAllRepeatingEventMasterss()) {
             if (master.getHashID() == masterID) {
                 return master;
+
             }
         }
         return null;

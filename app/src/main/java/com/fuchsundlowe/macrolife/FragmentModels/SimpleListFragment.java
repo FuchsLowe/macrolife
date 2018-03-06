@@ -1,31 +1,22 @@
 package com.fuchsundlowe.macrolife.FragmentModels;
 
-import android.graphics.Point;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
-import android.support.constraint.ConstraintLayout;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentStatePagerAdapter;
 import android.support.v4.view.PagerAdapter;
 import android.support.v4.view.ViewPager;
-import android.text.Layout;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.LinearLayout;
-
-import com.fuchsundlowe.macrolife.DataObjects.ComplexGoalMaster;
+import android.widget.FrameLayout;
 import com.fuchsundlowe.macrolife.DataObjects.Constants;
 import com.fuchsundlowe.macrolife.EngineClasses.StorageMaster;
 import com.fuchsundlowe.macrolife.Interfaces.BaseViewInterface;
 import com.fuchsundlowe.macrolife.R;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+
 
 /**
  * Created by macbook on 2/22/18.
@@ -57,13 +48,11 @@ public class SimpleListFragment extends Fragment {
     @Override
     public void onResume() {
         super.onResume();
-        createPopUp();
     }
 
     // Top Bar implementation:
     private ViewPager viewPager;
     private PagerAdapter pagerAdapter;
-    private ConstraintLayout masterLayout;
 
 
     private class MasterPageAdapter extends FragmentStatePagerAdapter {
@@ -99,26 +88,17 @@ public class SimpleListFragment extends Fragment {
         }
     }
 
-
-
-
-
     // PopUp Task Creator:
+    private FrameLayout tempFragContainer;
+    private TaskCreator_Complex complexTaskCreator;
 
-    private void createPopUp() {
-        if (masterLayout == null) {
-            masterLayout = getView().findViewById(R.id.simpleLayout);
-        }
-        LayoutInflater inflater = getLayoutInflater();
-        View myView = inflater.inflate(R.layout.complex_task_creator, masterLayout);
-
-        // Finds its place in the world:
-
-
-
+    public void providePopUp() {
+        tempFragContainer = getView().findViewById(R.id.bottomContainer);
+        tempFragContainer.setVisibility(View.VISIBLE);
+        complexTaskCreator = new TaskCreator_Complex();
+        getFragmentManager().beginTransaction().add(R.id.bottomContainer, complexTaskCreator).commit();
 
     }
-
 
 
 

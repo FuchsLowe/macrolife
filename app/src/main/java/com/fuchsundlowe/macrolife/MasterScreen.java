@@ -25,7 +25,7 @@ public class MasterScreen extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_master_screen);
-        dataBase = StorageMaster.getInstance(getApplicationContext());
+        initiateDatabase();
         // This is the earlyest stage of app lifecycle so I should create
         // my database insatnce here
 
@@ -35,9 +35,15 @@ public class MasterScreen extends AppCompatActivity {
         getSupportFragmentManager().beginTransaction().add(R.id.masterContainer,
                 list).commit();
 
+
     }
     private void initiateDatabase() {
-
+        dataBase = StorageMaster.getInstance(this);
     }
 
+
+
+    public void clickActionTemp(View view) {
+        list.providePopUp();
+    }
 }

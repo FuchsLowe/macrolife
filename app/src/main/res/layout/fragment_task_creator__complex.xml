@@ -2,6 +2,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
+    android:animateLayoutChanges="true"
     android:orientation="vertical"
     tools:context="com.fuchsundlowe.macrolife.FragmentModels.TaskCreator_Complex">
 
@@ -13,6 +14,7 @@
         android:layout_height="42dp"
         android:layout_weight="1"
         android:ems="10"
+        android:imeOptions="actionNext"
         android:inputType="textPersonName"
         android:text="Name"
         android:visibility="visible" />
@@ -21,10 +23,45 @@
         android:id="@+id/setPurpose_TaskCreatorComplex"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_weight="4"
+        android:layout_weight="1"
         android:ems="10"
         android:inputType="textPersonName"
-        android:text="Name"
+        android:text="Purpose"
+        android:imeOptions="actionDone"
         android:visibility="gone" />
+
+    <LinearLayout
+        android:id="@+id/buttonBar_TaskCreator"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:orientation="horizontal"
+        android:visibility="gone">
+
+        <Button
+            android:id="@+id/startTime_TaskCreator"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:onClick="provideStartTime"
+            android:text="StartTime" />
+
+        <Button
+            android:id="@+id/endTime_TaskCreator"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:onClick="provideEndTime"
+            android:text="EndTime"
+            android:visibility="gone" />
+
+        <Button
+            android:id="@+id/done_TaskCreator"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:onClick="doneWithInputs"
+            android:text="Done" />
+    </LinearLayout>
 
 </LinearLayout>

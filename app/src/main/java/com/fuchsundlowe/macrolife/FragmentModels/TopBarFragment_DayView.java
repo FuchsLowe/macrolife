@@ -10,16 +10,18 @@ import android.widget.TextView;
 import com.fuchsundlowe.macrolife.R;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
+/*
+ *
+ */
 
-
-public class TopBarFragment extends Fragment {
+public class TopBarFragment_DayView extends Fragment {
 
 
     private Calendar day;
     private TextView topLabel;
     private TextView bottomLabel;
 
-    public TopBarFragment() {
+    public TopBarFragment_DayView() {
         // Required empty public constructor
     }
 

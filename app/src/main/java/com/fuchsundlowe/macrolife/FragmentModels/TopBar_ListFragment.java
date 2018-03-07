@@ -25,7 +25,7 @@ import java.util.Set;
  * Created by macbook on 2/22/18.
  */
 
-public class SLVTopBarFragment extends Fragment {
+public class TopBar_ListFragment extends Fragment {
 
     private TextView label;
     private ListView list;

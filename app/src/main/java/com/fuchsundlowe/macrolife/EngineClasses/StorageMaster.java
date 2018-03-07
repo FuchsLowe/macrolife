@@ -3,7 +3,7 @@ package com.fuchsundlowe.macrolife.EngineClasses;
 import android.arch.persistence.room.Room;
 import android.content.Context;
 import com.fuchsundlowe.macrolife.DataObjects.*;
-import com.fuchsundlowe.macrolife.Interfaces.BaseViewInterface;
+import com.fuchsundlowe.macrolife.Interfaces.DataProviderProtocol;
 
 import java.util.Calendar;
 import java.util.HashSet;
@@ -17,7 +17,7 @@ import java.util.Set;
  * TODO: Shoudl all children remove themselves if no parent is alive?
  */
 
-public class StorageMaster implements BaseViewInterface{
+public class StorageMaster implements DataProviderProtocol {
     // Database Class:
     private DataProvider dataBase;
     private DAO dataAccessObject;

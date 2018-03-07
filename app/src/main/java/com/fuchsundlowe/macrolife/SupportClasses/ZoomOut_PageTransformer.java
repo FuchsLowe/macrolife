@@ -8,7 +8,7 @@ import android.view.View;
  * Created by macbook on 2/19/18.
  */
 
-public class ZoomOutPageTransformer implements ViewPager.PageTransformer {
+public class ZoomOut_PageTransformer implements ViewPager.PageTransformer {
 
     private static final float MIN_SCALE = 0.85f;
     private static final float MIN_ALPHA = 0.5f;

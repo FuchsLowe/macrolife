@@ -1,13 +1,14 @@
-package com.fuchsundlowe.macrolife.FragmentModels;
+package com.fuchsundlowe.macrolife;
 
+import android.app.Activity;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentStatePagerAdapter;
 import android.support.v4.view.PagerAdapter;
 import android.support.v4.view.ViewPager;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -21,9 +22,10 @@ import com.fuchsundlowe.macrolife.DataObjects.RepeatingEventMaster;
 import com.fuchsundlowe.macrolife.DataObjects.RepeatingEventsChild;
 import com.fuchsundlowe.macrolife.DataObjects.SubGoalMaster;
 import com.fuchsundlowe.macrolife.EngineClasses.StorageMaster;
-import com.fuchsundlowe.macrolife.Interfaces.BaseViewInterface;
+import com.fuchsundlowe.macrolife.FragmentModels.TopBarFragment_DayView;
+import com.fuchsundlowe.macrolife.Interfaces.DataProviderProtocol;
 import com.fuchsundlowe.macrolife.R;
-import com.fuchsundlowe.macrolife.SupportClasses.ZoomOutPageTransformer;
+import com.fuchsundlowe.macrolife.SupportClasses.ZoomOut_PageTransformer;
 
 import java.util.Calendar;
 import java.util.Date;
@@ -36,16 +38,16 @@ import java.util.Set;
  *  Requests information to fill in this specific day based on day atribute.
  *  TODO: Whete am I Now: HOw to translate changes on tasks with this transformer thing?
  */
-public class DayViewFragment extends Fragment {
+public class DayView extends FragmentActivity {
 
     private ScrollView center;
     private ViewPager topBar;
     private PagerAdapter adapter;
-    private BaseViewInterface dataMaster;
+    private DataProviderProtocol dataMaster;
 
-    public DayViewFragment() {
+    public DayView() {
         // Required empty public constructor
-        dataMaster = StorageMaster.getInstance(getContext());
+        dataMaster = StorageMaster.getInstance(this);
         // TODO: Temp solution:
         currentDay = new DayHolder(Calendar.getInstance(), dataMaster);
 
@@ -63,40 +65,30 @@ public class DayViewFragment extends Fragment {
         if (savedInstanceState != null) {
             this.setMetaData(savedInstanceState.getLong(Constants.DAY_TO_DISPLAY));
         }
+        setContentView(R.layout.day_layout);
+
     }
 
-    @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                             Bundle savedInstanceState) {
-        return inflater.inflate(R.layout.day_layout, container, false);
-    }
-
-    @Override
-    public void onActivityCreated(@Nullable Bundle savedInstanceState) {
-        super.onActivityCreated(savedInstanceState);
-        center = getView().findViewById(R.id.center);
-        initiateCenterBar();
-        initiateTopBar();
-    }
 
     @Override
     public void onStart() {
         super.onStart();
-
+        initiateCenterBar();
+        initiateTopBar();
     }
 
-    @Override
-    public void onDetach() {
-        super.onDetach();
-    }
+
 
 
     // TopBar Implementation:
     private void initiateTopBar() {
-        topBar = getView().findViewById(R.id.top_bar);
-        adapter = new PageAdapterMaster(getActivity().getSupportFragmentManager());
+        if (topBar == null) {
+            topBar = (ViewPager) findViewById(R.id.top_bar);
+        }
+
+        adapter = new PageAdapterMaster(getSupportFragmentManager());
         topBar.setAdapter(adapter);
-        topBar.setPageTransformer(true, new ZoomOutPageTransformer());
+        topBar.setPageTransformer(true, new ZoomOut_PageTransformer());
         topBar.setCurrentItem(30);
     }
 
@@ -111,12 +103,12 @@ public class DayViewFragment extends Fragment {
         public Fragment getItem(int position) {
             if (currentValue == null) {
                 currentValue = position;
-                TopBarFragment barFragment = new TopBarFragment();
+                TopBarFragment_DayView barFragment = new TopBarFragment_DayView();
                 barFragment.setDay(currentDay.thisDay);
                 startTime = currentDay.thisDay;
                 return barFragment;
             } else {
-                TopBarFragment barFragment = new TopBarFragment();
+                TopBarFragment_DayView barFragment = new TopBarFragment_DayView();
                 Calendar tempHolder = Calendar.getInstance();
                 tempHolder.setTime(startTime.getTime());
                 tempHolder.roll(Calendar.DAY_OF_YEAR, position - currentValue);
@@ -137,10 +129,11 @@ public class DayViewFragment extends Fragment {
 
     // CenterBar implementation:
     private void initiateCenterBar() {
-        center.addView(new SimpleChronoView(getContext()));
-
+        if (center == null) {
+            center = findViewById(R.id.center);
+        }
+        center.addView(new SimpleChronoView(this));
     }
-
     public void scrollTo(int hour) {
         if (hour >= 0 && hour <=24) {
             int slices = center.getHeight() / 24;
@@ -195,7 +188,7 @@ public class DayViewFragment extends Fragment {
     private class DayHolder {
 
         protected Calendar thisDay;
-        private BaseViewInterface dataProvider;
+        private DataProviderProtocol dataProvider;
         private Set<ComplexGoalMaster> complexGoalMasters;
         private Set<SubGoalMaster> subGoalMasters;
         private Set<ListMaster> listMasters;
@@ -203,7 +196,7 @@ public class DayViewFragment extends Fragment {
         private Set<RepeatingEventMaster> repeatingEventMasters;
         private Set<RepeatingEventsChild> repeatingEventsChildren;
 
-        public DayHolder(Calendar forDay, BaseViewInterface dataBase) {
+        public DayHolder(Calendar forDay, DataProviderProtocol dataBase) {
             // Implements the fetching and loading of the files
             thisDay = forDay;
             dataProvider = dataBase;

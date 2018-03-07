@@ -15,7 +15,7 @@ import java.util.Set;
  * Created by macbook on 1/26/18.
  */
 
-public interface BaseViewInterface {
+public interface DataProviderProtocol {
 
 
     Set<ComplexGoalMaster> getComplexGoals();

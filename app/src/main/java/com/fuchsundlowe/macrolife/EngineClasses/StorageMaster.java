@@ -2,9 +2,9 @@ package com.fuchsundlowe.macrolife.EngineClasses;
 
 import android.arch.persistence.room.Room;
 import android.content.Context;
+import android.util.Log;
 import com.fuchsundlowe.macrolife.DataObjects.*;
 import com.fuchsundlowe.macrolife.Interfaces.DataProviderProtocol;
-
 import java.util.Calendar;
 import java.util.HashSet;
 import java.util.Set;
@@ -31,6 +31,7 @@ public class StorageMaster implements DataProviderProtocol {
         return self;
     }
 
+
     public static StorageMaster optionalStorageMaster() {
         return self;
     }
@@ -48,7 +49,7 @@ public class StorageMaster implements DataProviderProtocol {
                 return goalMaster;
             }
         }
-        return null; // TODO: Is this a problem? Will this ever happen?
+        return null;
     }
 
     public void insertObject(ComplexGoalMaster object){
@@ -384,39 +385,81 @@ public class StorageMaster implements DataProviderProtocol {
 
     // onCreation:
     private StorageMaster(Context appContext) {
+        Log.d("Storage Master ","Reported");
         this.dataBase = Room.databaseBuilder(appContext, DataProvider.class, "StandardDB").build();
         this.dataAccessObject = dataBase.daoObject();
+
+        // Shoudl We initiate all database retivals?
+        initiateAllValues();
     }
 
 
+
+
     // General purpose methods:
+
     public boolean checkIfIDisAssigned(int idToCheck) {
-        for (ComplexGoalMaster value: getComplexGoals()) {
-            if (value.getHashID() == idToCheck) { return true; }
+        Set<ComplexGoalMaster> complexGoalMasterSet =  getComplexGoals();
+        if (complexGoalMasterSet != null) {
+            for (ComplexGoalMaster value : complexGoalMasterSet) {
+                if (value.getHashID() == idToCheck) {
+                    return true;
+                }
+            }
         }
 
-        for (ListMaster value: getAllListMasters()) {
-            if (value.getHashID() == idToCheck) { return true; }
+        Set<ListMaster> listMasterSet = getAllListMasters();
+        if (listMasterSet != null) {
+            for (ListMaster value : listMasterSet) {
+                if (value.getHashID() == idToCheck) {
+                    return true;
+                }
+            }
         }
 
-        for (ListObject value: getListObjects()) {
-            if (value.getHashID() == idToCheck) { return true; }
+        Set<ListObject> listObjectSet = getListObjects();
+        if (listObjectSet != null) {
+            for (ListObject value : listObjectSet) {
+                if (value.getHashID() == idToCheck) {
+                    return true;
+                }
+            }
         }
 
-        for (OrdinaryEventMaster value: getAllOrdinaryEventMasters()) {
-            if (value.getHashID() == idToCheck) { return true; }
+        Set<OrdinaryEventMaster> ordinaryEventMastersSet = getAllOrdinaryEventMasters();
+        if (ordinaryEventMastersSet != null) {
+            for (OrdinaryEventMaster value : ordinaryEventMastersSet) {
+                if (value.getHashID() == idToCheck) {
+                    return true;
+                }
+            }
         }
 
-        for (RepeatingEventMaster value: getAllRepeatingEventMasterss()) {
-            if (value.getHashID() == idToCheck) { return true; }
+        Set<RepeatingEventMaster> repeatingEventMasterSet = getAllRepeatingEventMasterss();
+        if (repeatingEventMasterSet != null) {
+            for (RepeatingEventMaster value : repeatingEventMasterSet) {
+                if (value.getHashID() == idToCheck) {
+                    return true;
+                }
+            }
         }
 
-        for (RepeatingEventsChild value: getAllRepeatingEventChildren()) {
-            if (value.getHashID() == idToCheck) { return true; }
+        Set<RepeatingEventsChild> repeatingEventsChildSet = getAllRepeatingEventChildren();
+        if (repeatingEventsChildSet != null) {
+            for (RepeatingEventsChild value : repeatingEventsChildSet) {
+                if (value.getHashID() == idToCheck) {
+                    return true;
+                }
+            }
         }
 
-        for (SubGoalMaster value: getAllSubGoalMasters()) {
-            if (value.getHashID() == idToCheck) { return true; }
+        Set<SubGoalMaster> subGoalMasterSet = getAllSubGoalMasters();
+        if (subGoalMasterSet != null) {
+            for (SubGoalMaster value : subGoalMasterSet) {
+                if (value.getHashID() == idToCheck) {
+                    return true;
+                }
+            }
         }
 
         return false;
@@ -432,6 +475,64 @@ public class StorageMaster implements DataProviderProtocol {
     }
 
     // DatabaseConnector interface methods:
+
+    private void initiateAllValues() {
+        allComplexGoals = new HashSet<>();
+        ComplexGoalMaster[] complexGoalMastersArray = dataAccessObject.getAllComplexGoalMasters();
+        if (complexGoalMastersArray != null) {
+            for(ComplexGoalMaster master: complexGoalMastersArray) {
+                allComplexGoals.add(master);
+            }
+        }
+
+        allListMasters = new HashSet<>();
+        ListMaster[] listMastersArray = dataAccessObject.getAllListMasters();
+        if (listMastersArray != null) {
+            for (ListMaster master: listMastersArray) {
+                allListMasters.add(master);
+            }
+        }
+
+        allListObjects = new HashSet<>();
+        ListObject[] listObjectsArray = dataAccessObject.getAllListObject();
+        if (listObjectsArray != null) {
+            for (ListObject object: listObjectsArray) {
+                allListObjects.add(object);
+            }
+        }
+
+        allOrdinaryEventMasters = new HashSet<>();
+        OrdinaryEventMaster[] ordinaryEventMastersArray = dataAccessObject.getAllOrdinaryEventMasters();
+        if (ordinaryEventMastersArray != null) {
+            for (OrdinaryEventMaster event: ordinaryEventMastersArray) {
+                allOrdinaryEventMasters.add(event);
+            }
+        }
+
+        allRepeatingEventMasters = new HashSet<>();
+        RepeatingEventMaster[] repeatingEventMasterArray = dataAccessObject.getAllRepeatingEventMaster();
+        if (repeatingEventMasterArray != null) {
+            for (RepeatingEventMaster master: repeatingEventMasterArray) {
+                allRepeatingEventMasters.add(master);
+            }
+        }
+
+        allRepeatingEventChildren = new HashSet<>();
+        RepeatingEventsChild[] repeatingEventsChildrenArray = dataAccessObject.getAllRepeatingEventsChild();
+        if (repeatingEventsChildrenArray != null) {
+            for (RepeatingEventsChild child: repeatingEventsChildrenArray) {
+                allRepeatingEventChildren.add(child);
+            }
+        }
+
+        allSubGoalMasters = new HashSet<>();
+        SubGoalMaster[] subGoalMastersArray = dataAccessObject.getAllSubGoalMaster();
+        if (subGoalMastersArray != null) {
+            for (SubGoalMaster master: subGoalMastersArray) {
+                allSubGoalMasters.add(master);
+            }
+        }
+    }
 
     public void closeDatabase() {
         dataBase.close();

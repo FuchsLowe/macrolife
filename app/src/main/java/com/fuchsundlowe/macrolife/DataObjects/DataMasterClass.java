@@ -38,7 +38,7 @@ public abstract class DataMasterClass {
         this.taskOriginalSource = taskOriginalSource;
         this.storageMaster = StorageMaster.optionalStorageMaster();
 
-        if ((Integer)hashID == null ){
+        if (hashID == 0 ){
             if (storageMaster != null) {
                 this.hashID = this.createNextID();
                 updateMe();

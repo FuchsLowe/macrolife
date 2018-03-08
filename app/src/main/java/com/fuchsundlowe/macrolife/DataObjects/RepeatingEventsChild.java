@@ -32,7 +32,7 @@ public class RepeatingEventsChild {
         this.startTime = startTime;
         this.endTime = endTime;
         this.storageMaster = StorageMaster.optionalStorageMaster();
-        if ((Integer) hashID == null) {
+        if (hashID == 0) {
             this.hashID = this.createNextID();
         } else {
             this.hashID = hashID;

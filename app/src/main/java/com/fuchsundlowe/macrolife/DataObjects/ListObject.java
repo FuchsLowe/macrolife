@@ -33,7 +33,7 @@ public class ListObject {
         this.taskStatus = taskStatus;
         this.masterID = masterID;
 
-        if ((Integer) hashID != null) {
+        if (hashID != 0) {
             this.hashID = hashID;
         } else {
             this.hashID = this.createNextID();

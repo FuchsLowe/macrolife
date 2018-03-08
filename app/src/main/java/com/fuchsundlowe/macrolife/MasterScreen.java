@@ -20,7 +20,7 @@ public class MasterScreen extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_master_screen);
-        //initiateDatabase();
+        initiateDatabase();
         // This is the earlyest stage of app lifecycle so I should create
         // my database insatnce here
 

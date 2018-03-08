@@ -2,7 +2,6 @@ package com.fuchsundlowe.macrolife;
 
 import android.os.Bundle;
 import android.support.annotation.Nullable;
-import android.support.v4.app.DialogFragment;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentManager;
@@ -10,13 +9,9 @@ import android.support.v4.app.FragmentStatePagerAdapter;
 import android.support.v4.view.PagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.view.View;
-import android.widget.FrameLayout;
 import com.fuchsundlowe.macrolife.DataObjects.Constants;
 import com.fuchsundlowe.macrolife.EngineClasses.StorageMaster;
-import com.fuchsundlowe.macrolife.FragmentModels.DatePickerFragment;
-import com.fuchsundlowe.macrolife.FragmentModels.TaskCreator_Complex;
-import com.fuchsundlowe.macrolife.FragmentModels.TimePickerFragment;
-import com.fuchsundlowe.macrolife.FragmentModels.TopBar_ListFragment;
+import com.fuchsundlowe.macrolife.FragmentModels.ListFragment;
 import com.fuchsundlowe.macrolife.Interfaces.DataProviderProtocol;
 
 
@@ -30,6 +25,7 @@ public class ListView extends FragmentActivity {
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        DataProviderProtocol dataMaster = StorageMaster.getInstance(this);
         setContentView(R.layout.list_layout);
     }
 
@@ -39,7 +35,7 @@ public class ListView extends FragmentActivity {
         viewPager = findViewById(R.id.TopBarSimpleListView);
         pagerAdapter = new MasterPageAdapter(getSupportFragmentManager());
         viewPager.setAdapter(pagerAdapter);
-        providePopUp();
+
     }
 
     @Override
@@ -62,7 +58,7 @@ public class ListView extends FragmentActivity {
 
         @Override
         public Fragment getItem(int position) {
-            TopBar_ListFragment barFragment = new TopBar_ListFragment();
+            ListFragment barFragment = new ListFragment();
             Bundle tempHolder = new Bundle();
             switch (position) {
                 // TODO: To be replaced with internationalized strings & handle rest functionaity
@@ -85,34 +81,14 @@ public class ListView extends FragmentActivity {
         }
     }
 
-    // PopUp Task Creator:
-    private FrameLayout tempFragContainer;
-    private TaskCreator_Complex complexTaskCreator;
+    public void cunt(View view) {}
 
-    public void providePopUp() {
-        tempFragContainer = findViewById(R.id.bottomContainer);
-        tempFragContainer.setVisibility(View.VISIBLE);
-        complexTaskCreator = new TaskCreator_Complex();
-        getFragmentManager().beginTransaction().add(R.id.bottomContainer, complexTaskCreator).commit();
 
-    }
 
-    public void provideStartTime(View view) {
-        DialogFragment timePickerFragment = new TimePickerFragment();
-        timePickerFragment.show(getSupportFragmentManager(),"TimePickerFragment");
-    }
-
-    public void provideEndTime(View view) {
-        DialogFragment datePicker = new DatePickerFragment();
-        datePicker.show(getSupportFragmentManager(), "DatePickerFragment");
-    }
-
-    public void doneWithInputs(View view) {
-
-    }
+    // Other Methods:
 
     private DataProviderProtocol getDatabase() {
-        return StorageMaster.optionalStorageMaster();
+        return StorageMaster.getInstance(this);
     }
 
     private enum TaskNames {

@@ -6,6 +6,8 @@ import android.os.Bundle;
 import android.support.v4.app.DialogFragment;
 import android.widget.DatePicker;
 
+import com.fuchsundlowe.macrolife.Interfaces.DateAndTimeProtocol;
+
 import java.util.Calendar;
 
 /**
@@ -14,6 +16,9 @@ import java.util.Calendar;
 
 public  class DatePickerFragment extends DialogFragment
         implements DatePickerDialog.OnDateSetListener {
+
+    DateAndTimeProtocol toReport;
+    boolean isStartTime;
 
     @Override
     public Dialog onCreateDialog(Bundle savedInstanceState) {
@@ -29,5 +34,10 @@ public  class DatePickerFragment extends DialogFragment
 
     public void onDateSet(DatePicker view, int year, int month, int day) {
         // Do something with the date chosen by the user
+        if (isStartTime) {
+            toReport.setStartDate(year, month, day);
+        } else {
+            toReport.setEndDate(year, month, day);
+        }
     }
 }

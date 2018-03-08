@@ -7,6 +7,8 @@ import android.support.v4.app.DialogFragment;
 import android.text.format.DateFormat;
 import android.widget.TimePicker;
 
+import com.fuchsundlowe.macrolife.Interfaces.DateAndTimeProtocol;
+
 import java.util.Calendar;
 
 /**
@@ -16,6 +18,8 @@ import java.util.Calendar;
 public class TimePickerFragment extends DialogFragment
         implements TimePickerDialog.OnTimeSetListener {
 
+    public DateAndTimeProtocol toReport;
+    boolean isStartTime;
 
     @Override
     public  Dialog onCreateDialog(Bundle savedInstanceState) {
@@ -31,5 +35,10 @@ public class TimePickerFragment extends DialogFragment
 
     public void onTimeSet(TimePicker view, int hourOfDay, int minute) {
         // Do something with the time chosen by the user
+        if (isStartTime) {
+            toReport.setStartTime(hourOfDay, minute,0);
+        } else {
+            toReport.setEndTime(hourOfDay, minute, 0);
+        }
     }
 }

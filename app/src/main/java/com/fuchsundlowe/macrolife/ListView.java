@@ -8,7 +8,6 @@ import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentStatePagerAdapter;
 import android.support.v4.view.PagerAdapter;
 import android.support.v4.view.ViewPager;
-import android.view.View;
 import com.fuchsundlowe.macrolife.DataObjects.Constants;
 import com.fuchsundlowe.macrolife.EngineClasses.StorageMaster;
 import com.fuchsundlowe.macrolife.FragmentModels.ListFragment;
@@ -81,8 +80,6 @@ public class ListView extends FragmentActivity {
         }
     }
 
-    public void cunt(View view) {}
-
 
 
     // Other Methods:
@@ -91,6 +88,7 @@ public class ListView extends FragmentActivity {
         return StorageMaster.getInstance(this);
     }
 
+    @Deprecated
     private enum TaskNames {
         ComplexGoals("Complex Goals"),
         OrdinaryTasks("Ordinary Tasks"),

@@ -1,5 +1,8 @@
 package com.fuchsundlowe.macrolife.EngineClasses;
 
+import android.arch.lifecycle.LifecycleOwner;
+import android.arch.lifecycle.LiveData;
+import android.arch.lifecycle.Observer;
 import android.arch.persistence.room.Room;
 import android.content.Context;
 import android.util.Log;
@@ -7,6 +10,7 @@ import com.fuchsundlowe.macrolife.DataObjects.*;
 import com.fuchsundlowe.macrolife.Interfaces.DataProviderProtocol;
 import java.util.Calendar;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -37,14 +41,25 @@ public class StorageMaster implements DataProviderProtocol {
     }
 
     // ComplexGoalMaster
-    private Set<ComplexGoalMaster> allComplexGoals; // HashSet<>
+    private LiveData<List<ComplexGoalMaster>> allComplexGoals;
 
-    public Set<ComplexGoalMaster> getComplexGoals() {
+    private LiveData<List<ComplexGoalMaster>> getComplexGoals() {
+        return allComplexGoals;
+    }
+    @Override
+    public void subscribeObserver_ComplexGoal(LifecycleOwner lifecycleOwner,
+                                              Observer<List<ComplexGoalMaster>> observer){
+        getComplexGoals().observe(lifecycleOwner, observer);
+    }
+
+    @Override
+    public LiveData<List<ComplexGoalMaster>> getAllComplexGoals() {
         return allComplexGoals;
     }
 
+
     public ComplexGoalMaster getComplexGoalBy(int id) {
-        for (ComplexGoalMaster goalMaster: getComplexGoals()) {
+        for (ComplexGoalMaster goalMaster: getComplexGoals().getValue()) {
             if (goalMaster.getHashID() == id) {
                 return goalMaster;
             }
@@ -52,9 +67,17 @@ public class StorageMaster implements DataProviderProtocol {
         return null;
     }
 
-    public void insertObject(ComplexGoalMaster object){
-        allComplexGoals.add(object);
-        dataAccessObject.insertTask(object);
+    public void insertObject(final ComplexGoalMaster object){
+
+        Thread tempAlocator = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                dataAccessObject.insertTask(object);
+            }
+        });
+
+        tempAlocator.start();
+
     }
 
 
@@ -68,7 +91,6 @@ public class StorageMaster implements DataProviderProtocol {
             this.deleteObject(subGoal);
         }
 
-        allComplexGoals.remove(object);
         dataAccessObject.deleteTask(object);
     }
 
@@ -77,7 +99,7 @@ public class StorageMaster implements DataProviderProtocol {
         Set<ComplexGoalMaster> tempSet = new HashSet<>();
         day.set(Calendar.HOUR_OF_DAY, 0);
         day.set(Calendar.MINUTE, 0);
-        for (ComplexGoalMaster goal: getComplexGoals()) {
+        for (ComplexGoalMaster goal: getComplexGoals().getValue()) {
             if (checkIfBelongsTimeWise(goal.getTaskStartTime(), goal.getTaskEndTime(), day) ) {
                 tempSet.add(goal);
             }
@@ -89,22 +111,33 @@ public class StorageMaster implements DataProviderProtocol {
 
     public boolean amIStored(ComplexGoalMaster object) {
         int myID = object.getHashID();
-        for (ComplexGoalMaster value: getComplexGoals()) {
+        for (ComplexGoalMaster value: getComplexGoals().getValue()) {
             if (value.getHashID() == myID) { return true; }
         }
         return false;
     }
 
-
+//================================================================================
     // ListMaster
-    private Set<ListMaster> allListMasters;
-    public Set<ListMaster> getAllListMasters() {
+    private LiveData<List<ListMaster>> allListMasters;
+    public LiveData<List<ListMaster>> getAllListMasters() {
         return this.allListMasters;
     }
+
+    @Override
+    public void updateListObject(ListObject object) {
+        dataAccessObject.updateTask(object);
+    }
+
     public void insertObject(ListMaster object){
-        allListMasters.add(object);
         dataAccessObject.insertTask(object);
     }
+
+    @Override
+    public void subscribeObserver_ListMaster(LifecycleOwner lifecycleOwner, Observer<List<ListMaster>> observer){
+        getAllListMasters().observe(lifecycleOwner, observer);
+    }
+
 
     public void updateObject(ListMaster object) {
         dataAccessObject.updateTask(object);
@@ -115,7 +148,6 @@ public class StorageMaster implements DataProviderProtocol {
             this.deleteObject(subGoal);
         }
 
-        allListMasters.remove(object);
         dataAccessObject.deleteTask(object);
     }
 
@@ -124,7 +156,7 @@ public class StorageMaster implements DataProviderProtocol {
         Set<ListMaster> tempSet = new HashSet<>();
         day.set(Calendar.HOUR_OF_DAY, 0);
         day.set(Calendar.MINUTE, 0);
-        for (ListMaster goal: getAllListMasters()) {
+        for (ListMaster goal: getAllListMasters().getValue()) {
             if (checkIfBelongsTimeWise(goal.getTaskStartTime(), goal.getTaskEndTime(), day) ) {
                 tempSet.add(goal);
             }
@@ -136,7 +168,7 @@ public class StorageMaster implements DataProviderProtocol {
 
     public boolean amIStored(ListMaster object) {
         int myID = object.getHashID();
-        for (ListMaster value: getAllListMasters()) {
+        for (ListMaster value: getAllListMasters().getValue()) {
             if (value.getHashID() == myID) { return true; }
         }
         return false;
@@ -144,13 +176,12 @@ public class StorageMaster implements DataProviderProtocol {
 
 
     // ListObject
-    private Set<ListObject> allListObjects;
-    public Set<ListObject> getListObjects() {
+    private LiveData<List<ListObject>> allListObjects;
+    public LiveData<List<ListObject>> getListObjects() {
         return allListObjects;
     }
 
     public void insertObject(ListObject object){
-        allListObjects.add(object);
         dataAccessObject.insertTask(object);
     }
 
@@ -158,12 +189,22 @@ public class StorageMaster implements DataProviderProtocol {
         dataAccessObject.updateTask(object);
     }
     public void deleteObject(ListObject object) {
-        allListObjects.remove(object); // Removes it from heap here
         dataAccessObject.deleteTask(object); // Removes it from permanent storage
     }
+
+    @Override
+    public void subscribeObserver_ListObject(LifecycleOwner lifecycleOwner, Observer<List<ListObject>> observer) {
+        getListObjects().observe(lifecycleOwner, observer);
+    }
+
+    @Override
+    public LiveData<List<ListObject>> getAllListObjects() {
+        return allListObjects;
+    }
+
     public boolean amIStored(ListObject object) {
         int myID = object.getHashID();
-        for (ListObject value: getListObjects()) {
+        for (ListObject value: getListObjects().getValue()) {
             if (value.getHashID() == myID) { return true; }
         }
         return false;
@@ -171,7 +212,7 @@ public class StorageMaster implements DataProviderProtocol {
 
     public Set<ListObject> getListObjectsOfParent(int parentID) {
         Set<ListObject> listObjects = new HashSet<ListObject>();
-        for (ListObject list: getListObjects()) {
+        for (ListObject list: getListObjects().getValue()) {
             if (list.getMasterID() == parentID) {
                 listObjects.add(list);
             }
@@ -181,21 +222,31 @@ public class StorageMaster implements DataProviderProtocol {
 
 
     // OrdinaryEventMaster
-    private Set<OrdinaryEventMaster> allOrdinaryEventMasters;
-    public Set<OrdinaryEventMaster> getAllOrdinaryEventMasters() {
+    private LiveData<List<OrdinaryEventMaster>> allOrdinaryEventMasters;
+    public LiveData<List<OrdinaryEventMaster>> getAllOrdinaryEventMasters() {
         return allOrdinaryEventMasters;
     }
 
-    public void insertObject(OrdinaryEventMaster object){
-        allOrdinaryEventMasters.add(object);
-        dataAccessObject.insertTask(object);
+    public void insertObject(final OrdinaryEventMaster object){
+
+                dataAccessObject.insertTask(object);
+
+    }
+
+    @Override
+    public void subscribeObserver_OrdinaryEvent(LifecycleOwner lifecycleOwner, Observer<List<OrdinaryEventMaster>> observer) {
+        getAllOrdinaryEventMasters().observe(lifecycleOwner, observer);
+    }
+
+    @Override
+    public LiveData<List<OrdinaryEventMaster>> getAllOrdinaryEvents() {
+        return allOrdinaryEventMasters;
     }
 
     public void updateObject(OrdinaryEventMaster object) {
         dataAccessObject.updateTask(object);
     }
     public void deleteObject(OrdinaryEventMaster object) {
-        allOrdinaryEventMasters.remove(object); // Removes it from heap here
         dataAccessObject.deleteTask(object); // Removes it from permanent storage
     }
 
@@ -204,7 +255,7 @@ public class StorageMaster implements DataProviderProtocol {
         Set<OrdinaryEventMaster> tempSet = new HashSet<>();
         day.set(Calendar.HOUR_OF_DAY, 0);
         day.set(Calendar.MINUTE, 0);
-        for (OrdinaryEventMaster goal: getAllOrdinaryEventMasters()) {
+        for (OrdinaryEventMaster goal: getAllOrdinaryEventMasters().getValue()) {
             if (checkIfBelongsTimeWise(goal.getTaskStartTime(), goal.getTaskEndTime(), day) ) {
                 tempSet.add(goal);
             }
@@ -216,21 +267,30 @@ public class StorageMaster implements DataProviderProtocol {
 
     public boolean amIStored(OrdinaryEventMaster object) {
         int myID = object.getHashID();
-        for (OrdinaryEventMaster value: getAllOrdinaryEventMasters()) {
+        for (OrdinaryEventMaster value: getAllOrdinaryEventMasters().getValue()) {
             if (value.getHashID() == myID) { return true; }
         }
         return false;
     }
 
     // RepeatingEventMaster
-    private Set<RepeatingEventMaster> allRepeatingEventMasters;
-    public Set<RepeatingEventMaster> getAllRepeatingEventMasterss() {
+    private LiveData<List<RepeatingEventMaster>> allRepeatingEventMasters;
+    public LiveData<List<RepeatingEventMaster>> getAllRepeatingEventMasterss() {
         return allRepeatingEventMasters;
     }
 
     public void insertObject(RepeatingEventMaster object){
-        allRepeatingEventMasters.add(object);
         dataAccessObject.insertTask(object);
+    }
+
+    @Override
+    public void subscribeObserver_RepeatingMaster(LifecycleOwner lifecycleOwner, Observer<List<RepeatingEventMaster>> observer) {
+        getAllRepeatingEventMasterss().observe(lifecycleOwner, observer);
+    }
+
+    @Override
+    public LiveData<List<RepeatingEventMaster>> getAllRepeatingEventMasters() {
+        return allRepeatingEventMasters;
     }
 
     public void updateObject(RepeatingEventMaster object) {
@@ -241,7 +301,6 @@ public class StorageMaster implements DataProviderProtocol {
             deleteObject(subTask);
         }
 
-        allRepeatingEventMasters.remove(object); // Removes it from heap here
         dataAccessObject.deleteTask(object); // Removes it from permanent storage
     }
 
@@ -250,7 +309,7 @@ public class StorageMaster implements DataProviderProtocol {
         Set<RepeatingEventMaster> tempSet = new HashSet<>();
         day.set(Calendar.HOUR_OF_DAY, 0);
         day.set(Calendar.MINUTE, 0);
-        for (RepeatingEventMaster goal: getAllRepeatingEventMasterss()) {
+        for (RepeatingEventMaster goal: getAllRepeatingEventMasterss().getValue()) {
             if (checkIfBelongsTimeWise(goal.getTaskStartTime(), goal.getTaskEndTime(), day) ) {
                 tempSet.add(goal);
             }
@@ -262,14 +321,14 @@ public class StorageMaster implements DataProviderProtocol {
 
     public boolean amIStored(RepeatingEventMaster object) {
         int myID = object.getHashID();
-        for (RepeatingEventMaster value: getAllRepeatingEventMasterss()) {
+        for (RepeatingEventMaster value: getAllRepeatingEventMasterss().getValue()) {
             if (value.getHashID() == myID) { return true; }
         }
         return false;
     }
 
     public RepeatingEventMaster getMasterByInt(int masterID) {
-        for (RepeatingEventMaster master: this.getAllRepeatingEventMasterss()) {
+        for (RepeatingEventMaster master: this.getAllRepeatingEventMasterss().getValue()) {
             if (master.getHashID() == masterID) {
                 return master;
 
@@ -278,21 +337,29 @@ public class StorageMaster implements DataProviderProtocol {
         return null;
     }
     // RepeatingEventChild
-    private Set<RepeatingEventsChild> allRepeatingEventChildren;
-    public Set<RepeatingEventsChild> getAllRepeatingEventChildren() {
+    private LiveData<List<RepeatingEventsChild>> allRepeatingEventChildren;
+    public LiveData<List<RepeatingEventsChild>> getAllRepeatingEventChildren() {
         return allRepeatingEventChildren;
     }
 
     public void insertObject(RepeatingEventsChild object){
-        allRepeatingEventChildren.add(object);
         dataAccessObject.insertTask(object);
+    }
+
+    @Override
+    public void subscribeObserver_RepeatingCgild(LifecycleOwner lifecycleOwner, Observer<List<RepeatingEventsChild>> observer) {
+
+    }
+
+    @Override
+    public LiveData<List<RepeatingEventsChild>> getAllRepeatingEventChild() {
+        return allRepeatingEventChildren;
     }
 
     public void updateObject(RepeatingEventsChild object) {
         dataAccessObject.updateTask(object);
     }
     public void deleteObject(RepeatingEventsChild object) {
-        allRepeatingEventChildren.remove(object); // Removes it from heap here
         dataAccessObject.deleteTask(object); // Removes it from permanent storage
     }
 
@@ -300,7 +367,7 @@ public class StorageMaster implements DataProviderProtocol {
 
     public boolean amIStored(RepeatingEventsChild object) {
         int myID = object.getHashID();
-        for (RepeatingEventsChild value: getAllRepeatingEventChildren()) {
+        for (RepeatingEventsChild value: getAllRepeatingEventChildren().getValue()) {
             if (value.getHashID() == myID) { return true; }
         }
         return false;
@@ -309,7 +376,7 @@ public class StorageMaster implements DataProviderProtocol {
 
     public Set<RepeatingEventsChild> getAllRepeatingChildrenByParent(int parentId) {
         Set<RepeatingEventsChild> hashSet = new HashSet<RepeatingEventsChild>();
-        for (RepeatingEventsChild child: getAllRepeatingEventChildren()) {
+        for (RepeatingEventsChild child: getAllRepeatingEventChildren().getValue()) {
             if (child.getParentID() == parentId) {
                 hashSet.add(child);
             }
@@ -317,28 +384,31 @@ public class StorageMaster implements DataProviderProtocol {
         return hashSet;
     }
     // SubGoalMaster
-    private Set<SubGoalMaster> allSubGoalMasters;
-    public Set<SubGoalMaster> getAllSubGoalMasters() {
+    private LiveData<List<SubGoalMaster>> allSubGoalMasters;
+    public LiveData<List<SubGoalMaster>> getAllSubGoalMasters() {
         return allSubGoalMasters;
     }
 
     public void insertObject(SubGoalMaster object){
-        allSubGoalMasters.add(object);
         dataAccessObject.insertTask(object);
+    }
+
+    @Override
+    public void subscribeObserver_SubGoal(LifecycleOwner lifecycleOwner, Observer<List<SubGoalMaster>> observer) {
+
     }
 
     public void updateObject(SubGoalMaster object) {
         dataAccessObject.updateTask(object);
     }
     public void deleteObject(SubGoalMaster object) {
-        allSubGoalMasters.remove(object); // Removes it from heap here
         dataAccessObject.deleteTask(object); // Removes it from permanent storage
     }
 
     @Override
     public Set<SubGoalMaster> getAllSubGoalsByMasterId(int masterID) {
         Set<SubGoalMaster> temp = new HashSet<>();
-        for (SubGoalMaster subGoal: getAllSubGoalMasters()) {
+        for (SubGoalMaster subGoal: getAllSubGoalMasters().getValue()) {
             if (subGoal.getParentID() == masterID) {
                 temp.add(subGoal);
             }
@@ -348,7 +418,7 @@ public class StorageMaster implements DataProviderProtocol {
 
     public boolean amIStored(SubGoalMaster object) {
         int myID = object.getHashID();
-        for (SubGoalMaster value: getAllSubGoalMasters()) {
+        for (SubGoalMaster value: getAllSubGoalMasters().getValue()) {
             if (value.getHashID() == myID) { return true; }
         }
         return false;
@@ -356,7 +426,7 @@ public class StorageMaster implements DataProviderProtocol {
 
     public Set<Integer> getIDsOfSubGoalfMaster(int withMasterID) {
         HashSet<Integer> hashSet = new HashSet<>();
-        for (SubGoalMaster subGoal: getAllSubGoalMasters()) {
+        for (SubGoalMaster subGoal: getAllSubGoalMasters().getValue()) {
             if (subGoal.getHashID() == withMasterID) {
                 hashSet.add(subGoal.getHashID());
             }
@@ -366,7 +436,7 @@ public class StorageMaster implements DataProviderProtocol {
     // Used to retrive the set of subgoals associated with master ID
     public Set<SubGoalMaster> getSubGoalsOfMaster(int withMasterID) {
         HashSet<SubGoalMaster> hashSet = new HashSet<>();
-        for (SubGoalMaster goal: getAllSubGoalMasters()) {
+        for (SubGoalMaster goal: getAllSubGoalMasters().getValue()) {
             if (goal.getParentID() == withMasterID) {
                 hashSet.add(goal);
             }
@@ -375,7 +445,7 @@ public class StorageMaster implements DataProviderProtocol {
     }
     // Used to retrive a single instance SubGoalMaster via ID
     public SubGoalMaster getSubGoalMasterBy(int ID) {
-        for (SubGoalMaster goal: getAllSubGoalMasters()) {
+        for (SubGoalMaster goal: getAllSubGoalMasters().getValue()) {
             if (goal.getHashID() == ID) {
                 return goal;
             }
@@ -389,8 +459,7 @@ public class StorageMaster implements DataProviderProtocol {
         this.dataBase = Room.databaseBuilder(appContext, DataProvider.class, "StandardDB").build();
         this.dataAccessObject = dataBase.daoObject();
 
-        // Shoudl We initiate all database retivals?
-        initiateAllValues();
+        initializeLiveData();
     }
 
 
@@ -399,7 +468,7 @@ public class StorageMaster implements DataProviderProtocol {
     // General purpose methods:
 
     public boolean checkIfIDisAssigned(int idToCheck) {
-        Set<ComplexGoalMaster> complexGoalMasterSet =  getComplexGoals();
+        List<ComplexGoalMaster> complexGoalMasterSet =  getComplexGoals().getValue();
         if (complexGoalMasterSet != null) {
             for (ComplexGoalMaster value : complexGoalMasterSet) {
                 if (value.getHashID() == idToCheck) {
@@ -408,7 +477,7 @@ public class StorageMaster implements DataProviderProtocol {
             }
         }
 
-        Set<ListMaster> listMasterSet = getAllListMasters();
+        List<ListMaster> listMasterSet = getAllListMasters().getValue();
         if (listMasterSet != null) {
             for (ListMaster value : listMasterSet) {
                 if (value.getHashID() == idToCheck) {
@@ -417,7 +486,7 @@ public class StorageMaster implements DataProviderProtocol {
             }
         }
 
-        Set<ListObject> listObjectSet = getListObjects();
+        List<ListObject> listObjectSet = getListObjects().getValue();
         if (listObjectSet != null) {
             for (ListObject value : listObjectSet) {
                 if (value.getHashID() == idToCheck) {
@@ -426,7 +495,7 @@ public class StorageMaster implements DataProviderProtocol {
             }
         }
 
-        Set<OrdinaryEventMaster> ordinaryEventMastersSet = getAllOrdinaryEventMasters();
+        List<OrdinaryEventMaster> ordinaryEventMastersSet = getAllOrdinaryEventMasters().getValue();
         if (ordinaryEventMastersSet != null) {
             for (OrdinaryEventMaster value : ordinaryEventMastersSet) {
                 if (value.getHashID() == idToCheck) {
@@ -435,7 +504,7 @@ public class StorageMaster implements DataProviderProtocol {
             }
         }
 
-        Set<RepeatingEventMaster> repeatingEventMasterSet = getAllRepeatingEventMasterss();
+        List<RepeatingEventMaster> repeatingEventMasterSet = getAllRepeatingEventMasterss().getValue();
         if (repeatingEventMasterSet != null) {
             for (RepeatingEventMaster value : repeatingEventMasterSet) {
                 if (value.getHashID() == idToCheck) {
@@ -444,7 +513,7 @@ public class StorageMaster implements DataProviderProtocol {
             }
         }
 
-        Set<RepeatingEventsChild> repeatingEventsChildSet = getAllRepeatingEventChildren();
+        List<RepeatingEventsChild> repeatingEventsChildSet = getAllRepeatingEventChildren().getValue();
         if (repeatingEventsChildSet != null) {
             for (RepeatingEventsChild value : repeatingEventsChildSet) {
                 if (value.getHashID() == idToCheck) {
@@ -453,7 +522,7 @@ public class StorageMaster implements DataProviderProtocol {
             }
         }
 
-        Set<SubGoalMaster> subGoalMasterSet = getAllSubGoalMasters();
+        List<SubGoalMaster> subGoalMasterSet = getAllSubGoalMasters().getValue();
         if (subGoalMasterSet != null) {
             for (SubGoalMaster value : subGoalMasterSet) {
                 if (value.getHashID() == idToCheck) {
@@ -476,14 +545,18 @@ public class StorageMaster implements DataProviderProtocol {
 
     // DatabaseConnector interface methods:
 
+    // A legacy call that is used instead of the LiveData Objects.
+    @Deprecated
     private void initiateAllValues() {
+        /*
         allComplexGoals = new HashSet<>();
-        ComplexGoalMaster[] complexGoalMastersArray = dataAccessObject.getAllComplexGoalMasters();
+        ComplexGoalMaster[] complexGoalMastersArray = dataAccessObject.getAllComplexGoalMasters().getValue();
         if (complexGoalMastersArray != null) {
             for(ComplexGoalMaster master: complexGoalMastersArray) {
                 allComplexGoals.add(master);
             }
         }
+
 
         allListMasters = new HashSet<>();
         ListMaster[] listMastersArray = dataAccessObject.getAllListMasters();
@@ -532,10 +605,32 @@ public class StorageMaster implements DataProviderProtocol {
                 allSubGoalMasters.add(master);
             }
         }
+        */
     }
 
+    // TODO: When do we close database?
     public void closeDatabase() {
         dataBase.close();
     }
+
+    @Override
+    protected void finalize() throws Throwable {
+        super.finalize();
+        closeDatabase();
+    }
+
+    private void initializeLiveData() {
+        allComplexGoals = dataAccessObject.getAllComplexGoalMasters();
+        allListMasters = dataAccessObject.getAllListMasters();
+        allListObjects = dataAccessObject.getAllListObject();
+        allOrdinaryEventMasters = dataAccessObject.getAllOrdinaryEventMasters();
+        allRepeatingEventChildren = dataAccessObject.getAllRepeatingEventsChild();
+        allSubGoalMasters = dataAccessObject.getAllSubGoalMaster();
+        allRepeatingEventMasters = dataAccessObject.getAllRepeatingEventMaster();
+    }
+
+    // Test Case:
+
+
 
 }

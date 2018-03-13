@@ -36,7 +36,6 @@ import java.util.Set;
  * This class provides day view fragment for app. Main features expected here are:
  *  Chronological view of the daily duties.
  *  Requests information to fill in this specific day based on day atribute.
- *  TODO: Whete am I Now: HOw to translate changes on tasks with this transformer thing?
  */
 public class DayView extends FragmentActivity {
 
@@ -48,7 +47,7 @@ public class DayView extends FragmentActivity {
     public DayView() {
         // Required empty public constructor
         dataMaster = StorageMaster.getInstance(this);
-        // TODO: Temp solution:
+        // TODO: Temp solution, will always go back to today's day
         currentDay = new DayHolder(Calendar.getInstance(), dataMaster);
 
     }
@@ -128,12 +127,15 @@ public class DayView extends FragmentActivity {
 
 
     // CenterBar implementation:
+    // This function adds the time layout for center bar
     private void initiateCenterBar() {
         if (center == null) {
             center = findViewById(R.id.center);
         }
         center.addView(new SimpleChronoView(this));
     }
+
+    // Scroling function that accepts values from 0 to 24, otherwise it will not scroll
     public void scrollTo(int hour) {
         if (hour >= 0 && hour <=24) {
             int slices = center.getHeight() / 24;
@@ -141,13 +143,14 @@ public class DayView extends FragmentActivity {
         }
     }
 
-    //DataBase management:
+    //DataBase management: TODO: This will need to be revamped with new implementation
 
     private DayHolder currentDay;
     private DayHolder nextDay;
     private DayHolder previousDay;
 
-    // Assuming that this is called only from the onCreate method
+    // Assuming that this is called only from the onCreate method, this function defines day to show
+    // and its adjacent days
     private void setMetaData(Long dayInLong) {
         Calendar tempTime = Calendar.getInstance();
 

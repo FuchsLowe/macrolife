@@ -1,11 +1,14 @@
 package com.fuchsundlowe.macrolife.DataObjects;
 
+import android.arch.lifecycle.LiveData;
 import android.arch.persistence.room.Dao;
 import android.arch.persistence.room.Delete;
 import android.arch.persistence.room.Insert;
 import android.arch.persistence.room.OnConflictStrategy;
 import android.arch.persistence.room.Query;
 import android.arch.persistence.room.Update;
+
+import java.util.List;
 
 /**
  * Created by macbook on 2/2/18.
@@ -23,8 +26,14 @@ public interface DAO {
     @Update(onConflict = OnConflictStrategy.REPLACE)
     void updateTask(ComplexGoalMaster eventMaster);
 
+    /*
     @Query("SELECT * FROM ComplexGoalMaster")
     public ComplexGoalMaster[] getAllComplexGoalMasters();
+    */
+
+
+    @Query("SELECT * FROM ComplexGoalMaster")
+    public LiveData<List<ComplexGoalMaster>> getAllComplexGoalMasters();
 
 
     // Managing OrdinaryEventMaster objects
@@ -38,7 +47,7 @@ public interface DAO {
     void updateTask(OrdinaryEventMaster eventMaster);
 
     @Query("SELECT * FROM OrdinaryEventMaster")
-    public OrdinaryEventMaster[] getAllOrdinaryEventMasters();
+    public LiveData<List<OrdinaryEventMaster>> getAllOrdinaryEventMasters();
 
 
     //Managing List Master objects:
@@ -52,7 +61,7 @@ public interface DAO {
     void updateTask(ListMaster eventMaster);
 
     @Query("SELECT * FROM ListMaster")
-    public ListMaster[] getAllListMasters();
+    public LiveData<List<ListMaster>> getAllListMasters();
 
 
     // Managing ListObject objects:
@@ -66,7 +75,7 @@ public interface DAO {
     void updateTask(ListObject eventMaster);
 
     @Query("SELECT * FROM ListObject")
-    public ListObject[] getAllListObject();
+    public LiveData<List<ListObject>> getAllListObject();
 
 
     // Managing RepeatingEventMaster objects:
@@ -80,7 +89,7 @@ public interface DAO {
     void updateTask(RepeatingEventMaster eventMaster);
 
     @Query("SELECT * FROM RepeatingEventMaster")
-    public RepeatingEventMaster[] getAllRepeatingEventMaster();
+    public LiveData<List<RepeatingEventMaster>> getAllRepeatingEventMaster();
 
 
     // Manages RepeatingEventsChild objects:
@@ -94,7 +103,7 @@ public interface DAO {
     void updateTask(RepeatingEventsChild eventMaster);
 
     @Query("SELECT * FROM RepeatingEventsChild")
-    public RepeatingEventsChild[] getAllRepeatingEventsChild();
+    public LiveData<List<RepeatingEventsChild>> getAllRepeatingEventsChild();
 
 
     // Manages SubGoalMaster objects:
@@ -108,6 +117,6 @@ public interface DAO {
     void updateTask(SubGoalMaster eventMaster);
 
     @Query("SELECT * FROM SubGoalMaster")
-    public SubGoalMaster[] getAllSubGoalMaster();
+    public LiveData<List<SubGoalMaster>> getAllSubGoalMaster();
 
 }

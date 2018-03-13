@@ -1,9 +1,12 @@
 package com.fuchsundlowe.macrolife.FragmentModels;
 
+import android.arch.lifecycle.Observer;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -12,9 +15,13 @@ import android.view.inputmethod.EditorInfo;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.LinearLayout;
-import android.widget.ListView;
 import android.widget.SimpleAdapter;
 import android.widget.TextView;
+
+import com.fuchsundlowe.macrolife.Adapters.ComplexGoal_ListAdapter;
+import com.fuchsundlowe.macrolife.Adapters.ListGoal_ListAdapter;
+import com.fuchsundlowe.macrolife.Adapters.RegularTask_ListAdapter;
+import com.fuchsundlowe.macrolife.Adapters.RepeatingEvent_ListAdapter;
 import com.fuchsundlowe.macrolife.DataObjects.ComplexGoalMaster;
 import com.fuchsundlowe.macrolife.DataObjects.Constants;
 import com.fuchsundlowe.macrolife.DataObjects.ListMaster;
@@ -25,12 +32,10 @@ import com.fuchsundlowe.macrolife.EngineClasses.StorageMaster;
 import com.fuchsundlowe.macrolife.Interfaces.DataProviderProtocol;
 import com.fuchsundlowe.macrolife.Interfaces.DateAndTimeProtocol;
 import com.fuchsundlowe.macrolife.R;
-import java.util.ArrayList;
+
 import java.util.Calendar;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 /**
  * Created by macbook on 2/22/18.
@@ -39,7 +44,7 @@ import java.util.Set;
 public class ListFragment extends Fragment implements DateAndTimeProtocol {
 
     private TextView label;
-    private ListView list;
+    private RecyclerView list;
     private int number;
     private DataProviderProtocol dataMaster;
     // View Lifecycle:
@@ -48,7 +53,6 @@ public class ListFragment extends Fragment implements DateAndTimeProtocol {
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         dataMaster = StorageMaster.getInstance(getContext());
-
     }
 
     @Nullable
@@ -62,26 +66,35 @@ public class ListFragment extends Fragment implements DateAndTimeProtocol {
     @Override
     public void onActivityCreated(@Nullable Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
-        label = getView().findViewById(R.id.slv_TopBarText);
-        list = getView().findViewById(R.id.TopBarSimpleListView);
-        number = getArguments().getInt(Constants.LIST_VIEW_TYPE_TO_DISPLAY);
+        // Init of the main elements of Fragment
+
+        number = getArguments().getInt(Constants.LIST_VIEW_TYPE_TO_DISPLAY); // Defines parameters
+        // for this views style, data it loads and etc.
+
+        // TOP BAR:
         setLabel(number);
-        defineName();
-        purpose = getView().findViewById(R.id.setPurpose_TaskCreatorComplex);
-        buttonBar = getView().findViewById(R.id.buttonBar_TaskCreator);
+
+        // CENTER BAR:
+        defineListRecyclerView();
+
+        // BOTTOM BAR:
+        defineNameTextField();
+
+        buttonBar = getView().findViewById(R.id.buttonBar_TaskCreator); // Holds all buttons
+        purpose = getView().findViewById(R.id.setPurpose_TaskCreatorComplex); // purpose field
+
         defineButtons();
     }
 
     @Override
     public void onResume() {
         super.onResume();
-        //providePopUp();
     }
 
     public void setLabel(int input) {
+        label = getView().findViewById(R.id.slv_TopBarText);
         switch (input){
             case 0: label.setText(R.string.ComplexGoalTxt);
-           // implementListAdapter(converterOfComplexGoals());
                 break;
             case 1: label.setText(R.string.OrdinaryTasksText);
                 break;
@@ -93,18 +106,54 @@ public class ListFragment extends Fragment implements DateAndTimeProtocol {
         String res = (String) label.getText();
     }
 
+    // ListView implementation:
+
+    private RecyclerView.Adapter adapter;
+
+    private void defineListRecyclerView() {
+        list = getView().findViewById(R.id.RecyclerView_ListLayout); // Finds handle to Recycler View
+        list.setHasFixedSize(true); // TODO: Establish if this is even good to set?
+
+        // Defines the layout of the RecyclerView
+        LinearLayoutManager linearLayoutManager = new LinearLayoutManager(getContext());
+        list.setLayoutManager(linearLayoutManager); // Thus it shall be linear layout
+
+        // Defines Adapter:
+
+        switch (number) {
+            case 0:
+                adapter = new ComplexGoal_ListAdapter(dataMaster.getAllComplexGoals());
+                list.setAdapter(adapter);
+                break;
+            case 1:
+                adapter = new RegularTask_ListAdapter(dataMaster.getAllOrdinaryEvents());
+                list.setAdapter(adapter);
+                break;
+            case 2:
+                adapter = new ListGoal_ListAdapter(dataMaster.getAllListMasters());
+                list.setAdapter(adapter);
+                break;
+            case 3:
+                adapter = new RepeatingEvent_ListAdapter(dataMaster.getAllRepeatingEventMasters());
+                list.setAdapter(adapter);
+                break;
+        }
+    }
+
+    //TODO: Unknow if this is still needed?
     public void implementListAdapter(List<Map<String,String>> resource) {
         String fromArray[] = {"name"};
         int to[] = {R.id.textViewBase};
         SimpleAdapter adapter = new SimpleAdapter(
                 getActivity(), resource, R.layout.text_layout_for_list, fromArray, to
         );
-        list.setAdapter(adapter);
+
     }
 
-    // Converter methods TODO: DO rest of the converters and implement them
+    /*
+    // Converter methods TODO: DO rest of the converters and implement them and change Implementation here
     private List<Map<String,String>> converterOfComplexGoals() {
-        Set<ComplexGoalMaster> set = StorageMaster.optionalStorageMaster().getComplexGoals();
+        List<ComplexGoalMaster> set = StorageMaster.optionalStorageMaster().getComplexGoals().getValue();
         List<Map<String, String>> toReport = new ArrayList<>();
         if (set != null) {
             for (ComplexGoalMaster goal : set) {
@@ -116,20 +165,11 @@ public class ListFragment extends Fragment implements DateAndTimeProtocol {
         }
         return toReport;
     }
-
-    /*
-    // PopUp Task Creator: TODO: Here I need to implement how will i define popUP based on Type of initiator
-    private FrameLayout tempFragContainer;
-    private TaskCreator_Complex complexTaskCreator;
-
-    public void providePopUp() {
-        //tempFragContainer = getView().findViewById(R.id.bottomContainer);
-        //complexTaskCreator = new TaskCreator_Complex();
-        //getFragmentManager().beginTransaction().add(R.id.bottomContainer, complexTaskCreator).commit();
-    }
     */
 
-    // Providing popUp Inherently...
+
+
+    // Bottom Bar implementation:
 
     private EditText name;
     private EditText purpose;
@@ -141,12 +181,14 @@ public class ListFragment extends Fragment implements DateAndTimeProtocol {
     private Calendar endDate;
 
 
-
+    // If this view displays ComplexGoal, this will provide purpose field. Otherwise will skip it.
     public void providePurposeInput() {
         if (number==0) {
             purpose.setVisibility(View.VISIBLE);
         }
     }
+
+    // Makes button bar container visible.
     private void provideButtonBar() {
         buttonBar.setVisibility(View.VISIBLE);
     }
@@ -161,7 +203,8 @@ public class ListFragment extends Fragment implements DateAndTimeProtocol {
         // Do the transition to another screen where creation of complex will be provide.
     }
 
-    private void defineName() {
+    // Provides implementation for displaying and softKey return when invoked...
+    private void defineNameTextField() {
         name = getView().findViewById(R.id.setName_TaskCreatorComplex);
         name.setOnEditorActionListener(new TextView.OnEditorActionListener() {
             @Override
@@ -176,6 +219,7 @@ public class ListFragment extends Fragment implements DateAndTimeProtocol {
 
     }
 
+    // Defines buttons and their actions
     private void defineButtons() {
         // StartDate&Time Button:
         startDateButton = getView().findViewById(R.id.startTime_TaskCreator);
@@ -206,8 +250,8 @@ public class ListFragment extends Fragment implements DateAndTimeProtocol {
         });
     }
 
-    // PopUps implementation:
-
+    // Displays time input view and based on isStartTimeValue it defines where it will return value,
+    // to either startTime or endTime.
     private void provideStartTime(boolean isStartTime) {
         TimePickerFragment timePickerFragment = new TimePickerFragment();
         // For reporting back the values picked
@@ -217,7 +261,9 @@ public class ListFragment extends Fragment implements DateAndTimeProtocol {
         timePickerFragment.show(getFragmentManager(),"TimePickerFragment");
     }
 
-    private void provideEndTime(boolean isStartTime) {
+    // Displays date input view and based on isStartTimeValue it defines where it will return value,
+    // to either startTime or endTime.
+    private void provideDatePicker(boolean isStartTime) {
         DatePickerFragment datePicker = new DatePickerFragment();
         // For reporting back the values picked
         datePicker.toReport = this;
@@ -227,7 +273,7 @@ public class ListFragment extends Fragment implements DateAndTimeProtocol {
     }
 
 
-
+    // Implementation for responding to done editing the new Task. TODO: Needs to dissmiss and clear input Keyboard
     private void doneClicked() {
         DataProviderProtocol dataMaster = StorageMaster.optionalStorageMaster();
         String taskName = name.getText().toString();
@@ -264,6 +310,7 @@ public class ListFragment extends Fragment implements DateAndTimeProtocol {
         }
     }
 
+    // Updates startDate date
     @Override
     public void setStartDate(int year, int month, int day) {
         if (startDate == null) {
@@ -276,7 +323,7 @@ public class ListFragment extends Fragment implements DateAndTimeProtocol {
         }
         startDate.set(year, month,day);
     }
-
+    // Updates endDate date
     @Override
     public void setEndDate(int year, int month, int day) {
         if (endDate == null) {
@@ -287,18 +334,45 @@ public class ListFragment extends Fragment implements DateAndTimeProtocol {
         endDate.set(year, month, day);
 
     }
-
+    // Updates startDate time
     @Override
     public void setStartTime(int hour, int minute, int second) {
         startDate.set(Calendar.HOUR, hour);
         startDate.set(Calendar.MINUTE, minute);
         startDate.set(Calendar.SECOND, second);
     }
-
+    // Updates endDate Time
     @Override
     public void setEndTime(int hour, int minute, int second) {
         endDate.set(Calendar.HOUR, hour);
         endDate.set(Calendar.MINUTE, minute);
         endDate.set(Calendar.SECOND, second);
     }
+
+    // Data Management part:
+
+    private void subscribeToData(int number) {
+        switch (number){
+            case 0:
+                dataMaster.subscribeObserver_ComplexGoal(this, defaultObserver);
+                break;
+            case 1:
+                dataMaster.subscribeObserver_OrdinaryEvent(this, defaultObserver);
+                break;
+            case 2:
+                dataMaster.subscribeObserver_ListMaster(this, defaultObserver);
+                break;
+            case 3:
+                dataMaster.subscribeObserver_RepeatingMaster(this, defaultObserver);
+                break;
+        }
+    }
+
+    // Default observer that will just notify the adapter of change
+    private Observer defaultObserver =  new Observer() {
+        @Override
+        public void onChanged(@Nullable Object o) {
+            list.getAdapter().notifyDataSetChanged();
+        }
+    };
 }

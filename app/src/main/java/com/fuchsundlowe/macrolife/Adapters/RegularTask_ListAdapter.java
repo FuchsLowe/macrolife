@@ -17,11 +17,11 @@ import java.util.List;
 
 public class RegularTask_ListAdapter extends RecyclerView.Adapter<RegularTask_ListAdapter.ViewHolder>{
 
-    public RegularTask_ListAdapter(LiveData<List<OrdinaryEventMaster>> dataList) {
-        this.dataList = dataList;
+    public void updateDatabase(List<OrdinaryEventMaster> newData) {
+        dataList = newData;
     }
 
-    private LiveData<List<OrdinaryEventMaster>> dataList;
+    private List<OrdinaryEventMaster> dataList;
 
 
     @NonNull
@@ -36,12 +36,12 @@ public class RegularTask_ListAdapter extends RecyclerView.Adapter<RegularTask_Li
 
     @Override
     public void onBindViewHolder(@NonNull RegularTask_ListAdapter.ViewHolder holder, int position) {
-        holder.getName().setText(dataList.getValue().get(position).getTaskName());
+        holder.getName().setText(dataList.get(position).getTaskName());
     }
 
     @Override
     public int getItemCount() {
-        List<OrdinaryEventMaster> list = dataList.getValue();
+        List<OrdinaryEventMaster> list = dataList;
         if (list != null) {
             return list.size();
         } else {

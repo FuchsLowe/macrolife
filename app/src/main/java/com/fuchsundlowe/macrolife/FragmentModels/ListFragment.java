@@ -1,5 +1,6 @@
 package com.fuchsundlowe.macrolife.FragmentModels;
 
+import android.arch.lifecycle.LiveData;
 import android.arch.lifecycle.Observer;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -76,7 +77,7 @@ public class ListFragment extends Fragment implements DateAndTimeProtocol {
 
         // CENTER BAR:
         defineListRecyclerView();
-
+        subscribeToData(number);
         // BOTTOM BAR:
         defineNameTextField();
 
@@ -119,22 +120,21 @@ public class ListFragment extends Fragment implements DateAndTimeProtocol {
         list.setLayoutManager(linearLayoutManager); // Thus it shall be linear layout
 
         // Defines Adapter:
-
         switch (number) {
             case 0:
-                adapter = new ComplexGoal_ListAdapter(dataMaster.getAllComplexGoals());
+                adapter = new ComplexGoal_ListAdapter();
                 list.setAdapter(adapter);
                 break;
             case 1:
-                adapter = new RegularTask_ListAdapter(dataMaster.getAllOrdinaryEvents());
+                adapter = new RegularTask_ListAdapter();
                 list.setAdapter(adapter);
                 break;
             case 2:
-                adapter = new ListGoal_ListAdapter(dataMaster.getAllListMasters());
+                adapter = new ListGoal_ListAdapter();
                 list.setAdapter(adapter);
                 break;
             case 3:
-                adapter = new RepeatingEvent_ListAdapter(dataMaster.getAllRepeatingEventMasters());
+                adapter = new RepeatingEvent_ListAdapter();
                 list.setAdapter(adapter);
                 break;
         }
@@ -354,25 +354,57 @@ public class ListFragment extends Fragment implements DateAndTimeProtocol {
     private void subscribeToData(int number) {
         switch (number){
             case 0:
-                dataMaster.subscribeObserver_ComplexGoal(this, defaultObserver);
+                dataMaster.subscribeObserver_ComplexGoal(this, new Observer<List<ComplexGoalMaster>>() {
+                    @Override
+                    public void onChanged(@Nullable List<ComplexGoalMaster> complexGoalMasters) {
+                        if (list.getAdapter() != null) {
+                            ComplexGoal_ListAdapter adapter = (ComplexGoal_ListAdapter)list.getAdapter();
+                            adapter.updateDataBase(complexGoalMasters);
+                            adapter.notifyDataSetChanged();
+                        }
+                    }
+                });
                 break;
             case 1:
-                dataMaster.subscribeObserver_OrdinaryEvent(this, defaultObserver);
+                dataMaster.subscribeObserver_OrdinaryEvent(this, new Observer<List<OrdinaryEventMaster>>() {
+                    @Override
+                    public void onChanged(@Nullable List<OrdinaryEventMaster> ordinaryEventMasters) {
+                        if (list.getAdapter() != null) {
+                            RegularTask_ListAdapter adapter = (RegularTask_ListAdapter) list.getAdapter();
+                            adapter.updateDatabase(ordinaryEventMasters);
+                            adapter.notifyDataSetChanged();
+                        }
+                    }
+                });
                 break;
             case 2:
-                dataMaster.subscribeObserver_ListMaster(this, defaultObserver);
+                dataMaster.subscribeObserver_ListMaster(this, new Observer<List<ListMaster>>() {
+                    @Override
+                    public void onChanged(@Nullable List<ListMaster> listMasters) {
+                        if (list.getAdapter() != null) {
+                            ListGoal_ListAdapter adapter = (ListGoal_ListAdapter) list.getAdapter();
+                            adapter.updateDataBase(listMasters);
+                            adapter.notifyDataSetChanged();
+                        }
+                    }
+                });
                 break;
             case 3:
-                dataMaster.subscribeObserver_RepeatingMaster(this, defaultObserver);
+                dataMaster.subscribeObserver_RepeatingMaster(this, new Observer<List<RepeatingEventMaster>>() {
+                    @Override
+                    public void onChanged(@Nullable List<RepeatingEventMaster> repeatingEventMasters) {
+                        if (list.getAdapter() != null) {
+                            RepeatingEvent_ListAdapter adapter = (RepeatingEvent_ListAdapter) list.getAdapter();
+                            adapter.updateDataBase(repeatingEventMasters);
+                            adapter.notifyDataSetChanged();
+                        }
+                    }
+                });
                 break;
         }
     }
 
-    // Default observer that will just notify the adapter of change
-    private Observer defaultObserver =  new Observer() {
-        @Override
-        public void onChanged(@Nullable Object o) {
-            list.getAdapter().notifyDataSetChanged();
-        }
-    };
+
+
+
 }

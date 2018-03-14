@@ -19,11 +19,11 @@ import java.util.List;
 
 public class RepeatingEvent_ListAdapter extends RecyclerView.Adapter<RepeatingEvent_ListAdapter.ViewHolder>{
 
-    public RepeatingEvent_ListAdapter(LiveData<List<RepeatingEventMaster>> dataList) {
-        this.dataList = dataList;
+    public void updateDataBase(List<RepeatingEventMaster> newData) {
+        dataList = newData;
     }
 
-    private LiveData<List<RepeatingEventMaster>> dataList;
+    private List<RepeatingEventMaster> dataList;
 
 
     @NonNull
@@ -38,13 +38,13 @@ public class RepeatingEvent_ListAdapter extends RecyclerView.Adapter<RepeatingEv
 
     @Override
     public void onBindViewHolder(@NonNull RepeatingEvent_ListAdapter.ViewHolder holder, int position) {
-        holder.getName().setText(dataList.getValue().get(position).getTaskName());
+        holder.getName().setText(dataList.get(position).getTaskName());
     }
 
     @Override
     public int getItemCount() {
 
-        List<RepeatingEventMaster> list = dataList.getValue();
+        List<RepeatingEventMaster> list = dataList;
         if (list != null) {
             return list.size();
         } else {

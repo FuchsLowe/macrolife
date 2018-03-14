@@ -18,11 +18,11 @@ import java.util.List;
 
 public class ListGoal_ListAdapter extends RecyclerView.Adapter<ListGoal_ListAdapter.ViewHolder>{
 
-    public ListGoal_ListAdapter(LiveData<List<ListMaster>> dataList) {
-        this.dataList = dataList;
+    public void updateDataBase(List<ListMaster> newData) {
+        dataList = newData;
     }
 
-    private LiveData<List<ListMaster>> dataList;
+    private List<ListMaster> dataList;
 
 
     @NonNull
@@ -37,12 +37,12 @@ public class ListGoal_ListAdapter extends RecyclerView.Adapter<ListGoal_ListAdap
 
     @Override
     public void onBindViewHolder(@NonNull ListGoal_ListAdapter.ViewHolder holder, int position) {
-        holder.getName().setText(dataList.getValue().get(position).getTaskName());
+        holder.getName().setText(dataList.get(position).getTaskName());
     }
 
     @Override
     public int getItemCount() {
-        List<ListMaster> list = dataList.getValue();
+        List<ListMaster> list = dataList;
         if (list != null) {
             return list.size();
         } else {

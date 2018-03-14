@@ -1,6 +1,8 @@
 package com.fuchsundlowe.macrolife;
 
 import android.arch.lifecycle.LiveData;
+import android.arch.lifecycle.Observer;
+import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
@@ -23,7 +25,7 @@ public class TestActivity extends AppCompatActivity {
         name = findViewById(R.id.enetrName);
         descriptor = findViewById(R.id.Descriptor);
         data = StorageMaster.getInstance(this);
-
+        registerObserver();
     }
 
     DataProviderProtocol data;
@@ -37,6 +39,12 @@ public class TestActivity extends AppCompatActivity {
                 final OrdinaryEventMaster em = new OrdinaryEventMaster(0, name.getText().toString(),null,
                         null, Calendar.getInstance(), false, SourceType.local);
                 data.insertObject(em);
+                descriptor.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        descriptor.append("Object To Be added: \n"+ "Name: " + em.getTaskName() + "\nID: " + em.getHashID() + "\n" );
+                    }
+                });
             }
         }).start();
 
@@ -45,14 +53,17 @@ public class TestActivity extends AppCompatActivity {
     }
 
     public void onLoad(View view) {
-        LiveData<List<OrdinaryEventMaster>> fetched = data.getAllOrdinaryEvents();
-        List<OrdinaryEventMaster> parsed = fetched.getValue();
-        if (parsed != null) {
-            for (OrdinaryEventMaster values: parsed) {
-                descriptor.append(values.getTaskName() + "\n");
+
+    }
+
+    private void registerObserver() {
+        data.subscribeObserver_OrdinaryEvent(this, new Observer<List<OrdinaryEventMaster>>() {
+            @Override
+            public void onChanged(@Nullable List<OrdinaryEventMaster> ordinaryEventMasters) {
+                for (OrdinaryEventMaster data: ordinaryEventMasters) {
+                    descriptor.append("New Entry: " + data.getTaskName() +"\nID: " + data.getHashID());
+                }
             }
-        } else {
-            descriptor.setText("Nothing Found :(");
-        }
+        });
     }
 }

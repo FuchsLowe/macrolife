@@ -52,8 +52,6 @@ public class DayView extends FragmentActivity {
 
     }
 
-
-
     // Life-cycle events:
 
     @Override
@@ -76,9 +74,6 @@ public class DayView extends FragmentActivity {
         initiateTopBar();
     }
 
-
-
-
     // TopBar Implementation:
     private void initiateTopBar() {
         if (topBar == null) {
@@ -92,7 +87,7 @@ public class DayView extends FragmentActivity {
     }
 
     private class PageAdapterMaster extends FragmentStatePagerAdapter {
-        private int NUM_OF_VIEWS  = 60;
+        private int NUM_OF_VIEWS  = 99;
         public PageAdapterMaster(FragmentManager fm) {
             super(fm);
         }
@@ -122,9 +117,7 @@ public class DayView extends FragmentActivity {
             return NUM_OF_VIEWS;
         }
 
-
     }
-
 
     // CenterBar implementation:
     // This function adds the time layout for center bar

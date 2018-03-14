@@ -29,7 +29,7 @@ public interface DataProviderProtocol {
     void updateObject(ComplexGoalMaster object);
     void insertObject(ComplexGoalMaster object);
     void subscribeObserver_ComplexGoal(LifecycleOwner lifecycleOwner, Observer<List<ComplexGoalMaster>> observer);
-    LiveData<List<ComplexGoalMaster>> getAllComplexGoals();
+   // LiveData<List<ComplexGoalMaster>> getAllComplexGoals();
 
     //Set<ListMaster>getAllListMasters();
     void deleteObject(ListMaster object);
@@ -37,14 +37,14 @@ public interface DataProviderProtocol {
     void updateObject(ListMaster object);
     void insertObject(ListMaster object);
     void subscribeObserver_ListMaster(LifecycleOwner lifecycleOwner, Observer<List<ListMaster>> observer);
-    LiveData<List<ListMaster>> getAllListMasters();
+    //LiveData<List<ListMaster>> getAllListMasters();
 
     void insertObject(ListObject object);
     //Set<ListObject>getListObjects();
     void updateListObject(ListObject object);
     void deleteObject(ListObject object);
     void subscribeObserver_ListObject(LifecycleOwner lifecycleOwner, Observer<List<ListObject>> observer);
-    LiveData<List<ListObject>> getAllListObjects();
+    //LiveData<List<ListObject>> getAllListObjects();
 
     //Set<OrdinaryEventMaster>getAllOrdinaryEventMasters();
     void deleteObject(OrdinaryEventMaster object);
@@ -52,7 +52,7 @@ public interface DataProviderProtocol {
     void updateObject(OrdinaryEventMaster object);
     void insertObject(OrdinaryEventMaster object);
     void subscribeObserver_OrdinaryEvent(LifecycleOwner lifecycleOwner, Observer<List<OrdinaryEventMaster>> observer);
-    LiveData<List<OrdinaryEventMaster>> getAllOrdinaryEvents();
+    //LiveData<List<OrdinaryEventMaster>> getAllOrdinaryEvents();
 
     //Set<RepeatingEventMaster>getAllRepeatingEventMasterss();
     void deleteObject(RepeatingEventMaster object);
@@ -60,7 +60,7 @@ public interface DataProviderProtocol {
     void updateObject(RepeatingEventMaster object);
     void insertObject(RepeatingEventMaster object);
     void subscribeObserver_RepeatingMaster(LifecycleOwner lifecycleOwner, Observer<List<RepeatingEventMaster>> observer);
-    LiveData<List<RepeatingEventMaster>> getAllRepeatingEventMasters();
+    //LiveData<List<RepeatingEventMaster>> getAllRepeatingEventMasters();
 
     //Set<RepeatingEventsChild>getAllRepeatingEventChildren();
     void deleteObject(RepeatingEventsChild object);
@@ -68,7 +68,7 @@ public interface DataProviderProtocol {
     void updateObject(RepeatingEventsChild object);
     void insertObject(RepeatingEventsChild object);
     void subscribeObserver_RepeatingCgild(LifecycleOwner lifecycleOwner, Observer<List<RepeatingEventsChild>> observer);
-    LiveData<List<RepeatingEventsChild>> getAllRepeatingEventChild();
+    //LiveData<List<RepeatingEventsChild>> getAllRepeatingEventChild();
 
     //Set<SubGoalMaster>getAllSubGoalMasters();
     void deleteObject(SubGoalMaster object);
@@ -76,11 +76,8 @@ public interface DataProviderProtocol {
     void updateObject(SubGoalMaster object);
     void insertObject(SubGoalMaster object);
     void subscribeObserver_SubGoal(LifecycleOwner lifecycleOwner, Observer<List<SubGoalMaster>> observer);
-    LiveData<List<SubGoalMaster>>getAllSubGoalMasters();
+    //LiveData<List<SubGoalMaster>>getAllSubGoalMasters();
 
     void closeDatabase();
-
-
-    // Test:\\
 
 }

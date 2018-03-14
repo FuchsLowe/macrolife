@@ -52,7 +52,7 @@ public class StorageMaster implements DataProviderProtocol {
         getComplexGoals().observe(lifecycleOwner, observer);
     }
 
-    @Override
+
     public LiveData<List<ComplexGoalMaster>> getAllComplexGoals() {
         return allComplexGoals;
     }
@@ -129,8 +129,14 @@ public class StorageMaster implements DataProviderProtocol {
         dataAccessObject.updateTask(object);
     }
 
-    public void insertObject(ListMaster object){
-        dataAccessObject.insertTask(object);
+    public void insertObject(final ListMaster object){
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                dataAccessObject.insertTask(object);
+            }
+        }).start();
+
     }
 
     @Override
@@ -181,8 +187,14 @@ public class StorageMaster implements DataProviderProtocol {
         return allListObjects;
     }
 
-    public void insertObject(ListObject object){
-        dataAccessObject.insertTask(object);
+    public void insertObject(final ListObject object){
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                dataAccessObject.insertTask(object);
+            }
+        }).start();
+
     }
 
     public void updateObject(ListObject object) {
@@ -197,7 +209,7 @@ public class StorageMaster implements DataProviderProtocol {
         getListObjects().observe(lifecycleOwner, observer);
     }
 
-    @Override
+
     public LiveData<List<ListObject>> getAllListObjects() {
         return allListObjects;
     }
@@ -228,8 +240,13 @@ public class StorageMaster implements DataProviderProtocol {
     }
 
     public void insertObject(final OrdinaryEventMaster object){
-
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
                 dataAccessObject.insertTask(object);
+            }
+        }).start();
+
 
     }
 
@@ -238,7 +255,7 @@ public class StorageMaster implements DataProviderProtocol {
         getAllOrdinaryEventMasters().observe(lifecycleOwner, observer);
     }
 
-    @Override
+
     public LiveData<List<OrdinaryEventMaster>> getAllOrdinaryEvents() {
         return allOrdinaryEventMasters;
     }
@@ -279,8 +296,14 @@ public class StorageMaster implements DataProviderProtocol {
         return allRepeatingEventMasters;
     }
 
-    public void insertObject(RepeatingEventMaster object){
-        dataAccessObject.insertTask(object);
+    public void insertObject(final RepeatingEventMaster object){
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                dataAccessObject.insertTask(object);
+            }
+        }).start();
+
     }
 
     @Override
@@ -288,7 +311,7 @@ public class StorageMaster implements DataProviderProtocol {
         getAllRepeatingEventMasterss().observe(lifecycleOwner, observer);
     }
 
-    @Override
+
     public LiveData<List<RepeatingEventMaster>> getAllRepeatingEventMasters() {
         return allRepeatingEventMasters;
     }
@@ -342,8 +365,14 @@ public class StorageMaster implements DataProviderProtocol {
         return allRepeatingEventChildren;
     }
 
-    public void insertObject(RepeatingEventsChild object){
-        dataAccessObject.insertTask(object);
+    public void insertObject(final RepeatingEventsChild object){
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                dataAccessObject.insertTask(object);
+            }
+        }).start();
+
     }
 
     @Override
@@ -351,7 +380,7 @@ public class StorageMaster implements DataProviderProtocol {
 
     }
 
-    @Override
+
     public LiveData<List<RepeatingEventsChild>> getAllRepeatingEventChild() {
         return allRepeatingEventChildren;
     }
@@ -389,8 +418,14 @@ public class StorageMaster implements DataProviderProtocol {
         return allSubGoalMasters;
     }
 
-    public void insertObject(SubGoalMaster object){
-        dataAccessObject.insertTask(object);
+    public void insertObject(final SubGoalMaster object){
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                dataAccessObject.insertTask(object);
+            }
+        }).start();
+
     }
 
     @Override
@@ -628,9 +663,5 @@ public class StorageMaster implements DataProviderProtocol {
         allSubGoalMasters = dataAccessObject.getAllSubGoalMaster();
         allRepeatingEventMasters = dataAccessObject.getAllRepeatingEventMaster();
     }
-
-    // Test Case:
-
-
 
 }

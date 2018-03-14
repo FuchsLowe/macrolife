@@ -1,6 +1,5 @@
 package com.fuchsundlowe.macrolife.Adapters;
 
-import android.arch.lifecycle.LiveData;
 import android.support.annotation.NonNull;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
@@ -18,11 +17,14 @@ import java.util.List;
 
 public class ComplexGoal_ListAdapter extends RecyclerView.Adapter<ComplexGoal_ListAdapter.ViewHolder> {
 
-    public ComplexGoal_ListAdapter(LiveData<List<ComplexGoalMaster>> dataList) {
-        this.dataList = dataList;
+    public ComplexGoal_ListAdapter() {
     }
 
-    private LiveData<List<ComplexGoalMaster>> dataList;
+    public void updateDataBase(List<ComplexGoalMaster> newData){
+        dataList = newData;
+    }
+
+    private List<ComplexGoalMaster> dataList;
 
     @NonNull
     @Override
@@ -36,12 +38,12 @@ public class ComplexGoal_ListAdapter extends RecyclerView.Adapter<ComplexGoal_Li
 
     @Override
     public void onBindViewHolder(@NonNull ComplexGoal_ListAdapter.ViewHolder holder, int position) {
-        holder.getTextView().setText(dataList.getValue().get(position).getTaskName()); // Only sets Name
+        holder.getTextView().setText(dataList.get(position).getTaskName()); // Only sets Name
     }
 
     @Override
     public int getItemCount() {
-        List<ComplexGoalMaster> list = dataList.getValue();
+        List<ComplexGoalMaster> list = dataList;
         if (list != null) {
             return list.size();
         } else {

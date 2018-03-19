@@ -43,6 +43,8 @@ public abstract class DataMasterClass {
                 this.hashID = this.createNextID();
                 updateMe();
             }
+        } else {
+            this.hashID = hashID;
         }
     }
 

@@ -63,6 +63,8 @@ public interface DAO {
     @Query("SELECT * FROM ListMaster")
     public LiveData<List<ListMaster>> getAllListMasters();
 
+    @Query("SELECT * FROM ListMaster WHERE hashID = :masterID")
+    LiveData<ListMaster> getListMasterByID(int masterID);
 
     // Managing ListObject objects:
     @Insert(onConflict = OnConflictStrategy.REPLACE)
@@ -76,6 +78,9 @@ public interface DAO {
 
     @Query("SELECT * FROM ListObject")
     public LiveData<List<ListObject>> getAllListObject();
+
+    @Query("SELECT * FROM ListObject WHERE masterID = :parentID")
+    LiveData<List<ListObject>>getListObjectsByParent(int parentID);
 
 
     // Managing RepeatingEventMaster objects:
@@ -119,4 +124,10 @@ public interface DAO {
     @Query("SELECT * FROM SubGoalMaster")
     public LiveData<List<SubGoalMaster>> getAllSubGoalMaster();
 
+    // TestQuerry:
+
+    @Query("SELECT ComplexGoalMaster.hashID AS hashID, ComplexGoalMaster.taskName as name " +
+    "FROM ComplexGoalMaster " + "WHERE taskCompleted = 0"
+    )
+    LiveData<List<PopUpData>> loadPopUpValues();
 }

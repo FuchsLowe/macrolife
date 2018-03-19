@@ -12,7 +12,11 @@ import android.support.v4.view.ViewPager;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.GridView;
 import android.widget.ScrollView;
+
+import com.fuchsundlowe.macrolife.Adapters.Grid_DayViewAdapter;
+import com.fuchsundlowe.macrolife.Adapters.PopUpGridAdapter;
 import com.fuchsundlowe.macrolife.CustomViews.SimpleChronoView;
 import com.fuchsundlowe.macrolife.DataObjects.ComplexGoalMaster;
 import com.fuchsundlowe.macrolife.DataObjects.Constants;
@@ -39,17 +43,15 @@ import java.util.Set;
  */
 public class DayView extends FragmentActivity {
 
-    private ScrollView center;
+    private int NUM_OF_VIEWS  = 100;
     private ViewPager topBar;
     private PagerAdapter adapter;
     private DataProviderProtocol dataMaster;
+    private Calendar currentDay;
 
     public DayView() {
         // Required empty public constructor
         dataMaster = StorageMaster.getInstance(this);
-        // TODO: Temp solution, will always go back to today's day
-        currentDay = new DayHolder(Calendar.getInstance(), dataMaster);
-
     }
 
     // Life-cycle events:
@@ -57,21 +59,23 @@ public class DayView extends FragmentActivity {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        currentDay = Calendar.getInstance();
 
         // We are expecting a passed day in form of long to be delivered
         if (savedInstanceState != null) {
-            this.setMetaData(savedInstanceState.getLong(Constants.DAY_TO_DISPLAY));
+            Long day = savedInstanceState.getLong(Constants.DAY_TO_DISPLAY);
+            if (day != null) {
+                currentDay.setTimeInMillis(day);
+            }
         }
         setContentView(R.layout.day_layout);
-
     }
-
 
     @Override
     public void onStart() {
         super.onStart();
-        initiateCenterBar();
         initiateTopBar();
+        initiateBottomBar();
     }
 
     // TopBar Implementation:
@@ -83,23 +87,24 @@ public class DayView extends FragmentActivity {
         adapter = new PageAdapterMaster(getSupportFragmentManager());
         topBar.setAdapter(adapter);
         topBar.setPageTransformer(true, new ZoomOut_PageTransformer());
-        topBar.setCurrentItem(30);
+        topBar.setCurrentItem(NUM_OF_VIEWS / 2); // S we have equal number of fragments on each side
     }
 
     private class PageAdapterMaster extends FragmentStatePagerAdapter {
-        private int NUM_OF_VIEWS  = 99;
+
         public PageAdapterMaster(FragmentManager fm) {
             super(fm);
         }
         private Integer currentValue;
         private Calendar startTime;
         @Override
+
         public Fragment getItem(int position) {
             if (currentValue == null) {
                 currentValue = position;
                 TopBarFragment_DayView barFragment = new TopBarFragment_DayView();
-                barFragment.setDay(currentDay.thisDay);
-                startTime = currentDay.thisDay;
+                barFragment.setDay(currentDay);
+                startTime = currentDay;
                 return barFragment;
             } else {
                 TopBarFragment_DayView barFragment = new TopBarFragment_DayView();
@@ -109,7 +114,6 @@ public class DayView extends FragmentActivity {
                 barFragment.setDay(tempHolder);
                 return barFragment;
             }
-
         }
 
         @Override
@@ -119,25 +123,19 @@ public class DayView extends FragmentActivity {
 
     }
 
-    // CenterBar implementation:
-    // This function adds the time layout for center bar
-    private void initiateCenterBar() {
-        if (center == null) {
-            center = findViewById(R.id.center);
-        }
-        center.addView(new SimpleChronoView(this));
+    // Bottom Bar Implementation:
+
+    private GridView grid;
+
+    private void initiateBottomBar() {
+        grid = findViewById(R.id.grid);
+        grid.setNumColumns(2);
+        grid.setAdapter(new PopUpGridAdapter(this));
     }
 
-    // Scroling function that accepts values from 0 to 24, otherwise it will not scroll
-    public void scrollTo(int hour) {
-        if (hour >= 0 && hour <=24) {
-            int slices = center.getHeight() / 24;
-            center.scrollTo(0,slices * hour);
-        }
-    }
 
-    //DataBase management: TODO: This will need to be revamped with new implementation
 
+    /*
     private DayHolder currentDay;
     private DayHolder nextDay;
     private DayHolder previousDay;
@@ -236,5 +234,5 @@ public class DayView extends FragmentActivity {
             repeatingEventMasters.clear();
         }
     }
-
+*/
 }

@@ -1,20 +1,20 @@
 package com.fuchsundlowe.macrolife.Adapters;
 
-import android.arch.lifecycle.LiveData;
+import android.app.ListActivity;
+import android.content.Context;
+import android.content.Intent;
 import android.support.annotation.NonNull;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
+import com.fuchsundlowe.macrolife.DataObjects.Constants;
 import com.fuchsundlowe.macrolife.DataObjects.ListMaster;
+import com.fuchsundlowe.macrolife.ListTask;
 import com.fuchsundlowe.macrolife.R;
 
 import java.util.List;
-
-/**
- * Created by macbook on 3/12/18.
- */
 
 public class ListGoal_ListAdapter extends RecyclerView.Adapter<ListGoal_ListAdapter.ViewHolder>{
 
@@ -23,7 +23,16 @@ public class ListGoal_ListAdapter extends RecyclerView.Adapter<ListGoal_ListAdap
     }
 
     private List<ListMaster> dataList;
+    private static Context mContext;
 
+    public ListGoal_ListAdapter(Context context) {
+        mContext = context;
+    }
+
+    @Override
+    public long getItemId(int position) {
+        return super.getItemId(position);
+    }
 
     @NonNull
     @Override
@@ -38,6 +47,8 @@ public class ListGoal_ListAdapter extends RecyclerView.Adapter<ListGoal_ListAdap
     @Override
     public void onBindViewHolder(@NonNull ListGoal_ListAdapter.ViewHolder holder, int position) {
         holder.getName().setText(dataList.get(position).getTaskName());
+        holder.masterID = dataList.get(position).getHashID();
+
     }
 
     @Override
@@ -51,18 +62,31 @@ public class ListGoal_ListAdapter extends RecyclerView.Adapter<ListGoal_ListAdap
     }
 
 
-
     public static class ViewHolder extends RecyclerView.ViewHolder {
 
         private final TextView name;
+        private int masterID;
 
-        public ViewHolder(View v) {
+
+        ViewHolder(View v) {
             super(v);
-            name = (TextView) v.findViewById(R.id.listgoal_taskname_card);
+            name = v.findViewById(R.id.listgoal_taskname_card);
+
+            v.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    shootIntent();
+                }
+            });
         }
 
         public TextView getName() { return name;}
 
+        void shootIntent() {
+            Intent toDetailedListTask = new Intent(mContext, ListTask.class);
+            toDetailedListTask.putExtra(Constants.LIST_VIEW_MASTER_ID, masterID);
+            mContext.startActivity(toDetailedListTask);
+        }
     }
 
 }

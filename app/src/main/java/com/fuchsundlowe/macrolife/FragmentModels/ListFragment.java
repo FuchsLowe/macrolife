@@ -130,7 +130,7 @@ public class ListFragment extends Fragment implements DateAndTimeProtocol {
                 list.setAdapter(adapter);
                 break;
             case 2:
-                adapter = new ListGoal_ListAdapter();
+                adapter = new ListGoal_ListAdapter(getActivity());
                 list.setAdapter(adapter);
                 break;
             case 3:
@@ -139,35 +139,6 @@ public class ListFragment extends Fragment implements DateAndTimeProtocol {
                 break;
         }
     }
-
-    //TODO: Unknow if this is still needed?
-    public void implementListAdapter(List<Map<String,String>> resource) {
-        String fromArray[] = {"name"};
-        int to[] = {R.id.textViewBase};
-        SimpleAdapter adapter = new SimpleAdapter(
-                getActivity(), resource, R.layout.text_layout_for_list, fromArray, to
-        );
-
-    }
-
-    /*
-    // Converter methods TODO: DO rest of the converters and implement them and change Implementation here
-    private List<Map<String,String>> converterOfComplexGoals() {
-        List<ComplexGoalMaster> set = StorageMaster.optionalStorageMaster().getComplexGoals().getValue();
-        List<Map<String, String>> toReport = new ArrayList<>();
-        if (set != null) {
-            for (ComplexGoalMaster goal : set) {
-                Map<String, String> map = new HashMap<>();
-                String name = goal.getTaskName();
-                map.put("name", name);
-                toReport.add(map);
-            }
-        }
-        return toReport;
-    }
-    */
-
-
 
     // Bottom Bar implementation:
 

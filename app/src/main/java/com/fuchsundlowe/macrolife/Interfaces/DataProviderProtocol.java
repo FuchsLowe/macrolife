@@ -8,6 +8,7 @@ import com.fuchsundlowe.macrolife.DataObjects.ComplexGoalMaster;
 import com.fuchsundlowe.macrolife.DataObjects.ListMaster;
 import com.fuchsundlowe.macrolife.DataObjects.ListObject;
 import com.fuchsundlowe.macrolife.DataObjects.OrdinaryEventMaster;
+import com.fuchsundlowe.macrolife.DataObjects.PopUpData;
 import com.fuchsundlowe.macrolife.DataObjects.RepeatingEventMaster;
 import com.fuchsundlowe.macrolife.DataObjects.RepeatingEventsChild;
 import com.fuchsundlowe.macrolife.DataObjects.SubGoalMaster;
@@ -37,13 +38,14 @@ public interface DataProviderProtocol {
     void updateObject(ListMaster object);
     void insertObject(ListMaster object);
     void subscribeObserver_ListMaster(LifecycleOwner lifecycleOwner, Observer<List<ListMaster>> observer);
-    //LiveData<List<ListMaster>> getAllListMasters();
+    LiveData<ListMaster> getListMasterByID(int masterID);
 
     void insertObject(ListObject object);
     //Set<ListObject>getListObjects();
     void updateListObject(ListObject object);
     void deleteObject(ListObject object);
     void subscribeObserver_ListObject(LifecycleOwner lifecycleOwner, Observer<List<ListObject>> observer);
+    LiveData<List<ListObject>> getListObjectsByParent(int parentHashID);
     //LiveData<List<ListObject>> getAllListObjects();
 
     //Set<OrdinaryEventMaster>getAllOrdinaryEventMasters();
@@ -79,5 +81,9 @@ public interface DataProviderProtocol {
     //LiveData<List<SubGoalMaster>>getAllSubGoalMasters();
 
     void closeDatabase();
+
+    // TEST:
+    LiveData<List<PopUpData>> loadPopUpValues();
+
 
 }

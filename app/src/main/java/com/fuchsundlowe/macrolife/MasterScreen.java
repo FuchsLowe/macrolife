@@ -5,6 +5,8 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
 
+import com.fuchsundlowe.macrolife.TestCases.TestActivity;
+
 
 public class MasterScreen extends AppCompatActivity {
 

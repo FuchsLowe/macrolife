@@ -24,7 +24,6 @@ public class ListView extends FragmentActivity {
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        DataProviderProtocol dataMaster = StorageMaster.getInstance(this);
         setContentView(R.layout.list_layout);
     }
 

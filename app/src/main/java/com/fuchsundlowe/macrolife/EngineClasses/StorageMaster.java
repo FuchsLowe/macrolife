@@ -144,6 +144,11 @@ public class StorageMaster implements DataProviderProtocol {
         getAllListMasters().observe(lifecycleOwner, observer);
     }
 
+    @Override
+    public LiveData<ListMaster> getListMasterByID(int masterID) {
+        return dataAccessObject.getListMasterByID(masterID);
+    }
+
 
     public void updateObject(ListMaster object) {
         dataAccessObject.updateTask(object);
@@ -207,6 +212,11 @@ public class StorageMaster implements DataProviderProtocol {
     @Override
     public void subscribeObserver_ListObject(LifecycleOwner lifecycleOwner, Observer<List<ListObject>> observer) {
         getListObjects().observe(lifecycleOwner, observer);
+    }
+
+    @Override
+    public LiveData<List<ListObject>> getListObjectsByParent(int parentHashID) {
+        return dataAccessObject.getListObjectsByParent(parentHashID);
     }
 
 
@@ -662,6 +672,12 @@ public class StorageMaster implements DataProviderProtocol {
         allRepeatingEventChildren = dataAccessObject.getAllRepeatingEventsChild();
         allSubGoalMasters = dataAccessObject.getAllSubGoalMaster();
         allRepeatingEventMasters = dataAccessObject.getAllRepeatingEventMaster();
+    }
+
+
+    @Override
+    public LiveData<List<PopUpData>> loadPopUpValues() {
+        return dataAccessObject.loadPopUpValues();
     }
 
 }

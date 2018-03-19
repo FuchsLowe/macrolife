@@ -2,6 +2,8 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.fuchsundlowe.macrolife">
 
+    <uses-permission android:name="android.permission.INTERNET" />
+
     <application
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
@@ -22,7 +24,11 @@
         <activity
             android:name=".ListView"
             android:windowSoftInputMode="stateHidden" />
-        <activity android:name=".TestActivity"></activity>
+        <activity android:name=".TestCases.TestActivity" />
+        <activity android:name=".ListTask" />
+        <activity android:name=".TestCases.TestActivity2" />
+        <activity android:name=".TestCases.TestActivity3" />
+        <activity android:name=".ComplexTask"></activity>
     </application>
 
 </manifest>

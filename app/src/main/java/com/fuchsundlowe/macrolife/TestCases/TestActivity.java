@@ -1,17 +1,19 @@
-package com.fuchsundlowe.macrolife;
+package com.fuchsundlowe.macrolife.TestCases;
 
-import android.arch.lifecycle.LiveData;
 import android.arch.lifecycle.Observer;
+import android.content.Intent;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.EditText;
 
+import com.fuchsundlowe.macrolife.DataObjects.ListObject;
 import com.fuchsundlowe.macrolife.DataObjects.OrdinaryEventMaster;
 import com.fuchsundlowe.macrolife.DataObjects.SourceType;
 import com.fuchsundlowe.macrolife.EngineClasses.StorageMaster;
 import com.fuchsundlowe.macrolife.Interfaces.DataProviderProtocol;
+import com.fuchsundlowe.macrolife.R;
 
 import java.util.Calendar;
 import java.util.List;
@@ -65,5 +67,28 @@ public class TestActivity extends AppCompatActivity {
                 }
             }
         });
+    }
+
+    private void observerForListObjects() {
+        data.subscribeObserver_ListObject(this, new Observer<List<ListObject>>() {
+            @Override
+            public void onChanged(@Nullable List<ListObject> listObjects) {
+                String toText = "";
+                for (ListObject object: listObjects) {
+                    toText += object.getHashID() + " with name: " + object.getTaskName() + "\n";
+                }
+                descriptor.setText(toText);
+            }
+        });
+    }
+
+    public void toScroll(View view) {
+        Intent toScroll = new Intent(this, TestActivity2.class);
+        startActivity(toScroll);
+    }
+
+    public void toTest3(View view) {
+        Intent test3 = new Intent (this, TestActivity3.class);
+        startActivity(test3);
     }
 }

@@ -6,7 +6,10 @@ import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ScrollView;
 import android.widget.TextView;
+
+import com.fuchsundlowe.macrolife.CustomViews.SimpleChronoView;
 import com.fuchsundlowe.macrolife.R;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
@@ -20,6 +23,7 @@ public class TopBarFragment_DayView extends Fragment {
     private Calendar day;
     private TextView topLabel;
     private TextView bottomLabel;
+    private ScrollView center;
 
     public TopBarFragment_DayView() {
         // Required empty public constructor
@@ -46,12 +50,13 @@ public class TopBarFragment_DayView extends Fragment {
     @Override
     public void onActivityCreated(@Nullable Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
-
+        center = getView().findViewById(R.id.center);
         topLabel = getView().findViewById(R.id.topLabel);
         bottomLabel = getView().findViewById(R.id.bottomLabel);
         if (day != null) {
             topLabel.setText(getDay());
             bottomLabel.setText(getDate());
+            initiateCenterBar();
         }
 
     }
@@ -59,9 +64,6 @@ public class TopBarFragment_DayView extends Fragment {
     @Override
     public void onStart() {
         super.onStart();
-
-//        topLabel.setText(getDay());
-//        bottomLabel.setText(getDate());
     }
 
     @Override
@@ -82,6 +84,19 @@ public class TopBarFragment_DayView extends Fragment {
         SimpleDateFormat format = new SimpleDateFormat("MMMM dd, yyyy");
         String value = format.format(this.day.getTime());
         return  value;
+    }
+
+    // On Managing the center
+    private void initiateCenterBar() {
+        center.addView(new SimpleChronoView(getContext()));
+    }
+
+    // Scroling function that accepts values from 0 to 24, otherwise it will not scroll
+    public void scrollTo(int hour) {
+        if (hour >= 0 && hour <=24) {
+            int slices = center.getHeight() / 24;
+            center.scrollTo(0,slices * hour);
+        }
     }
 
 

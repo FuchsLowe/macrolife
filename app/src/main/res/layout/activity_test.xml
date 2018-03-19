@@ -5,7 +5,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    tools:context="com.fuchsundlowe.macrolife.TestActivity">
+    tools:context="com.fuchsundlowe.macrolife.TestCases.TestActivity">
 
     <EditText
         android:id="@+id/enetrName"
@@ -39,4 +39,24 @@
         android:layout_height="wrap_content"
         android:onClick="onLoad"
         android:text="Load New" />
+
+    <CheckedTextView
+        android:id="@+id/checkedTextView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="CheckedTextView" />
+
+    <Button
+        android:id="@+id/button2"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:onClick="toScroll"
+        android:text="ToScrollActivity" />
+
+    <Button
+        android:id="@+id/button3"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:onClick="toTest3"
+        android:text="ToTest3" />
 </LinearLayout>

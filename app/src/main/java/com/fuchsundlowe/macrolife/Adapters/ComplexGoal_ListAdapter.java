@@ -51,6 +51,10 @@ public class ComplexGoal_ListAdapter extends RecyclerView.Adapter<ComplexGoal_Li
         }
     }
 
+    public void toComplexTaskActivity() {
+
+    }
+
 
     // In charge of displaying the Views...
     public static class ViewHolder extends RecyclerView.ViewHolder {
@@ -59,8 +63,13 @@ public class ComplexGoal_ListAdapter extends RecyclerView.Adapter<ComplexGoal_Li
 
         public ViewHolder(View itemView) {
             super(itemView);
-
             textToDisplay = (TextView) itemView.findViewById(R.id.complexgoal_taskname_card);
+            itemView.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+
+                }
+            });
 
         }
 

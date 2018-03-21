@@ -124,6 +124,9 @@ public interface DAO {
     @Query("SELECT * FROM SubGoalMaster")
     public LiveData<List<SubGoalMaster>> getAllSubGoalMaster();
 
+    @Query("SELECT * FROM SubGoalMaster WHERE parentID = :ofMaster")
+    LiveData<List<SubGoalMaster>> findAllChildren(int ofMaster);
+
     // TestQuerry:
 
     @Query("SELECT ComplexGoalMaster.hashID AS hashID, ComplexGoalMaster.taskName as name " +

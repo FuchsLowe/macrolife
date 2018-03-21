@@ -8,6 +8,7 @@ import android.util.AttributeSet;
 import android.view.MotionEvent;
 import android.widget.RelativeLayout;
 
+@Deprecated
 public class ScrollingLayout extends RelativeLayout {
 
     private float mPosX = 0, mPosY = 0;

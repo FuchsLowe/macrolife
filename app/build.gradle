@@ -4,7 +4,7 @@ android {
     compileSdkVersion 27
     defaultConfig {
         applicationId "com.fuchsundlowe.macrolife"
-        minSdkVersion 19
+        minSdkVersion 22
         targetSdkVersion 27
         versionCode 1
         versionName "1.0"
@@ -46,6 +46,9 @@ dependencies {
     // Test helpers for Room
     testImplementation "android.arch.persistence.room:testing:1.0.0"
 }
+
+
+
 
 
 

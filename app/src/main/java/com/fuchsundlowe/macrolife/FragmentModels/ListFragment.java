@@ -122,7 +122,7 @@ public class ListFragment extends Fragment implements DateAndTimeProtocol {
         // Defines Adapter:
         switch (number) {
             case 0:
-                adapter = new ComplexGoal_ListAdapter();
+                adapter = new ComplexGoal_ListAdapter(getContext());
                 list.setAdapter(adapter);
                 break;
             case 1:

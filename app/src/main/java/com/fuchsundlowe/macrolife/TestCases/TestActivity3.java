@@ -5,10 +5,9 @@ import android.graphics.BitmapFactory;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.MotionEvent;
 import android.widget.ImageView;
-
 import com.fuchsundlowe.macrolife.R;
-
 import java.io.IOException;
 import java.net.URL;
 
@@ -47,4 +46,11 @@ public class TestActivity3 extends AppCompatActivity {
         }).start();
 
     }
+
+    @Override
+    public boolean onTouchEvent(MotionEvent event) {
+        Log.d("Pee", "Sam");
+        return super.onTouchEvent(event);
+    }
+
 }

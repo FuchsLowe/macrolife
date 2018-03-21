@@ -6,16 +6,15 @@ import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.FrameLayout;
 import android.widget.ScrollView;
 import android.widget.TextView;
 
-import com.fuchsundlowe.macrolife.CustomViews.SimpleChronoView;
+import com.fuchsundlowe.macrolife.CustomViews.AlternativeChronoView;
+import com.fuchsundlowe.macrolife.CustomViews.DayViewBackLayout;
 import com.fuchsundlowe.macrolife.R;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
-/*
- *
- */
 
 public class TopBarFragment_DayView extends Fragment {
 
@@ -23,10 +22,12 @@ public class TopBarFragment_DayView extends Fragment {
     private Calendar day;
     private TextView topLabel;
     private TextView bottomLabel;
-    private ScrollView center;
+    private ViewGroup center;
+    private ViewGroup rootView;
 
     public TopBarFragment_DayView() {
         // Required empty public constructor
+
     }
 
     public void setDay(Calendar day) {
@@ -41,16 +42,16 @@ public class TopBarFragment_DayView extends Fragment {
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                             Bundle savedInstanceState) {
-       ViewGroup rootView = (ViewGroup) inflater.inflate(R.layout.day_view_top_bar,
+                             Bundle savedInstanceState) {rootView = (ViewGroup) inflater.inflate(R.layout.day_view_top_bar,
                container,false);
+
        return rootView;
     }
 
     @Override
     public void onActivityCreated(@Nullable Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
-        center = getView().findViewById(R.id.center);
+        center = getView().findViewById(R.id.centerTarget);
         topLabel = getView().findViewById(R.id.topLabel);
         bottomLabel = getView().findViewById(R.id.bottomLabel);
         if (day != null) {
@@ -88,7 +89,9 @@ public class TopBarFragment_DayView extends Fragment {
 
     // On Managing the center
     private void initiateCenterBar() {
-        center.addView(new SimpleChronoView(getContext()));
+        DayViewBackLayout mesh = new DayViewBackLayout(getContext(),
+                rootView.getHeight());
+        center.addView(mesh);
     }
 
     // Scroling function that accepts values from 0 to 24, otherwise it will not scroll

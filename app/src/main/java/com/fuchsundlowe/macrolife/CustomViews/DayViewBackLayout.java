@@ -8,7 +8,6 @@ import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
-import android.util.Log;
 import android.view.View;
 
 
@@ -16,11 +15,11 @@ import android.view.View;
  * Created by macbook on 2/13/18.
  */
 
-public class SimpleChronoView extends View {
+public class DayViewBackLayout extends View {
 
     // StandardValues
     private int LINE_COLOR = Color.BLACK;
-    private int SCALE_FACTOR = 10; // Defines how many hours we will show at screen at one time?
+    private int SCALE_FACTOR = 10; // Defines how many hours we will show at screen at one time...
     private int RIGHT_PADDING = 5;
     private int LEFT_PADDING = 10;
     private boolean SHOW_DOTTED_LINE = false; //TODO: Not yet implemented
@@ -37,12 +36,18 @@ public class SimpleChronoView extends View {
     private int lineSpacing;
     private int calculatedLineWidth;
     private int calculatedTextSize;
+    private int workableHeight;
+
+
 
 
     // Public constructor that makes initialization of values as well at the same time
-    public SimpleChronoView(Context context) {
+    public DayViewBackLayout(Context context, int workableHeight) {
         super(context);
+
         this.context = context;
+
+        this.workableHeight = workableHeight;
 
         calculatedLineWidth = dpToPixConverter(LINE_WIDTH);
         calculatedTextSize = dpToPixConverter(TEXT_SIZE);
@@ -57,9 +62,15 @@ public class SimpleChronoView extends View {
         textMarker.setColor(LINE_COLOR);
         textMarker.setTextSize(calculatedTextSize);
 
+        lineSpacing = workableHeight / SCALE_FACTOR;
+
+        this.setWillNotDraw(false);
     }
 
+
     // Methods:
+
+
 
     // This method updates preferences that have been established in SharedPreferences
     public void updatePreferences() {
@@ -127,7 +138,7 @@ public class SimpleChronoView extends View {
     }
     // Calculates text size so it can offset the line
     private float maxTextSize(String[] textVals) {
-        float max = 0;
+        float max = 0f;
         for (String text: textVals) {
             max = Math.max(max, textMarker.measureText(text));
         }
@@ -139,34 +150,33 @@ public class SimpleChronoView extends View {
     @Override
     public void draw(Canvas canvas) {
         super.draw(canvas);
+        setWillNotDraw(false);
+
+
         // Can draw on this canvas here because its gonna be static
         String[] time = getTimeRepresentation(true);
         float lineOffset = maxTextSize(time);
-        Log.d("MaxTextSize is: ", (String.valueOf(lineOffset)));
         // Drawing:
         for (int i = 0; i<24; i++) {
             int y = i*lineSpacing;
             int x = 10; // To be calculated by the maxWidth of text
             canvas.drawText(time[i], x, y, textMarker);
             canvas.drawLine(x + lineOffset + dpToPixConverter(5) , y, canvas.getWidth(), y,lineMarker);
+            canvas.save();
         }
     }
 
     @Override
     protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
-        /* Needs to accomodate 24H show...
-        *So this is the deal, I need to divide by 10 and then I need to add 24
-        */
         int width = 0;
         int height = 0;
-
-        lineSpacing = calculateRowHeight(ROW_BY_SCREEN, heightMeasureSpec);
 
         height = lineSpacing * 24; // Because day has 24 hours
         width = widthMeasureSpec - (RIGHT_PADDING + LEFT_PADDING);
 
-        setMeasuredDimension(width,height);
+        setMeasuredDimension(width, height);
     }
+
 
     @Override
     public void invalidate() {

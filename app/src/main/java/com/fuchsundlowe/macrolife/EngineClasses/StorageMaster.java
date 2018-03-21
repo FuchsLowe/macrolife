@@ -292,6 +292,11 @@ public class StorageMaster implements DataProviderProtocol {
         return tempSet;
     }
 
+    @Override
+    public LiveData<List<SubGoalMaster>> findAllChildren(int ofMaster) {
+        return dataAccessObject.findAllChildren(ofMaster);
+    }
+
     public boolean amIStored(OrdinaryEventMaster object) {
         int myID = object.getHashID();
         for (OrdinaryEventMaster value: getAllOrdinaryEventMasters().getValue()) {

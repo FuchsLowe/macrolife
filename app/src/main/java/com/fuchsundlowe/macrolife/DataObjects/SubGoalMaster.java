@@ -17,18 +17,25 @@ public class SubGoalMaster extends DataMasterClass {
     private int parentID; // Is reference to a ComplexGoalMaster, a must
     private int parentSubGoal; // Is reference to a another subGoal that lies up in chain or
     // even master goal... If returns nill then it is not subjetcted to any pattern
+
+    private int mX;
+    private int mY;
+
+
     @Ignore
-    private Set<Integer> childrenGoalsIDs;
+    private Set<Integer> childrenGoalsIDs; // Of any usage?
 
     // Constructor:
     public SubGoalMaster(int hashID, String taskName, Calendar taskStartTime,
                          Calendar taskEndTime, Calendar taskCreatedTimeStamp,
                          boolean taskCompleted, SourceType taskOriginalSource, int parentID,
-                         int parentSubGoal) {
+                         int parentSubGoal, int mX, int mY) {
 
         super(hashID, taskName, taskStartTime, taskEndTime,
                 taskCreatedTimeStamp, taskCompleted,
                 taskOriginalSource);
+        this.mX = mX;
+        this.mY = mY;
         this.parentID=parentID;
         this.parentSubGoal=parentSubGoal;
     }
@@ -44,6 +51,23 @@ public class SubGoalMaster extends DataMasterClass {
         parentSubGoal = newParent;
     }
 
+    public int getMX() {
+        return this.mX;
+    }
+    public void setMX(int mX) {
+        this.mX = mX;
+    }
+
+    public int getMY() {
+        return mY;
+    }
+
+    public void setMY(int mY) {
+        this.mY = mY;
+    }
+
+
+
     // Finds parent if any and returns it as Object. Can be SubMaster or ComplexGoalMaster
     public Object getParentGoal() {
         if (getParentID() == getParentSubGoal()) {
@@ -53,20 +77,6 @@ public class SubGoalMaster extends DataMasterClass {
         }
     }
 
-/* Question: Is this needed? How will I implemeent this functionality?
-    public Set<Integer> getChildrenGoalsIDs() {
-        // TODO: Needs implementation for database retrival
-        return this.childrenGoalsIDs;
-    }
-    public void addChildGoal(int child){
-        // TODO: Needs implementation for database
-        childrenGoalsIDs.add(child);
-    }
-    public void removeChild(int child){
-        // TODO: Needs implementation for database
-        childrenGoalsIDs.remove(child);
-    }
-*/
     @Override
     public void updateMe() {
         if (this.getStorageMaster().checkIfIDisAssigned(this.getHashID())) {

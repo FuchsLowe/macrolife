@@ -30,6 +30,7 @@ public class ListTaskAdapter extends RecyclerView.Adapter<ListTaskAdapter.BaseAd
         this.mContext = context;
         implementLiveData();
     }
+
     @NonNull
     @Override
     public BaseAdapter onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {

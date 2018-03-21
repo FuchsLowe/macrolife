@@ -1,7 +1,5 @@
 package com.fuchsundlowe.macrolife;
 
-import android.app.Activity;
-import android.arch.lifecycle.LiveData;
 import android.arch.lifecycle.Observer;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;

@@ -79,6 +79,7 @@ public interface DataProviderProtocol {
     void insertObject(SubGoalMaster object);
     void subscribeObserver_SubGoal(LifecycleOwner lifecycleOwner, Observer<List<SubGoalMaster>> observer);
     //LiveData<List<SubGoalMaster>>getAllSubGoalMasters();
+    LiveData<List<SubGoalMaster>> findAllChildren(int ofMaster);
 
     void closeDatabase();
 

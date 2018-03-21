@@ -2,7 +2,14 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.fuchsundlowe.macrolife">
 
+    <uses-sdk
+        android:minSdkVersion="22"
+        android:targetSdkVersion="27" />
+
     <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.READ_PHONE_STATE" />
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
 
     <application
         android:allowBackup="true"
@@ -28,7 +35,8 @@
         <activity android:name=".ListTask" />
         <activity android:name=".TestCases.TestActivity2" />
         <activity android:name=".TestCases.TestActivity3" />
-        <activity android:name=".ComplexTask"></activity>
+        <activity android:name=".ComplexTaskActivity" />
+        <activity android:name=".TestCases.Test4"></activity>
     </application>
 
 </manifest>

@@ -29,4 +29,5 @@
         android:layout_height="wrap_content"
         android:onClick="toTest"
         android:text="TestView" />
+
 </LinearLayout>

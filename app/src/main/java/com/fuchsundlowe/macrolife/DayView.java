@@ -1,40 +1,21 @@
 package com.fuchsundlowe.macrolife;
 
-import android.app.Activity;
 import android.os.Bundle;
-import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentStatePagerAdapter;
 import android.support.v4.view.PagerAdapter;
 import android.support.v4.view.ViewPager;
-import android.view.LayoutInflater;
-import android.view.View;
-import android.view.ViewGroup;
 import android.widget.GridView;
-import android.widget.ScrollView;
-
-import com.fuchsundlowe.macrolife.Adapters.Grid_DayViewAdapter;
 import com.fuchsundlowe.macrolife.Adapters.PopUpGridAdapter;
-import com.fuchsundlowe.macrolife.CustomViews.SimpleChronoView;
-import com.fuchsundlowe.macrolife.DataObjects.ComplexGoalMaster;
 import com.fuchsundlowe.macrolife.DataObjects.Constants;
-import com.fuchsundlowe.macrolife.DataObjects.ListMaster;
-import com.fuchsundlowe.macrolife.DataObjects.OrdinaryEventMaster;
-import com.fuchsundlowe.macrolife.DataObjects.RepeatingEventMaster;
-import com.fuchsundlowe.macrolife.DataObjects.RepeatingEventsChild;
-import com.fuchsundlowe.macrolife.DataObjects.SubGoalMaster;
 import com.fuchsundlowe.macrolife.EngineClasses.StorageMaster;
 import com.fuchsundlowe.macrolife.FragmentModels.TopBarFragment_DayView;
 import com.fuchsundlowe.macrolife.Interfaces.DataProviderProtocol;
-import com.fuchsundlowe.macrolife.R;
 import com.fuchsundlowe.macrolife.SupportClasses.ZoomOut_PageTransformer;
 
 import java.util.Calendar;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.Set;
 
 /**
  * This class provides day view fragment for app. Main features expected here are:

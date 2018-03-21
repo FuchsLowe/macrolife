@@ -4,7 +4,10 @@ import android.content.Intent;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
+import android.widget.Scroller;
 
+import com.fuchsundlowe.macrolife.SupportClasses.HScroll;
+import com.fuchsundlowe.macrolife.TestCases.Test4;
 import com.fuchsundlowe.macrolife.TestCases.TestActivity;
 
 
@@ -15,7 +18,7 @@ public class MasterScreen extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_master_screen);
-
+        toDay(null);
     }
 
     public void toDay(View view) {
@@ -33,6 +36,10 @@ public class MasterScreen extends AppCompatActivity {
         startActivity(toTest);
     }
 
+    public void test2() {
+        Intent toTest2 = new Intent(this, Test4.class);
+        startActivity(toTest2);
+    }
 
 
 }

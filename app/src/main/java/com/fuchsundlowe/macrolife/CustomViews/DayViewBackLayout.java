@@ -62,7 +62,7 @@ public class DayViewBackLayout extends View {
         textMarker.setColor(LINE_COLOR);
         textMarker.setTextSize(calculatedTextSize);
 
-        lineSpacing = workableHeight / SCALE_FACTOR;
+        lineSpacing = dpToPixConverter(108);
 
         this.setWillNotDraw(false);
     }

@@ -18,7 +18,7 @@ public class SubGoalMaster extends DataMasterClass {
     private int parentSubGoal; // Is reference to a another subGoal that lies up in chain or
     // even master goal... If returns nill then it is not subjetcted to any pattern
 
-    private int mX;
+    private int mX; // These two are positional elements for Chevron View
     private int mY;
 
 

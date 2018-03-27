@@ -6,6 +6,8 @@ import android.net.Uri;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.MotionEvent;
+import android.view.ScaleGestureDetector;
 import android.widget.ImageView;
 
 import com.fuchsundlowe.macrolife.R;
@@ -17,11 +19,14 @@ import java.net.URL;
 public class TestActivity2 extends AppCompatActivity {
 
     ImageView image;
+    float mScaleFactor;
+    ScaleGestureDetector detector;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_test2);
+        detector = new ScaleGestureDetector(this, new ScaleListener());
         image = findViewById(R.id.imageViewTest);
         loadImage();
     }
@@ -47,5 +52,33 @@ public class TestActivity2 extends AppCompatActivity {
             }
         }).start();
 
+    }
+
+    @Override
+    public boolean onTouchEvent(MotionEvent event) {
+        detector.onTouchEvent(event);
+        return true;
+    }
+
+    private void invalidate() {
+        image.getLayoutParams().height *= mScaleFactor;
+        image.getLayoutParams().width *= mScaleFactor;
+        image.setTranslationX(image.getX() + 1);
+        image.invalidate();
+    }
+
+    private class ScaleListener
+            extends ScaleGestureDetector.SimpleOnScaleGestureListener {
+        @Override
+        public boolean onScale(ScaleGestureDetector detector) {
+            Log.d("Scale Called", "    Yeah");
+            mScaleFactor *= detector.getScaleFactor();
+
+            // Don't let the object get too small or too large.
+            mScaleFactor = Math.max(0.1f, Math.min(mScaleFactor, 5.0f));
+
+            invalidate();
+            return true;
+        }
     }
 }

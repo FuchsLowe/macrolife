@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<com.fuchsundlowe.macrolife.SupportClasses.ScrollingLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
@@ -8,10 +8,9 @@
 
     <ImageView
         android:id="@+id/imageViewTest"
-        android:layout_width="1080dp"
-        android:layout_height="840dp"
-        android:layout_alignParentTop="true"
-        android:layout_centerHorizontal="true"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
         android:layout_marginTop="89dp"
-        app:srcCompat="@drawable/ic_launcher_background" />
-</com.fuchsundlowe.macrolife.SupportClasses.ScrollingLayout>
+        app:srcCompat="@drawable/ic_launcher_background" android:contentDescription="TODO"/>
+</FrameLayout>

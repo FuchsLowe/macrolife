@@ -517,6 +517,7 @@ public class StorageMaster implements DataProviderProtocol {
 
     // General purpose methods:
 
+    // TODO: Check if this and other ones do really check for consistency?
     public boolean checkIfIDisAssigned(int idToCheck) {
         List<ComplexGoalMaster> complexGoalMasterSet =  getComplexGoals().getValue();
         if (complexGoalMasterSet != null) {

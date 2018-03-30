@@ -1,16 +1,23 @@
 <?xml version="1.0" encoding="utf-8"?>
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
     tools:context="com.fuchsundlowe.macrolife.TestCases.TestActivity2">
 
-    <ImageView
-        android:id="@+id/imageViewTest"
-        android:layout_width="wrap_content"
+    <ScrollView
+        android:id="@+id/scroller"
+        android:fillViewport="true"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+    </ScrollView>
+
+    <Button
+        android:id="@+id/button8"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_gravity="center"
-        android:layout_marginTop="89dp"
-        app:srcCompat="@drawable/ic_launcher_background" android:contentDescription="TODO"/>
-</FrameLayout>
+        android:onClick="clickOne"
+        android:text="Button" />
+</LinearLayout>

@@ -122,4 +122,9 @@ public class RepeatingEventMaster extends DataMasterClass {
                 events.get(DayOfWeek.sunday).remove(child);
         }
     }
+
+    @Override
+    public void deleteMe() {
+        this.getStorageMaster().deleteObject(this);
+    }
 }

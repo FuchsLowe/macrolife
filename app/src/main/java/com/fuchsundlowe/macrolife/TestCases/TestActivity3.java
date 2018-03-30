@@ -6,51 +6,32 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.MotionEvent;
+import android.view.ViewGroup;
 import android.widget.ImageView;
+
+import com.fuchsundlowe.macrolife.CustomViews.ComplexTaskChevron;
+import com.fuchsundlowe.macrolife.DataObjects.ComplexGoalMaster;
+import com.fuchsundlowe.macrolife.DataObjects.SourceType;
+import com.fuchsundlowe.macrolife.DataObjects.SubGoalMaster;
+import com.fuchsundlowe.macrolife.Interfaces.ComplexTaskInterface;
 import com.fuchsundlowe.macrolife.R;
 import java.io.IOException;
 import java.net.URL;
 
 public class TestActivity3 extends AppCompatActivity {
 
-    ImageView image;
+    ViewGroup master;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_test3);
-        image = findViewById(R.id.imageView);
-        loadImage();
-    }
-
-
-    private void loadImage() {
-        final String location = "https://orig00.deviantart.net/8690/f/2011/068/b/5/black_and_white_swan_by_sku1c-d3b9pz1.jpg";
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    URL url = new URL(location);
-                    final Bitmap bmp = BitmapFactory.decodeStream(url.openConnection().getInputStream());
-
-                    image.post(new Runnable() {
-                        @Override
-                        public void run() {
-                            image.setImageBitmap(bmp);
-                        }
-                    });
-                } catch (IOException error) {
-                    Log.e("Failed to load", error.getLocalizedMessage());
-                }
-            }
-        }).start();
+        master = findViewById(R.id.master_test);
+        SubGoalMaster task = new SubGoalMaster(0,"Yalla",null, null, null,false, SourceType.local, 01, 10, 10, 10);
 
     }
 
-    @Override
-    public boolean onTouchEvent(MotionEvent event) {
-        Log.d("Pee", "Sam");
-        return super.onTouchEvent(event);
+    public float getScale() {
+        return 1f;
     }
-
 }

@@ -36,7 +36,8 @@
         <activity android:name=".TestCases.TestActivity2" />
         <activity android:name=".TestCases.TestActivity3" />
         <activity android:name=".ComplexTaskActivity" />
-        <activity android:name=".TestCases.Test4"></activity>
+        <activity android:name=".TestCases.Test4" />
+        <activity android:name=".TestCases.TestActivity4"></activity>
     </application>
 
 </manifest>

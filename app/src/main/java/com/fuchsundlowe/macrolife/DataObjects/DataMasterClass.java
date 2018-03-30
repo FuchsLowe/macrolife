@@ -120,5 +120,7 @@ public abstract class DataMasterClass {
     // should manage insertion into dataMaster class
     public abstract void updateMe();
 
+    public abstract void deleteMe();
+
 }
 

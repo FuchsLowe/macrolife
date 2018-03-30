@@ -86,12 +86,18 @@ public class StorageMaster implements DataProviderProtocol {
         dataAccessObject.updateTask(object);
     }
 
-    public void deleteObject(ComplexGoalMaster object) {
+    public void deleteObject(final ComplexGoalMaster object) {
         for (SubGoalMaster subGoal: this.getSubGoalsOfMaster(object.getHashID())) {
             this.deleteObject(subGoal);
         }
 
-        dataAccessObject.deleteTask(object);
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                dataAccessObject.deleteTask(object);
+
+            }
+        });
     }
 
     @Override
@@ -154,12 +160,17 @@ public class StorageMaster implements DataProviderProtocol {
         dataAccessObject.updateTask(object);
     }
 
-    public void deleteObject(ListMaster object) {
+    public void deleteObject(final ListMaster object) {
         for (ListObject subGoal: getListObjectsOfParent(object.getHashID())) {
             this.deleteObject(subGoal);
         }
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                dataAccessObject.deleteTask(object);
 
-        dataAccessObject.deleteTask(object);
+            }
+        });
     }
 
     @Override
@@ -205,8 +216,13 @@ public class StorageMaster implements DataProviderProtocol {
     public void updateObject(ListObject object) {
         dataAccessObject.updateTask(object);
     }
-    public void deleteObject(ListObject object) {
-        dataAccessObject.deleteTask(object); // Removes it from permanent storage
+    public void deleteObject(final ListObject object) {
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                dataAccessObject.deleteTask(object); // Removes it from permanent storage
+            }
+        });
     }
 
     @Override
@@ -273,8 +289,13 @@ public class StorageMaster implements DataProviderProtocol {
     public void updateObject(OrdinaryEventMaster object) {
         dataAccessObject.updateTask(object);
     }
-    public void deleteObject(OrdinaryEventMaster object) {
-        dataAccessObject.deleteTask(object); // Removes it from permanent storage
+    public void deleteObject(final OrdinaryEventMaster object) {
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                dataAccessObject.deleteTask(object); // Removes it from permanent storage
+            }
+        });
     }
 
     @Override
@@ -334,12 +355,17 @@ public class StorageMaster implements DataProviderProtocol {
     public void updateObject(RepeatingEventMaster object) {
         dataAccessObject.updateTask(object);
     }
-    public void deleteObject(RepeatingEventMaster object) {
+    public void deleteObject(final RepeatingEventMaster object) {
         for (RepeatingEventsChild subTask: getAllRepeatingChildrenByParent(object.getHashID())) {
             deleteObject(subTask);
         }
 
-        dataAccessObject.deleteTask(object); // Removes it from permanent storage
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                dataAccessObject.deleteTask(object); // Removes it from permanent storage
+            }
+        });
     }
 
     @Override
@@ -403,8 +429,13 @@ public class StorageMaster implements DataProviderProtocol {
     public void updateObject(RepeatingEventsChild object) {
         dataAccessObject.updateTask(object);
     }
-    public void deleteObject(RepeatingEventsChild object) {
-        dataAccessObject.deleteTask(object); // Removes it from permanent storage
+    public void deleteObject(final RepeatingEventsChild object) {
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                dataAccessObject.deleteTask(object); // Removes it from permanent storage
+            }
+        });
     }
 
 
@@ -451,8 +482,14 @@ public class StorageMaster implements DataProviderProtocol {
     public void updateObject(SubGoalMaster object) {
         dataAccessObject.updateTask(object);
     }
-    public void deleteObject(SubGoalMaster object) {
-        dataAccessObject.deleteTask(object); // Removes it from permanent storage
+    public void deleteObject(final SubGoalMaster object) {
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                dataAccessObject.deleteTask(object); // Removes it from permanent storage
+            }
+        });
+
     }
 
     @Override

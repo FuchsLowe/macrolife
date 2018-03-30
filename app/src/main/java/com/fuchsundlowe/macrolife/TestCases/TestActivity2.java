@@ -1,14 +1,20 @@
 package com.fuchsundlowe.macrolife.TestCases;
 
+import android.animation.ObjectAnimator;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
+import android.support.v4.widget.NestedScrollView;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.MotionEvent;
 import android.view.ScaleGestureDetector;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.FrameLayout;
 import android.widget.ImageView;
+import android.widget.ScrollView;
 
 import com.fuchsundlowe.macrolife.R;
 
@@ -21,17 +27,21 @@ public class TestActivity2 extends AppCompatActivity {
     ImageView image;
     float mScaleFactor;
     ScaleGestureDetector detector;
-
+    ScrollView ns;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_test2);
-        detector = new ScaleGestureDetector(this, new ScaleListener());
-        image = findViewById(R.id.imageViewTest);
+
         loadImage();
     }
 
     private void loadImage() {
+        ns = findViewById(R.id.scroller);
+        image = new ImageView(this);
+        image.setLayoutParams(new FrameLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT,
+                ViewGroup.LayoutParams.WRAP_CONTENT));
+        ns.addView(image);
         final String location = "https://cpb-us-east-1-juc1ugur1qwqqqo4.stackpathdns.com/wp.wwu.edu/dist/5/1453/files/2017/01/the-black-swan-2758q6y.jpg";
         new Thread(new Runnable() {
             @Override
@@ -52,33 +62,18 @@ public class TestActivity2 extends AppCompatActivity {
             }
         }).start();
 
+        image.setMinimumHeight(480);
     }
 
-    @Override
-    public boolean onTouchEvent(MotionEvent event) {
-        detector.onTouchEvent(event);
-        return true;
+
+    public void clickOne(View view) {
+        ObjectAnimator java = ObjectAnimator.ofFloat(image,"scaleY", 3f);
+        java.setDuration(3000);
+        java.start();
+        ns.requestLayout();
     }
 
-    private void invalidate() {
-        image.getLayoutParams().height *= mScaleFactor;
-        image.getLayoutParams().width *= mScaleFactor;
-        image.setTranslationX(image.getX() + 1);
-        image.invalidate();
-    }
 
-    private class ScaleListener
-            extends ScaleGestureDetector.SimpleOnScaleGestureListener {
-        @Override
-        public boolean onScale(ScaleGestureDetector detector) {
-            Log.d("Scale Called", "    Yeah");
-            mScaleFactor *= detector.getScaleFactor();
 
-            // Don't let the object get too small or too large.
-            mScaleFactor = Math.max(0.1f, Math.min(mScaleFactor, 5.0f));
 
-            invalidate();
-            return true;
-        }
-    }
 }

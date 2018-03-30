@@ -61,4 +61,9 @@ public class ComplexGoalMaster extends DataMasterClass {
             this.getStorageMaster().insertObject(this);
         }
     }
+
+    @Override
+    public void deleteMe() {
+        this.getStorageMaster().deleteObject(this);
+    }
 }

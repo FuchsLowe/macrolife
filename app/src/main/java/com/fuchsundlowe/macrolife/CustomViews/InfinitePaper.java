@@ -42,12 +42,12 @@ public class InfinitePaper extends ViewGroup {
         measureChildren(widthMeasureSpec, heightMeasureSpec);
 
         Point forMin = getMinSize();
-        setMinimumHeight((int) (forMin.y * scale));
-        setMinimumWidth((int) (forMin.x * scale));
+        setMinimumHeight((int) (forMin.y ));
+        setMinimumWidth((int) (forMin.x ));
 
         float regX, regY;
-        regX = Math.max(MIN_SIZE_X, forMin.x + dpToPixConverter(MIN_PADDING)) * scale;
-        regY =  Math.max(MIN_SIZE_Y, forMin.y + dpToPixConverter(MIN_PADDING)) * scale;
+        regX = Math.max(MIN_SIZE_X, forMin.x + dpToPixConverter(MIN_PADDING)) * scale ;
+        regY =  Math.max(MIN_SIZE_Y, forMin.y + dpToPixConverter(MIN_PADDING)) * scale ;
 
         setMeasuredDimension(
                 (int)regX,
@@ -60,6 +60,7 @@ public class InfinitePaper extends ViewGroup {
     protected void onLayout(boolean changed, int l, int t, int r, int b) {
 
         ComplexTaskChevron kid;
+        float scale = mInterface.getScale();
 
         if (firstAppearance) { // We bring them on screen for the first time
             firstAppearance = false;
@@ -74,10 +75,11 @@ public class InfinitePaper extends ViewGroup {
         } else { // They just need resizing or something
             for (int i =0; i< getChildCount(); i++) {
                 kid = (ComplexTaskChevron) getChildAt(i);
-
-                kid.layout(kid.getXFromData(), kid.getYFromData(),
-                        kid.getXFromData() + kid.getMeasuredHeight(),
-                        kid.getYFromData() + kid.getMeasuredWidth());
+                kid.layout(
+                        (int) (kid.getXFromData() * scale),
+                        (int) (kid.getYFromData() * scale),
+                        (int)((kid.getXFromData() + kid.getMeasuredHeight())),
+                        (int)((kid.getYFromData() + kid.getMeasuredWidth())));
             }
         }
 

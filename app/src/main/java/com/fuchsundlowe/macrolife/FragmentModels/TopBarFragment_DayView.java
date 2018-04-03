@@ -59,16 +59,6 @@ public class TopBarFragment_DayView extends Fragment {
 
     }
 
-    @Override
-    public void onStart() {
-        super.onStart();
-    }
-
-    @Override
-    public void onResume() {
-        super.onResume();
-
-    }
 
     // TODO: To define the size of text and overall position metrics, color etc
     // Implememntation of support methods:

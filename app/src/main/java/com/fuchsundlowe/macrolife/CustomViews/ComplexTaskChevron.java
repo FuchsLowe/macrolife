@@ -29,8 +29,6 @@ public class ComplexTaskChevron extends View {
     private ComplexTaskInterface protocol;
     private Context context;
 
-    private GestureDetectorCompat gestureDetector;
-
     private int DEFAULT_H = 240;
     private int DEFAULT_W = 90;
     private int DEFAULT_TEXT = 36;
@@ -47,19 +45,20 @@ public class ComplexTaskChevron extends View {
 
         textMarker = new Paint();
         textMarker.setColor(Color.BLACK);
-        textMarker.setTextSize(dpToPixConverter(DEFAULT_TEXT));
+        DEFAULT_TEXT = dpToPixConverter(DEFAULT_TEXT);
     }
 
 
 
     @Override
     protected void onDraw(Canvas canvas) {
-
+        float scale = protocol.getScale();
         float textSize = textMarker.measureText(data.getTaskName());
+        textMarker.setTextSize(DEFAULT_TEXT * scale);
 
         // Tries to put text in the middle, doesn't yet account for text out of bounds...
         canvas.drawText(data.getTaskName(), (getWidth() - textSize) / 2,
-                (getHeight() + dpToPixConverter(DEFAULT_TEXT) - 20) / 2, textMarker);
+                (getHeight() + (DEFAULT_TEXT * scale) ) / 2, textMarker);
 
     }
 
@@ -69,15 +68,17 @@ public class ComplexTaskChevron extends View {
        float minX = 0;
        float minY = 0;
 
-       minX = dpToPixConverter(DEFAULT_W);
-       minY = dpToPixConverter(DEFAULT_H);
+       float scale = protocol.getScale();
+
+       minX = dpToPixConverter(DEFAULT_W * scale);
+       minY = dpToPixConverter(DEFAULT_H * scale);
 
        setMinimumHeight((int)minY + 1);
        setMinimumWidth((int) minX + 1);
 
 
-        setMeasuredDimension((int)minX + dpToPixConverter(DEFAULT_PADDING),
-                (int)minY + dpToPixConverter(DEFAULT_PADDING));
+        setMeasuredDimension((int) (minX + dpToPixConverter(DEFAULT_PADDING) * scale),
+                (int) (minY + dpToPixConverter(DEFAULT_PADDING) * scale));
     }
 
 
@@ -175,8 +176,6 @@ public class ComplexTaskChevron extends View {
 
             edgeMarker = new Paint();
             edgeMarker.setColor(Color.BLACK);
-
-
         }
 
         @Override

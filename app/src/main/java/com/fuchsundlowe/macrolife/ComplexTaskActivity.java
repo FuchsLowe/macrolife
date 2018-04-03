@@ -1,5 +1,6 @@
 package com.fuchsundlowe.macrolife;
 
+import android.animation.ObjectAnimator;
 import android.arch.lifecycle.Observer;
 import android.content.Context;
 import android.graphics.Bitmap;
@@ -38,8 +39,9 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
 
-public class ComplexTaskActivity extends AppCompatActivity implements ComplexTaskInterface, View.OnTouchListener{
+public class ComplexTaskActivity extends AppCompatActivity implements ComplexTaskInterface {
 
+    private int masterID;
     private float mx, my;
     private float curX, curY;
     float scaleFactor;
@@ -52,12 +54,10 @@ public class ComplexTaskActivity extends AppCompatActivity implements ComplexTas
     private VScroll vScroll;
     private HScroll hScroll;
     private InfinitePaper container;
-    //private FrameLayout container;
     private EditText newTask;
 
     private ScaleGestureDetector mScaleDetector;
-
-    private int masterID;
+    private ComplexTaskChevron viewManaged; // This is a holder for current view that's dragged
 
 
     @Override
@@ -73,7 +73,6 @@ public class ComplexTaskActivity extends AppCompatActivity implements ComplexTas
 
         masterID = getIntent().getIntExtra(Constants.LIST_VIEW_MASTER_ID, -1);
 
-        //frameContainer();
         addPaper();
 
         data = StorageMaster.getInstance(this);
@@ -85,72 +84,22 @@ public class ComplexTaskActivity extends AppCompatActivity implements ComplexTas
 
         display = findViewById(R.id.luda); // For tep recording of location of click
 
-    }
-
-    void frameContainer() {
-        FrameLayout.LayoutParams p = new FrameLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT,
-                ViewGroup.LayoutParams.WRAP_CONTENT);
-        //container = new FrameLayout(this);
-        container.setLayoutParams(p);
-        hScroll.addView(container);
 
     }
+
 
     // Touch events:
-    private ComplexTaskChevron viewManaged;
-
-    // This one is used by views
-    @Override
-    public boolean onTouch(View v, MotionEvent event) {
-
-        text("Special Click");
-            switch (event.getAction()) {
-                case (MotionEvent.ACTION_DOWN):
-                    mx = event.getX();
-                    my = event.getY();
-                    viewManaged = (ComplexTaskChevron) v;
-                    break;
-                case (MotionEvent.ACTION_MOVE):
-                    curX = event.getX();
-                    curY = event.getY();
-
-                    viewManaged.setTranslationX(curX - mx);
-                    viewManaged.setTranslationY(curY - my);
-
-                    mx = curX;
-                    my = curY;
-                    text("X: " + mx + " Y: " + my);
-                    break;
-                case (MotionEvent.ACTION_UP):
-                    viewManaged.updateNewCoordinates();
-                    viewManaged = null;
-                    text("SPecial UP");
-                    break;
-                case (MotionEvent.ACTION_CANCEL):
-                    viewManaged.updateNewCoordinates();
-                    viewManaged = null;
-                    text("SPecial CANCEL");
-                    break;
-
-            }
-
-
-        return true;
-    }
-
-
-    // This one is called by layout to scroll or scale
     @Override
     public boolean onTouchEvent(MotionEvent event) {
 
-        text("Regular click");
         mScaleDetector.onTouchEvent(event);
 
+        if (viewManaged == null) {
             switch (event.getAction()) {
-
                 case MotionEvent.ACTION_DOWN:
                     mx = event.getX();
                     my = event.getY();
+                    childLookUp(mx, my); // Looks if there is a child
                     break;
                 case MotionEvent.ACTION_MOVE:
                     curX = event.getX();
@@ -159,7 +108,6 @@ public class ComplexTaskActivity extends AppCompatActivity implements ComplexTas
                     hScroll.scrollBy((int) (mx - curX), (int) (my - curY));
                     mx = curX;
                     my = curY;
-                    text("X: " + mx + " Y: " + my);
                     break;
                 case MotionEvent.ACTION_UP:
                     curX = event.getX();
@@ -167,34 +115,58 @@ public class ComplexTaskActivity extends AppCompatActivity implements ComplexTas
                     vScroll.scrollBy((int) (mx - curX), (int) (my - curY));
                     hScroll.scrollBy((int) (mx - curX), (int) (my - curY));
                     break;
-            }
 
+                case MotionEvent.ACTION_CANCEL:
+                    break;
+            }
+        } else { // executed only if child is set thus moves it
+
+            switch (event.getAction()) {
+
+                case (MotionEvent.ACTION_MOVE):
+                    curX = event.getX();
+                    curY = event.getY();
+                    viewManaged.setTranslationX(viewManaged.getTranslationX() + curX - mx);
+                    viewManaged.setTranslationY(viewManaged.getTranslationY() + curY - my);
+                    mx = curX;
+                    my = curY;
+                    break;
+                case (MotionEvent.ACTION_UP):
+                    viewManaged.updateNewCoordinates();
+                    viewManaged = null;
+                    break;
+                case (MotionEvent.ACTION_CANCEL):
+                    viewManaged.updateNewCoordinates();
+                    viewManaged = null;
+                    break;
+            }
+        }
         return true;
 
     }
 
+
     private class Scaler extends ScaleGestureDetector.SimpleOnScaleGestureListener {
         @Override
         public boolean onScale(ScaleGestureDetector detector) {
-                scaleFactor *= detector.getScaleFactor();
-                scaleFactor = Math.max(MIN_SCALE, Math.min(MAX_SCALE, scaleFactor));
-
-                Log.d("Scale Factor", String.valueOf(detector.getScaleFactor()));
-                layout(null);
+            scaleFactor *= detector.getScaleFactor();
+            container.requestLayout();
+            // TODO: By implementing on scale begein adn end you can stop view from accepting other touch events
             return true;
         }
     }
 
-    private ComplexTaskChevron childLookUp(int x, int y) {
+    private void childLookUp(float x, float y) {
 
         for (ComplexTaskChevron object : wrapped) {
             Rect hit = new Rect();
-            object.getHitRect(hit);
-            if (hit.contains(x,y)) {
-                return object;
+            object.getGlobalVisibleRect(hit);
+            if (hit.contains((int)x, (int)y)) {
+                viewManaged = object;
+                break;
             }
         }
-        return null;
+
     }
 
     private void addPaper() {
@@ -212,30 +184,25 @@ public class ComplexTaskActivity extends AppCompatActivity implements ComplexTas
             @Override
             public void onChanged(@Nullable List<SubGoalMaster> subGoalMasters) {
                 allChildren = subGoalMasters;
-                text("Children SIze: " +String.valueOf(allChildren.size()));
                 updateData();
             }
         });
     }
 
+
     private void updateData() {
        if (wrapped != null) {
-          for (SubGoalMaster child: allChildren) {
-              for (ComplexTaskChevron chevron: wrapped) {
-                  // How can I intersect the new and old sets?
-              }
-          }
+           // Do nothing...
        } else {
            wrapped = new ArrayList<>();
             for (SubGoalMaster child: allChildren) {
                 ComplexTaskChevron temp = new ComplexTaskChevron(this, child, this);
                 wrapped.add(temp);
-                temp.setOnTouchListener(this);
                 container.addView(temp);
                 temp.animationPresentSelf();
             }
        }
-       //layout(null);
+
     }
 
     // Bottom Bar Implementation:
@@ -254,11 +221,17 @@ public class ComplexTaskActivity extends AppCompatActivity implements ComplexTas
     }
 
     private void createNewTask(){
-        text("New Task Created");
-        SubGoalMaster temp = new SubGoalMaster(0, newTask.getText().toString(), null,
-                null, Calendar.getInstance(), false, SourceType.local,
-                masterID, 0, 0,0);
-        temp.updateMe();
+        if (newTask.getText().length() > 0) { // Only if it has a name ;)
+            SubGoalMaster temp = new SubGoalMaster(0, newTask.getText().toString(), null,
+                    null, Calendar.getInstance(), false, SourceType.local,
+                    masterID, 0, 0, 0);
+            temp.updateMe();
+            ComplexTaskChevron chev = new ComplexTaskChevron(this, temp, this);
+            wrapped.add(chev);
+            container.addView(chev);
+            chev.animationPresentSelf();
+
+        }
     }
 
     /* If view is null, will re-layout self, if view is passed and is touching the bounds, will
@@ -279,14 +252,23 @@ public class ComplexTaskActivity extends AppCompatActivity implements ComplexTas
 
     // TODO: Temp Test
 
-    int count = 1;
     public void increaseSize(View view) {
-      container.animate().scaleXBy(1).scaleYBy(1).setDuration(1000).start();
-      count +=1;
+        text("Click A");
+        ViewGroup.LayoutParams k = container.getLayoutParams();
+        k.height = 1600;
+        k.width = 1400;
+        container.setLayoutParams(k);
+        container.requestLayout();
     }
 
+
     public void secondaryClick(View view) {
-        container.animate().scaleYBy(0.5f).scaleXBy(0.5f).setDuration(1000).start();
+        text("Click B");
+        ViewGroup.LayoutParams k = container.getLayoutParams();
+        k.height = 600;
+        k.width = 400;
+        container.setLayoutParams(k);
+        container.requestLayout();
     }
     EditText display;
 
@@ -294,26 +276,11 @@ public class ComplexTaskActivity extends AppCompatActivity implements ComplexTas
         display.append("\n" + i);
     }
 
-
     // TODO: End of test calls...
 
     // Interface part:
     public float getScale() {
         return scaleFactor;
-    }
-
-
-
-    class ComplexTaskViewGroup extends ViewGroup {
-
-        public ComplexTaskViewGroup(Context context) {
-            super(context);
-        }
-
-        @Override
-        protected void onLayout(boolean changed, int l, int t, int r, int b) {
-
-        }
     }
 
 }

@@ -128,7 +128,7 @@ public class ComplexTaskChevron extends View {
         */
 
         // Simple animation of things:
-        this.animate().x(data.getMX()).y(data.getMY()).z(DEFAULT_Z).setDuration(200).start();
+        this.animate().x(data.getMX()).y(data.getMY()).translationZ(DEFAULT_Z).setDuration(200).start();
     }
 
 

@@ -4,6 +4,7 @@ import android.content.Context;
 import android.graphics.Color;
 import android.graphics.Point;
 import android.support.annotation.NonNull;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import com.fuchsundlowe.macrolife.Interfaces.ComplexTaskInterface;
@@ -28,18 +29,30 @@ public class InfinitePaper extends ViewGroup {
         this.setBackgroundColor(Color.GRAY);
     }
 
+    @Override
+    public boolean onInterceptTouchEvent(MotionEvent ev) {
+        return true;
+    }
 
     // Should set minWidth & height for Children size
     @Override
     protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
+        float scale = mInterface.getScale();
+
         measureChildren(widthMeasureSpec, heightMeasureSpec);
 
         Point forMin = getMinSize();
-        setMinimumHeight(forMin.y);
-        setMinimumWidth(forMin.x);
+        setMinimumHeight((int) (forMin.y * scale));
+        setMinimumWidth((int) (forMin.x * scale));
 
-        setMeasuredDimension(Math.max(MIN_SIZE_X,forMin.x + dpToPixConverter(MIN_PADDING)),
-                Math.max(MIN_SIZE_Y, forMin.y + dpToPixConverter(MIN_PADDING)));
+        float regX, regY;
+        regX = Math.max(MIN_SIZE_X, forMin.x + dpToPixConverter(MIN_PADDING)) * scale;
+        regY =  Math.max(MIN_SIZE_Y, forMin.y + dpToPixConverter(MIN_PADDING)) * scale;
+
+        setMeasuredDimension(
+                (int)regX,
+                (int) regY
+        );
 
     }
 
@@ -65,8 +78,6 @@ public class InfinitePaper extends ViewGroup {
                 kid.layout(kid.getXFromData(), kid.getYFromData(),
                         kid.getXFromData() + kid.getMeasuredHeight(),
                         kid.getYFromData() + kid.getMeasuredWidth());
-                mInterface.text("L " + kid.getLeft() + " T " + kid.getTop() +  " R: " + kid.getRight()
-                + " B " + kid.getBottom());
             }
         }
 
@@ -99,5 +110,4 @@ public class InfinitePaper extends ViewGroup {
         MIN_SIZE_X = dpToPixConverter(MIN_SIZE_X);
         MIN_SIZE_Y = dpToPixConverter(MIN_SIZE_Y);
     }
-
 }

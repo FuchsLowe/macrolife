@@ -29,7 +29,7 @@ public class SubGoalMaster extends DataMasterClass {
     public SubGoalMaster(int hashID, String taskName, Calendar taskStartTime,
                          Calendar taskEndTime, Calendar taskCreatedTimeStamp,
                          boolean taskCompleted, SourceType taskOriginalSource, int parentID,
-                         int parentSubGoal, int mX, int mY) {
+                         int parentSubGoal, Integer mX, Integer mY) {
 
         super(hashID, taskName, taskStartTime, taskEndTime,
                 taskCreatedTimeStamp, taskCompleted,

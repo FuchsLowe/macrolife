@@ -6,5 +6,4 @@ package com.fuchsundlowe.macrolife.Interfaces;
 
 public interface ComplexTaskInterface {
     float getScale();
-    void text(String i);
 }

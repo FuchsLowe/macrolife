@@ -21,8 +21,8 @@ public class MasterScreen extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_master_screen);
-        //toDay(null);
-        test2();
+
+        test3();
 
     }
 
@@ -47,7 +47,7 @@ public class MasterScreen extends AppCompatActivity {
     }
 
     void test3() {
-        Intent toTest3 = new Intent(this, TestActivity4.class);
+        Intent toTest3 = new Intent(this, TestActivity3.class);
         startActivity(toTest3);
     }
 

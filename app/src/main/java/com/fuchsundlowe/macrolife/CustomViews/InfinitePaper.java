@@ -14,8 +14,8 @@ public class InfinitePaper extends ViewGroup {
 
     private Context mContext;
     private ComplexTaskInterface mInterface;
-    private int MIN_SIZE_X = 1200;
-    private int MIN_SIZE_Y = 800;
+    private int MIN_SIZE_X = 600;
+    private int MIN_SIZE_Y = 1200;
     private int MIN_PADDING = 20;
     private boolean firstAppearance = true;
 
@@ -42,8 +42,11 @@ public class InfinitePaper extends ViewGroup {
         measureChildren(widthMeasureSpec, heightMeasureSpec);
 
         Point forMin = getMinSize();
-        setMinimumHeight((int) (forMin.y ));
-        setMinimumWidth((int) (forMin.x ));
+        forMin.set((int) Math.max(forMin.y, getRootView().getHeight()),
+                (int) Math.max(forMin.x, getRootView().getWidth()));
+
+        setMinimumHeight(forMin.x);
+        setMinimumWidth(forMin.y);
 
         float regX, regY;
         regX = Math.max(MIN_SIZE_X, forMin.x + dpToPixConverter(MIN_PADDING)) * scale ;
@@ -102,7 +105,6 @@ public class InfinitePaper extends ViewGroup {
         return temp;
     }
 
-
     private int dpToPixConverter(float dp) {
         float scale = mContext.getResources().getDisplayMetrics().density;
         return (int) (dp * scale * 0.5f);
@@ -112,4 +114,6 @@ public class InfinitePaper extends ViewGroup {
         MIN_SIZE_X = dpToPixConverter(MIN_SIZE_X);
         MIN_SIZE_Y = dpToPixConverter(MIN_SIZE_Y);
     }
+
+
 }

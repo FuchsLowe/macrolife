@@ -48,8 +48,6 @@ public class ComplexTaskChevron extends View {
         DEFAULT_TEXT = dpToPixConverter(DEFAULT_TEXT);
     }
 
-
-
     @Override
     protected void onDraw(Canvas canvas) {
         float scale = protocol.getScale();
@@ -81,18 +79,12 @@ public class ComplexTaskChevron extends View {
                 (int) (minY + dpToPixConverter(DEFAULT_PADDING) * scale));
     }
 
-
-
     @Override
     protected void onSizeChanged(int w, int h, int oldw, int oldh) {
         setOutlineProvider(new CustomOutline(w, h));
     }
 
     // Utility method calls:
-
-
-
-
     private int dpToPixConverter(float dp) {
         float scale = context.getResources().getDisplayMetrics().density;
         return (int) (dp * scale * 0.5f);
@@ -108,6 +100,20 @@ public class ComplexTaskChevron extends View {
 
     public int getYFromData() {
         return data.getMY();
+    }
+
+    public String getTaskName() { return data.getTaskName();}
+
+    public void setNewValues(String newName, Integer newX, Integer newY,
+                             Integer parentSubGoal, Boolean completed) {
+        if (newName != null) { data.setTaskName(newName);}
+        if (newX != null) { data.setMX(newX);}
+        if (newY != null) {data.setMY(newY);}
+        if (parentSubGoal != null) {data.setParentSubGoal(parentSubGoal); }
+        if (completed != null) {data.setTaskCompleted(completed);}
+
+        this.requestLayout();
+
     }
 
     // Animation Calls:
@@ -132,7 +138,6 @@ public class ComplexTaskChevron extends View {
         this.animate().x(data.getMX()).y(data.getMY()).translationZ(DEFAULT_Z).setDuration(200).start();
     }
 
-
     // Touch Events management:
 
     public void updateNewCoordinates() {
@@ -144,7 +149,6 @@ public class ComplexTaskChevron extends View {
     void l(int val) {
         Log.i("Click Event", " " + val);
     }
-
 
     // Outline Provider:
 
@@ -198,9 +202,6 @@ public class ComplexTaskChevron extends View {
             return PixelFormat.OPAQUE;
         }
     }
-
-
-
 
 }
 

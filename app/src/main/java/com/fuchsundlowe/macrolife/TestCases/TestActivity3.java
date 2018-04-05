@@ -1,37 +1,31 @@
 package com.fuchsundlowe.macrolife.TestCases;
 
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
-import android.support.v7.app.AppCompatActivity;
-import android.os.Bundle;
-import android.util.Log;
-import android.view.MotionEvent;
-import android.view.ViewGroup;
-import android.widget.ImageView;
 
-import com.fuchsundlowe.macrolife.CustomViews.ComplexTaskChevron;
-import com.fuchsundlowe.macrolife.DataObjects.ComplexGoalMaster;
-import com.fuchsundlowe.macrolife.DataObjects.SourceType;
-import com.fuchsundlowe.macrolife.DataObjects.SubGoalMaster;
-import com.fuchsundlowe.macrolife.Interfaces.ComplexTaskInterface;
+import android.graphics.drawable.Animatable;
+import android.os.Bundle;
+import android.support.graphics.drawable.AnimatedVectorDrawableCompat;
+import android.support.v7.app.AppCompatActivity;
+import android.view.View;
+import android.widget.ImageView;
 import com.fuchsundlowe.macrolife.R;
-import java.io.IOException;
-import java.net.URL;
 
 public class TestActivity3 extends AppCompatActivity {
 
-    ViewGroup master;
+    ImageView image;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_test3);
-        master = findViewById(R.id.master_test);
-        SubGoalMaster task = new SubGoalMaster(0,"Yalla",null, null, null,false, SourceType.local, 01, 10, 10, 10);
+        image = findViewById(R.id.imageView);
+
 
     }
 
-    public float getScale() {
-        return 1f;
+    public void action1(View view) {
+        Animatable j = (Animatable) image.getDrawable();
+        j.start();
     }
+
+
 }

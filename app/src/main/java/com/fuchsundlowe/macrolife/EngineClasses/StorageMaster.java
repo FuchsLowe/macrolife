@@ -97,7 +97,7 @@ public class StorageMaster implements DataProviderProtocol {
                 dataAccessObject.deleteTask(object);
 
             }
-        });
+        }).start();
     }
 
     @Override
@@ -170,7 +170,7 @@ public class StorageMaster implements DataProviderProtocol {
                 dataAccessObject.deleteTask(object);
 
             }
-        });
+        }).start();
     }
 
     @Override
@@ -222,7 +222,7 @@ public class StorageMaster implements DataProviderProtocol {
             public void run() {
                 dataAccessObject.deleteTask(object); // Removes it from permanent storage
             }
-        });
+        }).start();
     }
 
     @Override
@@ -295,7 +295,7 @@ public class StorageMaster implements DataProviderProtocol {
             public void run() {
                 dataAccessObject.deleteTask(object); // Removes it from permanent storage
             }
-        });
+        }).start();
     }
 
     @Override
@@ -365,7 +365,7 @@ public class StorageMaster implements DataProviderProtocol {
             public void run() {
                 dataAccessObject.deleteTask(object); // Removes it from permanent storage
             }
-        });
+        }).start();
     }
 
     @Override
@@ -435,7 +435,7 @@ public class StorageMaster implements DataProviderProtocol {
             public void run() {
                 dataAccessObject.deleteTask(object); // Removes it from permanent storage
             }
-        });
+        }).start();
     }
 
 
@@ -488,7 +488,7 @@ public class StorageMaster implements DataProviderProtocol {
             public void run() {
                 dataAccessObject.deleteTask(object); // Removes it from permanent storage
             }
-        });
+        }).start();
 
     }
 

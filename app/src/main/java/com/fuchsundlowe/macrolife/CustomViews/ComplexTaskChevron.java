@@ -121,7 +121,7 @@ public class ComplexTaskChevron extends View {
     public void animationDestroy() {
         data.deleteMe();
         this.animate().alpha(0f).setDuration(200).start();
-        this.setOnTouchListener(null);
+
     }
 
     public void animationPresentSelf() {
@@ -144,10 +144,6 @@ public class ComplexTaskChevron extends View {
         this.data.setMX((int)getX());
         this.data.setMY((int) getY());
         this.data.updateMe();
-    }
-
-    void l(int val) {
-        Log.i("Click Event", " " + val);
     }
 
     // Outline Provider:

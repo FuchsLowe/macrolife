@@ -22,7 +22,7 @@ public class MasterScreen extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_master_screen);
 
-        test3();
+        test2();
 
     }
 

@@ -56,7 +56,10 @@ public class PopUpCreator {
                     if (v.getText().length() > 0) {
                         mInterface.newTask(v.getText().toString(), null, null,
                                 DEFAULT_SPAWN_X, DEFAULT_SPAWN_Y, 0);
+
                     }
+                    softKeyboard(false);
+                    mInterface.globalEditDone();
                 }
                 return true;
             }
@@ -113,10 +116,20 @@ public class PopUpCreator {
                 @Override
                 public void onClick(View v) {
                     if (name.length() > 0) {
-                        object.setNewValues(name.getText().toString(),null, null,
-                                null,null );
+                        if (clickLocation != null) {
+                            object.setNewValues(name.getText().toString(),
+                                    clickLocation.x, clickLocation.y,
+                                    null, null);
+                            clickLocation = null;
+                        } else {
+                            object.setNewValues(name.getText().toString(),
+                                    null, null,
+                                    null, null);
+                        }
                     }
                     releaseFields();
+                    softKeyboard(false);
+                    mInterface.globalEditDone();
                 }
             });
             mParent.addView(doneButton);
@@ -128,6 +141,7 @@ public class PopUpCreator {
                 public void onClick(View v) {
                     object.animationDestroy();
                     releaseFields();
+                    mInterface.globalEditDone();
                 }
             });
             mParent.addView(delete);
@@ -153,12 +167,20 @@ public class PopUpCreator {
 
     public void setNewTask(float x, float y) {
         name.setText("");
-        InputMethodManager imm = (InputMethodManager)
-                mInterface.getContext().getSystemService(Context.INPUT_METHOD_SERVICE);
-        Log.d("Result", String.valueOf(name.requestFocus()));
-        imm.showSoftInput(name, 0);
+        softKeyboard(true);
         clickLocation = new Point((int)x, (int)y);
 
+    }
+
+    public void softKeyboard(boolean appearance) {
+        InputMethodManager imm = (InputMethodManager)
+                mInterface.getContext().getSystemService(Context.INPUT_METHOD_SERVICE);
+        if (appearance) {
+            imm.showSoftInput(name, 0);
+        } else {
+            imm.hideSoftInputFromInputMethod(name.getWindowToken(),0);
+
+        }
     }
 
 }

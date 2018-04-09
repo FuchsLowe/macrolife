@@ -17,4 +17,6 @@ public interface PopUpProtocol {
     Context getContext();
     void newTask(String name, Calendar start, Calendar end, Integer x, Integer y, int updateKey);
     AppCompatActivity getActivity();
+    void globalEditDone();
+
 }

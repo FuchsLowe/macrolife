@@ -3,6 +3,7 @@ package com.fuchsundlowe.macrolife.CustomViews;
 import android.content.Context;
 import android.graphics.Color;
 import android.graphics.Point;
+import android.graphics.Rect;
 import android.support.annotation.NonNull;
 import android.view.MotionEvent;
 import android.view.View;
@@ -31,7 +32,7 @@ public class InfinitePaper extends ViewGroup {
 
     @Override
     public boolean onInterceptTouchEvent(MotionEvent ev) {
-        return true;
+        return false;
     }
 
     // Should set minWidth & height for Children size
@@ -70,19 +71,31 @@ public class InfinitePaper extends ViewGroup {
 
             for (int i = 0; i< getChildCount(); i++) {
                 kid = (ComplexTaskChevron) getChildAt(i);
-
                 kid.layout(20,50, kid.getWidth() + 20, kid.getHeight() + 50);
 
             }
 
         } else { // They just need resizing or something
             for (int i =0; i< getChildCount(); i++) {
-                kid = (ComplexTaskChevron) getChildAt(i);
-                kid.layout(
-                        (int) (kid.getXFromData() * scale),
-                        (int) (kid.getYFromData() * scale),
-                        (int)((kid.getXFromData() + kid.getMeasuredHeight())),
-                        (int)((kid.getYFromData() + kid.getMeasuredWidth())));
+               if (getChildAt(i) instanceof ComplexTaskChevron) {
+                   kid = (ComplexTaskChevron) getChildAt(i);
+                   kid.layout(
+                           (int) (kid.getXFromData() * scale),
+                           (int) (kid.getYFromData() * scale),
+                           (int) ((kid.getXFromData() + kid.getMeasuredHeight())),
+                           (int) ((kid.getYFromData() + kid.getMeasuredWidth())));
+               } else if (getChildAt(i) instanceof BubbleView) {
+                   BubbleView object = (BubbleView) getChildAt(i);
+                   View parent = object.getChevron();
+
+                   object.layout(
+                           (int) ((parent.getLeft() )),
+                           (int) (parent.getTop() - object.getMeasuredHeight()),
+                           (int) (parent.getRight()),
+                           (int) (parent.getTop())
+                   );
+
+               }
             }
         }
 

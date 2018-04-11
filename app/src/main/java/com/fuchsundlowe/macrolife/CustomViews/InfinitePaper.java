@@ -3,11 +3,13 @@ package com.fuchsundlowe.macrolife.CustomViews;
 import android.content.Context;
 import android.graphics.Color;
 import android.graphics.Point;
-import android.graphics.Rect;
 import android.support.annotation.NonNull;
+import android.view.Display;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.WindowManager;
+
 import com.fuchsundlowe.macrolife.Interfaces.ComplexTaskInterface;
 
 
@@ -15,8 +17,8 @@ public class InfinitePaper extends ViewGroup {
 
     private Context mContext;
     private ComplexTaskInterface mInterface;
-    private int MIN_SIZE_X = 600;
-    private int MIN_SIZE_Y = 1200;
+    private int MIN_WIDTH;
+    private int MIN_HEIGHT;
     private int MIN_PADDING = 20;
     private boolean firstAppearance = true;
 
@@ -25,9 +27,11 @@ public class InfinitePaper extends ViewGroup {
         super(context);
         mContext = context;
         this.mInterface = mInterface;
-        recalculateCanvasSize();
         setWillNotDraw(false);
         this.setBackgroundColor(Color.GRAY);
+
+        defineCanvasSize();
+
     }
 
     @Override
@@ -38,25 +42,29 @@ public class InfinitePaper extends ViewGroup {
     // Should set minWidth & height for Children size
     @Override
     protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
+        // Am I scaling them 2x?
+
         float scale = mInterface.getScale();
 
         measureChildren(widthMeasureSpec, heightMeasureSpec);
 
         Point forMin = getMinSize();
-        forMin.set((int) Math.max(forMin.y, getRootView().getHeight()),
-                (int) Math.max(forMin.x, getRootView().getWidth()));
+        forMin.set((int) Math.max(forMin.x, MIN_WIDTH),
+                (int) Math.max(forMin.y, MIN_HEIGHT));
 
         setMinimumHeight(forMin.x);
         setMinimumWidth(forMin.y);
 
         float regX, regY;
-        regX = Math.max(MIN_SIZE_X, forMin.x + dpToPixConverter(MIN_PADDING)) * scale ;
-        regY =  Math.max(MIN_SIZE_Y, forMin.y + dpToPixConverter(MIN_PADDING)) * scale ;
+        regX = Math.max(MIN_WIDTH, forMin.x + dpToPixConverter(MIN_PADDING)) * scale ;
+        regY =  Math.max(MIN_HEIGHT, forMin.y + dpToPixConverter(MIN_PADDING)) * scale ;
 
         setMeasuredDimension(
                 (int)regX,
                 (int) regY
         );
+
+
 
     }
 
@@ -80,8 +88,8 @@ public class InfinitePaper extends ViewGroup {
                if (getChildAt(i) instanceof ComplexTaskChevron) {
                    kid = (ComplexTaskChevron) getChildAt(i);
                    kid.layout(
-                           (int) (kid.getXFromData() * scale),
-                           (int) (kid.getYFromData() * scale),
+                           (int) (kid.getXFromData()),
+                           (int) (kid.getYFromData()),
                            (int) ((kid.getXFromData() + kid.getMeasuredHeight())),
                            (int) ((kid.getYFromData() + kid.getMeasuredWidth())));
                } else if (getChildAt(i) instanceof BubbleView) {
@@ -94,11 +102,9 @@ public class InfinitePaper extends ViewGroup {
                            (int) (parent.getRight()),
                            (int) (parent.getTop())
                    );
-
                }
             }
         }
-
     }
 
     // returns minimum size so that children are always included in the view
@@ -106,9 +112,9 @@ public class InfinitePaper extends ViewGroup {
         Point temp = new Point();
         float maxX = 0;
         float maxY = 0;
-
+        View v;
         for (int i = 0; i< this.getChildCount(); i++) {
-            View v = this.getChildAt(i);
+            v = this.getChildAt(i);
             maxX = Math.max(maxX, v.getWidth() + v.getX());
             maxY = Math.max(maxY, v.getHeight() + v.getY());
         }
@@ -123,10 +129,15 @@ public class InfinitePaper extends ViewGroup {
         return (int) (dp * scale * 0.5f);
     }
 
-    private void recalculateCanvasSize() {
-        MIN_SIZE_X = dpToPixConverter(MIN_SIZE_X);
-        MIN_SIZE_Y = dpToPixConverter(MIN_SIZE_Y);
-    }
+    private void defineCanvasSize() {
+        WindowManager wm = (WindowManager) mContext.getSystemService(Context.WINDOW_SERVICE);
+        Display display = wm.getDefaultDisplay();
+        Point size = new Point();
+        display.getSize(size);
 
+        MIN_WIDTH = size.x;
+        MIN_HEIGHT = size.y;
+
+    }
 
 }

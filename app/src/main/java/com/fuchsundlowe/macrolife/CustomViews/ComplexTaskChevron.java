@@ -1,7 +1,5 @@
 package com.fuchsundlowe.macrolife.CustomViews;
 
-import android.animation.AnimatorSet;
-import android.animation.ObjectAnimator;
 import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Color;
@@ -12,12 +10,9 @@ import android.graphics.PixelFormat;
 import android.graphics.drawable.Drawable;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
-import android.support.v4.view.GestureDetectorCompat;
-import android.util.Log;
-import android.view.GestureDetector;
-import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewOutlineProvider;
+import android.widget.TextView;
 
 import com.fuchsundlowe.macrolife.DataObjects.SubGoalMaster;
 import com.fuchsundlowe.macrolife.Interfaces.ComplexTaskInterface;
@@ -32,10 +27,23 @@ public class ComplexTaskChevron extends View {
     private int DEFAULT_H = 240;
     private int DEFAULT_W = 90;
     private int DEFAULT_TEXT = 36;
-    private int DEFAULT_PADDING = 8;
-    private int DEFAULT_Z = 16;
-
+    private int DEFAULT_PADDING = 4;
+    private int DEFAULT_Z = 2;
+    private int DEFAULT_BOX_LINE = 2;
+    private int COUNTER_SIZE = 6;
+    private int workWordCountedLenght;
+    private int wordsThatFit = 0;
+    private int remainingWords = 0;
+    private float DEFUALT_TEXT_CUTTER = 0.8f; // distance between text and boundaries of view
+    private float scale, textWidth, textHeight, p;
+    private float[] linePoints;
+    private String workerString;
+    private String[] wordHolder;
     private Paint textMarker;
+    private Paint boundsMarker;
+
+
+    private TextView text;
 
     public ComplexTaskChevron(Context context, SubGoalMaster data, ComplexTaskInterface protocol) {
         super(context);
@@ -43,40 +51,114 @@ public class ComplexTaskChevron extends View {
         this.protocol = protocol;
         this.context = context;
 
+        workerString = data.getTaskName();
         textMarker = new Paint();
         textMarker.setColor(Color.BLACK);
-        DEFAULT_TEXT = dpToPixConverter(DEFAULT_TEXT);
+        boundsMarker = new Paint();
+        boundsMarker.setColor(Color.BLACK);
+
+        DEFAULT_TEXT = dpToPixConverter(DEFAULT_TEXT); // These three produce dp
+        DEFAULT_BOX_LINE = dpToPixConverter(DEFAULT_BOX_LINE);
+        DEFAULT_PADDING = dpToPixConverter(DEFAULT_PADDING);
     }
+
 
     @Override
     protected void onDraw(Canvas canvas) {
-        float scale = protocol.getScale();
-        float textSize = textMarker.measureText(data.getTaskName());
-        textMarker.setTextSize(DEFAULT_TEXT * scale);
+        super.onDraw(canvas);
 
-        // Tries to put text in the middle, doesn't yet account for text out of bounds...
-        canvas.drawText(data.getTaskName(), (getWidth() - textSize) / 2,
-                (getHeight() + (DEFAULT_TEXT * scale) ) / 2, textMarker);
+        // TODO: Draw text in accordance to the size of the box...
+        scale = protocol.getScale();
+        textMarker.setTextSize(DEFAULT_TEXT * scale);
+        textWidth = textMarker.measureText(workerString);
+        textHeight = DEFAULT_TEXT * scale;
+        workerString = data.getTaskName();
+        workWordCountedLenght = textMarker.breakText(workerString, true,
+                getWidth() * DEFUALT_TEXT_CUTTER, null);
+        // Text size is not greater than the box
+        if (workWordCountedLenght >= workerString.length()) {
+            canvas.drawText(workerString, (getWidth() - textWidth) / 2,
+                    getHeight()/2 + textHeight / 4 , textMarker);
+            // Creates two lines of text
+        } else {
+            // Text is greater than the box...
+            wordHolder = workerString.split(" ", COUNTER_SIZE);
+            workWordCountedLenght = 0;
+            workerString = wordHolder[0];
+            // now we check how much can we type into it before we hit wall
+           for (int i = 0; i<COUNTER_SIZE; i++) {
+               workWordCountedLenght = textMarker.breakText(workerString, true,
+                       getWidth() * DEFUALT_TEXT_CUTTER, null);
+               if (workWordCountedLenght >= workerString.length()) {
+                   if (i > 0) {
+                       workerString += wordHolder[i];
+                   }
+               } else {
+                   // TODO: Does this break for loop?
+                   wordsThatFit = i;
+                   break;
+               }
+
+
+            }// Now we got to write that first set of words...
+            workerString = "";
+            for (int i = 0; i <= wordsThatFit - 1; i++) {
+                workerString += wordHolder[i];
+            }
+            textWidth = textMarker.measureText(workerString);
+            canvas.drawText(
+                    workerString, (getWidth() - textWidth) / 2,
+                    getHeight() / 2, textMarker
+                    );
+            // Now that we have drawn the first part of the sentence, we need to proceed with rest...
+            /*
+            workerString = wordHolder[wordsThatFit];
+            for (int i = wordsThatFit; i <= wordHolder.length; i ++) {
+                // TODO: This is where am I now
+            }
+            */
+                // This means that first word is to long or its just enough size
+                // Is it right size?
+                if (workWordCountedLenght == 0) {
+                   // Measure text and determine if we print it or we cut it...
+                    workWordCountedLenght = textMarker.breakText(
+                            wordHolder[0],
+                            true,
+                            getWidth() * DEFUALT_TEXT_CUTTER, null
+                            );
+                    // YES words is too long
+                    if (workWordCountedLenght >= wordHolder[0].length()) {
+
+                    // Its barely enough
+                    } else {
+
+                    }
+
+                // Means that there is more than one word...
+                } else {
+
+            }
+        }
+
+
+        // This part draws the bounds of the view...
+        // TODO: Draw the line based box...
 
     }
 
     @Override
-    protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
-
-       float minX = 0;
-       float minY = 0;
-
+    protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {;
        float scale = protocol.getScale();
 
-       minX = dpToPixConverter(DEFAULT_W * scale);
-       minY = dpToPixConverter(DEFAULT_H * scale);
+       float minX = dpToPixConverter(DEFAULT_W * scale);
+       float minY = dpToPixConverter(DEFAULT_H * scale);
 
        setMinimumHeight((int)minY + 1);
        setMinimumWidth((int) minX + 1);
 
 
-        setMeasuredDimension((int) (minX + dpToPixConverter(DEFAULT_PADDING) * scale),
-                (int) (minY + dpToPixConverter(DEFAULT_PADDING) * scale));
+        setMeasuredDimension((int) (minX + dpToPixConverter(DEFAULT_PADDING)),
+                (int) (minY + dpToPixConverter(DEFAULT_PADDING)));
     }
 
     @Override
@@ -146,6 +228,9 @@ public class ComplexTaskChevron extends View {
         this.data.updateMe();
     }
 
+
+
+
     // Outline Provider:
 
     private class CustomOutline extends ViewOutlineProvider {
@@ -160,7 +245,8 @@ public class ComplexTaskChevron extends View {
 
         @Override
         public void getOutline(View view, Outline outline) {
-            int cPadding = dpToPixConverter(DEFAULT_PADDING);
+            //int cPadding = dpToPixConverter(DEFAULT_PADDING * scale);
+            int cPadding = 0;
             outline.setRect(0 + cPadding, cPadding, width - cPadding, height - cPadding);
         }
     }

@@ -10,6 +10,7 @@ import android.support.annotation.Nullable;
 import android.support.v4.view.GestureDetectorCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.view.GestureDetector;
+import android.view.Gravity;
 import android.view.MotionEvent;
 import android.view.ScaleGestureDetector;
 import android.view.View;
@@ -45,7 +46,7 @@ public class ComplexTaskActivity extends AppCompatActivity implements ComplexTas
     private float mx, my;
     private float curX, curY;
     private float scaleFactor;
-    private float MAX_SCALE = 0.7f, MIN_SCALE = 2.0f;
+    private float MAX_SCALE = 1.0f, MIN_SCALE = 2.0f;
     private boolean globalEdit = false;
 
     private List<SubGoalMaster> allChildren;
@@ -113,6 +114,8 @@ public class ComplexTaskActivity extends AppCompatActivity implements ComplexTas
 
         flasher = findViewById(R.id.flasher);
         scchng = findViewById(R.id.scchng);
+
+
     }
 
     private void signalGlobalEdit(boolean editStart) {

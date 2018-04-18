@@ -21,7 +21,6 @@ import android.view.ViewGroup;
 import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 import android.widget.TextView;
-
 import com.fuchsundlowe.macrolife.CustomViews.BubbleView;
 import com.fuchsundlowe.macrolife.CustomViews.ComplexTaskChevron;
 import com.fuchsundlowe.macrolife.CustomViews.InfinitePaper;
@@ -46,11 +45,10 @@ public class ComplexTaskActivity extends AppCompatActivity implements ComplexTas
         PopUpProtocol, TailViewProtocol {
 
     private int masterID, transX, transY;
-    private float mx, my;
-    private float curX, curY;
-    private float scaleFactor;
+    private float curX, curY, mx, my, scaleFactor;
     private float MAX_SCALE = 0.5f, MIN_SCALE = 2.0f;
     private boolean globalEdit = false;
+    private boolean movingBubble = false;
     private int INCREASE_PAPER_BY = 50;
 
     private List<SubGoalMaster> allChildren;
@@ -63,7 +61,6 @@ public class ComplexTaskActivity extends AppCompatActivity implements ComplexTas
     private InfinitePaper container;
     private BubbleView mBubble;
     private TailView mTail;
-    private boolean movingBubble = false;
     private Rect managedViewsRect;
     private ScaleGestureDetector mScaleDetector;
     private GestureDetectorCompat mGestureDetector;
@@ -212,16 +209,14 @@ public class ComplexTaskActivity extends AppCompatActivity implements ComplexTas
         });
     }
     private void updateData() {
-       if (wrapped != null) {
-           // Do nothing...
-       } else {
+       if (wrapped == null) {
            wrapped = new ArrayList<>();
-            for (SubGoalMaster child: allChildren) {
-                ComplexTaskChevron temp = new ComplexTaskChevron(this, child, this);
-                wrapped.add(temp);
-                container.addView(temp);
-                temp.animationPresentSelf();
-            }
+           for (SubGoalMaster child: allChildren) {
+               ComplexTaskChevron temp = new ComplexTaskChevron(this, child, this);
+               wrapped.add(temp);
+               container.addView(temp);
+               temp.animationPresentSelf();
+           }
        }
 
     }
@@ -329,23 +324,22 @@ public class ComplexTaskActivity extends AppCompatActivity implements ComplexTas
                                         mBubble.getStartPosition().right,
                                         mBubble.getStartPosition().bottom
                                 );
-
                             }
 
                         // RIGHT Container
-                        } else if ((mBubble.getX() + mBubble.getWidth()) >= mBubble.getMaster().getRight()) {
+                        } else if ((mBubble.getX()) >= mBubble.getMaster().getRight()) {
                             this.displayText(1);
+
                             // Lower Half
                             if ((mBubble.getHeight() + mBubble.getY()) >=
                                     (mBubble.getMaster().getBottom() - mBubble.getHeight()/2)) {
                                 mTail.setBackgroundColor(Color.YELLOW);
                                 mTail.layout(
                                         mBubble.getMaster().getRight(),
-                                        (int)(mBubble.getMaster().getTop()),
+                                        mBubble.getMaster().getTop() + mBubble.getHeight()/2,
                                         (int)(mBubble.getX()),
                                         (int)(mBubble.getY() + mBubble.getHeight())
                                 );
-
 
                              //Upper Half
                             } else {
@@ -368,7 +362,7 @@ public class ComplexTaskActivity extends AppCompatActivity implements ComplexTas
                                 mTail.setBackgroundColor(Color.YELLOW);
                                 mTail.layout(
                                         (int)mBubble.getX() + mBubble.getWidth(),
-                                        mBubble.getMaster().getBottom() + mBubble.getHeight()/2,
+                                        mBubble.getMaster().getTop() + mBubble.getHeight()/2,
                                         mBubble.getMaster().getLeft(),
                                         (int)(mBubble.getY() + mBubble.getHeight())
                                 );
@@ -387,9 +381,20 @@ public class ComplexTaskActivity extends AppCompatActivity implements ComplexTas
                             this.displayText(3);
                             // Checks if its in right margin
                             if (mBubble.getX() >= mBubble.getStartPosition().left) {
-
+                                mTail.layout(
+                                        mBubble.getStartPosition().left,
+                                        mBubble.getMaster().getBottom(),
+                                        (int)(mBubble.getX() + mBubble.getWidth()),
+                                        (int)(mBubble.getY())
+                                );
                             // Left margin
                             } else {
+                                mTail.layout(
+                                        (int)(mBubble.getX()),
+                                        mBubble.getMaster().getBottom(),
+                                        mBubble.getStartPosition().right,
+                                        (int)(mBubble.getY())
+                                );
 
                             }
                         // CENTER:

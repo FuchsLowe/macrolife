@@ -20,7 +20,7 @@
         android:theme="@style/Base.Theme.AppCompat.Light">
         <activity
             android:name=".MasterScreen"
-            android:windowSoftInputMode="adjustResize">
+            android:windowSoftInputMode="adjustNothing">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 

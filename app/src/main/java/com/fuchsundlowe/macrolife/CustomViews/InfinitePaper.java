@@ -4,11 +4,13 @@ import android.content.Context;
 import android.graphics.Color;
 import android.graphics.Point;
 import android.support.annotation.NonNull;
+import android.util.Log;
 import android.view.Display;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
+import android.widget.AbsoluteLayout;
 
 import com.fuchsundlowe.macrolife.Interfaces.ComplexTaskInterface;
 
@@ -21,7 +23,7 @@ public class InfinitePaper extends ViewGroup {
     private int MIN_HEIGHT;
     private int MIN_PADDING = 20;
     private boolean firstAppearance = true;
-
+    private Point clickLocation;
 
     public InfinitePaper(@NonNull Context context, ComplexTaskInterface mInterface) {
         super(context);
@@ -29,13 +31,14 @@ public class InfinitePaper extends ViewGroup {
         this.mInterface = mInterface;
         setWillNotDraw(false);
         this.setBackgroundColor(Color.GRAY);
-
+        clickLocation = new Point();
         defineCanvasSize();
 
     }
 
     @Override
     public boolean onInterceptTouchEvent(MotionEvent ev) {
+        clickLocation.set((int)ev.getX(), (int)ev.getY());
         return false;
     }
 
@@ -45,7 +48,7 @@ public class InfinitePaper extends ViewGroup {
         // Am I scaling them 2x?
 
         float scale = mInterface.getScale();
-
+        Log.e("ON MEASURE", " " + mesC); mesC+=1;
         measureChildren(widthMeasureSpec, heightMeasureSpec);
 
         Point forMin = getMinSize();
@@ -56,8 +59,8 @@ public class InfinitePaper extends ViewGroup {
         setMinimumWidth(forMin.y);
 
         float regX, regY;
-        regX = Math.max(MIN_WIDTH, forMin.x + dpToPixConverter(MIN_PADDING)) * scale ;
-        regY =  Math.max(MIN_HEIGHT, forMin.y + dpToPixConverter(MIN_PADDING)) * scale ;
+        regX = Math.max(MIN_WIDTH, forMin.x + dpToPixConverter(MIN_PADDING));
+        regY =  Math.max(MIN_HEIGHT, forMin.y + dpToPixConverter(MIN_PADDING));
 
         setMeasuredDimension(
                 (int)regX,
@@ -67,13 +70,10 @@ public class InfinitePaper extends ViewGroup {
 
 
     }
-
+    int layC = 0, mesC = 0;
     @Override
     protected void onLayout(boolean changed, int l, int t, int r, int b) {
-
         ComplexTaskChevron kid;
-        float scale = mInterface.getScale();
-
         if (firstAppearance) { // We bring them on screen for the first time
             firstAppearance = false;
 
@@ -93,15 +93,18 @@ public class InfinitePaper extends ViewGroup {
                            (int) ((kid.getXFromData() + kid.getMeasuredHeight())),
                            (int) ((kid.getYFromData() + kid.getMeasuredWidth())));
                } else if (getChildAt(i) instanceof BubbleView) {
-                   BubbleView object = (BubbleView) getChildAt(i);
-                   View parent = object.getChevron();
 
+                   BubbleView object = (BubbleView) getChildAt(i);
+                   View parent = object.getMaster();
                    object.layout(
-                           (int) ((parent.getLeft() )),
-                           (int) (parent.getTop() - object.getMeasuredHeight()),
-                           (int) (parent.getRight()),
-                           (int) (parent.getTop())
+                           parent.getLeft() +
+                                   ((parent.getWidth() - object.getMeasuredWidth()) / 2),
+                           parent.getTop() - object.getMeasuredHeight(),
+                           parent.getRight() -
+                                   ((parent.getWidth() - object.getMeasuredWidth()) / 2),
+                           parent.getTop()
                    );
+
                }
             }
         }
@@ -138,6 +141,10 @@ public class InfinitePaper extends ViewGroup {
         MIN_WIDTH = size.x;
         MIN_HEIGHT = size.y;
 
+    }
+
+    public Point clickLocation() {
+        return clickLocation;
     }
 
 }

@@ -10,6 +10,7 @@ import android.graphics.PixelFormat;
 import android.graphics.drawable.Drawable;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.util.Log;
 import android.view.View;
 import android.view.ViewOutlineProvider;
 import android.widget.TextView;
@@ -41,8 +42,6 @@ public class ComplexTaskChevron extends View {
     private String[] wordHolder;
     private Paint textMarker;
     private Paint boundsMarker;
-
-
     private TextView text;
 
     public ComplexTaskChevron(Context context, SubGoalMaster data, ComplexTaskInterface protocol) {
@@ -91,7 +90,7 @@ public class ComplexTaskChevron extends View {
                        getWidth() * DEFUALT_TEXT_CUTTER, null);
                if (workWordCountedLenght >= workerString.length()) {
                    if (i > 0) {
-                       workerString += wordHolder[i];
+                       //workerString += wordHolder[i];
                    }
                } else {
                    // TODO: Does this break for loop?
@@ -112,7 +111,7 @@ public class ComplexTaskChevron extends View {
                     );
             // Now that we have drawn the first part of the sentence, we need to proceed with rest...
             /*
-            workerString = wordHolder[wordsThatFit];
+            workerString = wordHolder[wordsThatFit - 1];
             for (int i = wordsThatFit; i <= wordHolder.length; i ++) {
                 // TODO: This is where am I now
             }
@@ -128,10 +127,11 @@ public class ComplexTaskChevron extends View {
                             );
                     // YES words is too long
                     if (workWordCountedLenght >= wordHolder[0].length()) {
+                        // Cut the word the wordCountLenght
 
                     // Its barely enough
                     } else {
-
+                        // Just type it in on 1/2 of the screen.
                     }
 
                 // Means that there is more than one word...
@@ -145,11 +145,12 @@ public class ComplexTaskChevron extends View {
         // TODO: Draw the line based box...
 
     }
-
+    int coun=0;
     @Override
-    protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {;
+    protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
        float scale = protocol.getScale();
-
+        Log.e(data.getTaskName(), "C: " + coun);
+        coun+=1;
        float minX = dpToPixConverter(DEFAULT_W * scale);
        float minY = dpToPixConverter(DEFAULT_H * scale);
 
@@ -189,8 +190,8 @@ public class ComplexTaskChevron extends View {
     public void setNewValues(String newName, Integer newX, Integer newY,
                              Integer parentSubGoal, Boolean completed) {
         if (newName != null) { data.setTaskName(newName);}
-        if (newX != null) { data.setMX(newX);}
-        if (newY != null) {data.setMY(newY);}
+        if (newX != null && newX >= 0) { data.setMX(newX);}
+        if (newY != null && newY >= 0) {data.setMY(newY);}
         if (parentSubGoal != null) {data.setParentSubGoal(parentSubGoal); }
         if (completed != null) {data.setTaskCompleted(completed);}
 
@@ -227,9 +228,6 @@ public class ComplexTaskChevron extends View {
         this.data.setMY((int) getY());
         this.data.updateMe();
     }
-
-
-
 
     // Outline Provider:
 

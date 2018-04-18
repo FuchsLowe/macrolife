@@ -3,21 +3,21 @@ package com.fuchsundlowe.macrolife.CustomViews;
 import android.graphics.Canvas;
 import android.view.View;
 
-import com.fuchsundlowe.macrolife.Interfaces.ConnectorViewProtocol;
+import com.fuchsundlowe.macrolife.Interfaces.TailViewProtocol;
 
 
-public class ConnectorView extends View {
+public class TailView extends View {
 
-    ConnectorViewProtocol mInterface;
+    TailViewProtocol mInterface;
 
-    public ConnectorView(ConnectorViewProtocol protocol) {
+    public TailView(TailViewProtocol protocol) {
         super(protocol.getContext());
         mInterface = protocol;
     }
 
     @Override
     protected void onDraw(Canvas canvas) {
-
+        // Here we draw the lines...
     }
 
 }

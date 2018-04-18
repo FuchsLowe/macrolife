@@ -54,9 +54,15 @@ public class PopUpCreator {
             public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
                 if (actionId == EditorInfo.IME_ACTION_DONE) {
                     if (v.getText().length() > 0) {
-                        mInterface.newTask(v.getText().toString(), null, null,
-                                DEFAULT_SPAWN_X, DEFAULT_SPAWN_Y, 0);
-
+                        if (clickLocation == null) {
+                            mInterface.newTask(v.getText().toString(), null, null,
+                                    DEFAULT_SPAWN_X, DEFAULT_SPAWN_Y, 0);
+                        } else {
+                            mInterface.newTask(v.getText().toString(),
+                                    null, null,
+                                    clickLocation.x, clickLocation.y, 0
+                                    );
+                        }
                     }
                     softKeyboard(false);
                     mInterface.globalEditDone();
@@ -176,8 +182,10 @@ public class PopUpCreator {
         InputMethodManager imm = (InputMethodManager)
                 mInterface.getContext().getSystemService(Context.INPUT_METHOD_SERVICE);
         if (appearance) {
+            name.requestFocus();
             imm.showSoftInput(name, 0);
         } else {
+            name.clearFocus();
             imm.hideSoftInputFromInputMethod(name.getWindowToken(),0);
 
         }

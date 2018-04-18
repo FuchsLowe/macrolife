@@ -8,6 +8,7 @@ import android.widget.Scroller;
 
 import com.fuchsundlowe.macrolife.SupportClasses.HScroll;
 import com.fuchsundlowe.macrolife.TestCases.Test4;
+import com.fuchsundlowe.macrolife.TestCases.Test5;
 import com.fuchsundlowe.macrolife.TestCases.TestActivity;
 import com.fuchsundlowe.macrolife.TestCases.TestActivity2;
 import com.fuchsundlowe.macrolife.TestCases.TestActivity3;
@@ -22,6 +23,7 @@ public class MasterScreen extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_master_screen);
 
+        //test2();
         test2();
 
     }
@@ -47,7 +49,7 @@ public class MasterScreen extends AppCompatActivity {
     }
 
     void test3() {
-        Intent toTest3 = new Intent(this, TestActivity3.class);
+        Intent toTest3 = new Intent(this, Test5.class);
         startActivity(toTest3);
     }
 

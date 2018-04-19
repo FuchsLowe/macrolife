@@ -5,7 +5,6 @@ import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Rect;
 import android.graphics.RectF;
-import android.util.Log;
 import android.view.View;
 
 import com.fuchsundlowe.macrolife.Interfaces.TailViewProtocol;
@@ -50,7 +49,6 @@ public class BubbleView extends View {
         switch (mState) {
             case initiated:
                 // Saves the initial state
-                Log.e("BUBBLE VIEW", "Case initiated called");
                 startLeft = getLeft();
                 startRight = getRight();
                 startTop = getTop();
@@ -95,7 +93,6 @@ public class BubbleView extends View {
 
     @Override
     protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
-        Log.e("Bubble VIew", "MEASURE CALLED");
         int size = (int) (master.getWidth() * SIZE_OF_BALL) + 1;
         setMeasuredDimension(size, size);
     }
@@ -109,9 +106,7 @@ public class BubbleView extends View {
         float scale = mProtocol.getContext().getResources().getDisplayMetrics().density;
         return (int) (dp * scale * 0.5f);
     }
-    public View getChevron() {
-        return master;
-    }
+
 
     public enum ConnectorState {
         initiated, onMove, onConnect, connected;

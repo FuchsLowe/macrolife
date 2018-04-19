@@ -12,7 +12,6 @@ import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.view.GestureDetectorCompat;
 import android.support.v7.app.AppCompatActivity;
-import android.util.Log;
 import android.view.GestureDetector;
 import android.view.MotionEvent;
 import android.view.ScaleGestureDetector;
@@ -37,6 +36,7 @@ import com.fuchsundlowe.macrolife.Interfaces.PopUpProtocol;
 import com.fuchsundlowe.macrolife.SupportClasses.HScroll;
 import com.fuchsundlowe.macrolife.SupportClasses.VScroll;
 
+import java.io.IOError;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
@@ -182,7 +182,6 @@ public class ComplexTaskActivity extends AppCompatActivity implements ComplexTas
 
     // Will spring back bubble to original position, due to not hooking up with other goal
     private void bubbleToParent() {
-        Log.e("CTA: ", "Bubble To Parent Called");
         if (mBubble != null) {
             mBubble.animateToOriginalPosition();
             container.removeView(mTail);
@@ -275,7 +274,7 @@ public class ComplexTaskActivity extends AppCompatActivity implements ComplexTas
                 if (isItABubble(mx, my)) {
                     // We leave everything as it is so bubble can be moved...
                     movingBubble = true;
-                    mTail = new TailView(this);
+                    mTail = new TailView(this, mBubble.getMaster(), mBubble);
                     mTail.setBackgroundColor(Color.CYAN);
                     mTail.setAlpha(0.5f);
                     // Layout?
@@ -305,6 +304,7 @@ public class ComplexTaskActivity extends AppCompatActivity implements ComplexTas
                         // This part is about moving the tail View:
                         left(String.valueOf(mBubble.getY() + mBubble.getHeight()));
                         right(String.valueOf(mBubble.getMaster().getY()));
+                        /*
                         // TOP Container
                         if ((mBubble.getY() + mBubble.getHeight()) <= mBubble.getMaster().getY()) {
                             displayText(0);
@@ -402,8 +402,10 @@ public class ComplexTaskActivity extends AppCompatActivity implements ComplexTas
                             this.displayText(4);
 
                         }
+
                         mTail.invalidate();
-                        
+                        */
+                        mTail.updateLayout2();
                     } else if (viewManaged != null) {
                         // we do the view
                         transX = (int)(viewManaged.getTranslationX() + curX - mx); // Cancels going
@@ -520,17 +522,20 @@ public class ComplexTaskActivity extends AppCompatActivity implements ComplexTas
     @Override
     public void displayText(int val){
            switch (val){
+               case -1:
+                   break;
                case 0:flasher.setBackgroundColor(Color.BLUE);
                 break;
-               case 1: flasher.setBackgroundColor(Color.GREEN);
+               case 1: flasher.setBackgroundColor(Color.RED);
                 break;
-               case 2: flasher.setBackgroundColor(Color.RED);
+               case 2: flasher.setBackgroundColor(Color.GREEN);
                 break;
                case 3: flasher.setBackgroundColor(Color.YELLOW);
                 break;
                case 4: flasher.setBackgroundColor(Color.BLACK);
                 break;
            }
+
         new Thread(new Runnable() {
             @Override
             public void run() {
@@ -546,7 +551,12 @@ public class ComplexTaskActivity extends AppCompatActivity implements ComplexTas
                     e.printStackTrace();
                 }
             }
-        }).start();
+        }); // TODO: NO START HERE
+    }
+
+    @Override
+    public ViewGroup getContainer() {
+        return container;
     }
 
     private int dpToPixConverter(float dp) {
@@ -559,4 +569,5 @@ public class ComplexTaskActivity extends AppCompatActivity implements ComplexTas
     void right(String val) {
         scchng.setText(val);
     }
+
 }

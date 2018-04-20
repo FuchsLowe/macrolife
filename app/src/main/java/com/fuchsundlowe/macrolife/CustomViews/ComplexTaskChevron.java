@@ -62,9 +62,9 @@ public class ComplexTaskChevron extends View {
     }
 
 
-    @Override
-    protected void onDraw(Canvas canvas) {
-        super.onDraw(canvas);
+    //@Override
+    protected void onDrawe(Canvas canvas) {
+        //super.onDraw(canvas);
 
         // TODO: Draw text in accordance to the size of the box...
         scale = protocol.getScale();
@@ -145,6 +145,7 @@ public class ComplexTaskChevron extends View {
         // TODO: Draw the line based box...
 
     }
+
     int coun=0;
     @Override
     protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {

@@ -36,7 +36,6 @@ import com.fuchsundlowe.macrolife.Interfaces.PopUpProtocol;
 import com.fuchsundlowe.macrolife.SupportClasses.HScroll;
 import com.fuchsundlowe.macrolife.SupportClasses.VScroll;
 
-import java.io.IOError;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
@@ -61,7 +60,6 @@ public class ComplexTaskActivity extends AppCompatActivity implements ComplexTas
     private InfinitePaper container;
     private BubbleView mBubble;
     private TailView mTail;
-    private Rect managedViewsRect;
     private ScaleGestureDetector mScaleDetector;
     private GestureDetectorCompat mGestureDetector;
     private View viewManaged; // This is a holder for current view that's dragged
@@ -84,7 +82,6 @@ public class ComplexTaskActivity extends AppCompatActivity implements ComplexTas
         data = StorageMaster.getInstance(this);
         mScaleDetector = new ScaleGestureDetector(this, new Scaler());
         mGestureDetector = new GestureDetectorCompat(this, new LongPressDetector());
-        managedViewsRect = new Rect();
         INCREASE_PAPER_BY = dpToPixConverter(INCREASE_PAPER_BY);
 
         addPaper();
@@ -140,7 +137,6 @@ public class ComplexTaskActivity extends AppCompatActivity implements ComplexTas
             mBubble = new BubbleView(this, (ComplexTaskChevron) viewManaged,
                     BubbleView.ConnectorState.initiated);
             container.addView(mBubble);
-            mBubble.setBackgroundColor(Color.RED);
             // Signal to all Chevrons to redraw themselves for editing.
 
         } else {
@@ -275,7 +271,6 @@ public class ComplexTaskActivity extends AppCompatActivity implements ComplexTas
                     // We leave everything as it is so bubble can be moved...
                     movingBubble = true;
                     mTail = new TailView(this, mBubble.getMaster(), mBubble);
-                    mTail.setBackgroundColor(Color.CYAN);
                     mTail.setAlpha(0.5f);
                     // Layout?
                     container.addView(mTail);
@@ -405,7 +400,7 @@ public class ComplexTaskActivity extends AppCompatActivity implements ComplexTas
 
                         mTail.invalidate();
                         */
-                        mTail.updateLayout2();
+                        mTail.updateLayout();
                     } else if (viewManaged != null) {
                         // we do the view
                         transX = (int)(viewManaged.getTranslationX() + curX - mx); // Cancels going

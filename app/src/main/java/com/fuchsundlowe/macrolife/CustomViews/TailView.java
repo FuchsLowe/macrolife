@@ -3,6 +3,7 @@ package com.fuchsundlowe.macrolife.CustomViews;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
+import android.graphics.Path;
 import android.graphics.Point;
 import android.graphics.RectF;
 import android.view.View;
@@ -18,60 +19,77 @@ public class TailView extends View {
     private RectF tRect;
     private Point tC, topHorizon, bottomHorizon, aCenterInCanvas, bCenterInCanvas;
     private int tQ = 0;
+    private int lineWidth = 2;
     private Paint line;
-    TestDot dOne,dTwo, dThree, dFour, tDot;
+    private Path mPath;
+    //TestDot dOne,dTwo, dThree, dFour, tDot;
 
-    public TailView(TailViewProtocol protocol, View a, View b) {
+    public TailView(TailViewProtocol protocol, View a, View b)  {
         super(protocol.getContext());
         mInterface = protocol;
         this.a = a;
         this.b = b;
         line = new Paint();
         line.setColor(Color.BLACK);
-        line.setStrokeWidth(5);
+        line.setStyle(Paint.Style.STROKE);
+        line.setStrokeWidth(dpToPixConverter(lineWidth));
         tRect = new RectF();
         tC = new Point();
         topHorizon = new Point();
         bottomHorizon = new Point();
         aCenterInCanvas = new Point();
         bCenterInCanvas = new Point();
-        setBackgroundColor(Color.GREEN);
+        mPath = new Path();
+        setBackgroundColor(Color.TRANSPARENT);
+        /*
         dOne = new TestDot(protocol.getContext());
         dTwo = new TestDot(protocol.getContext());
         dThree = new TestDot(protocol.getContext());
-        dFour = new TestDot(protocol.getContext());
+        dFour = new TestDot(protocol.getContext());[]
         tDot = new TestDot(protocol.getContext());
 
-        /*  part of test, shows dots, can be deleted when done testing
+        part of test, shows dots, can be deleted when done testing
         mInterface.getContainer().addView(dOne);
         mInterface.getContainer().addView(dTwo);
         mInterface.getContainer().addView(dThree);
         mInterface.getContainer().addView(dFour);
         mInterface.getContainer().addView(tDot);
-        */
+
 
         tDot.pointSize = 35;
         tDot.setBackgroundColor(Color.RED);
         dThree.setBackgroundColor(Color.RED);
         dFour.setBackgroundColor(Color.GREEN);
+        */
     }
 
     @Override
     protected void onDraw(Canvas canvas) {
-        /*
-         * Based on Quadrant I determine the aConnection Point and bConnectionPoint
-         * For start Test I will just draw a line...
-         * I need to translate locations of a and b from parent to local canvas.
-         */
-        calculateConnectionPoints();
-        canvas.drawCircle(aCenterInCanvas.x,aCenterInCanvas.y, 50, line);
-        canvas.drawCircle(bCenterInCanvas.x,bCenterInCanvas.y, 50, line);
+        calculateConnectionPoints(); // Defines the connection points.
+        mPath.reset();
+        mPath.moveTo(aCenterInCanvas.x, aCenterInCanvas.y);
+        switch (tQ){
+            case 1:
+            case 3:
+                mPath.cubicTo(getWidth()/2, aCenterInCanvas.y,
+                        getWidth()/2, bCenterInCanvas.y, bCenterInCanvas.x, bCenterInCanvas.y);
+                break;
+            case 2:
+            case 4:
+                mPath.cubicTo(aCenterInCanvas.x, getHeight()/2,
+                        bCenterInCanvas.x, getHeight()/2,
+                        bCenterInCanvas.x, bCenterInCanvas.y
+                        );
+                break;
 
+        }
+
+        canvas.drawPath(mPath, line);
     }
     /*
      * Will update layout manually for location on screen in dependence to the sub and masterView
      */
-    public void updateLayout2() {
+    public void updateLayout() {
         switch (provideQuadrant()) {
             case 0: // Is OVERLAYING the a
                 tRect.left = 0;
@@ -119,7 +137,7 @@ public class TailView extends View {
     private Point bCenter() {
         tC.set( (int)(b.getWidth()/2 + b.getX()),
                 (int)(b.getHeight()/2 + b.getY()) );
-        tDot.setLocation(tC.x, tC.y);
+        //tDot.setLocation(tC.x, tC.y);
         return tC;
     }
 
@@ -148,10 +166,12 @@ public class TailView extends View {
                 (int)(a.getX() + a.getWidth() + (tC.y - a.getY() - a.getHeight()))
         );
 
+        /*
         dOne.setLocation(topHorizon.x, (int) b.getY());
         dTwo.setLocation(topHorizon.y, (int) b.getY());
         dThree.setLocation(bottomHorizon.x, (int) b.getY());
         dFour.setLocation(bottomHorizon.y, (int) b.getY());
+        */
 
         tQ = -1; // Control Number for testing
 
@@ -252,6 +272,11 @@ public class TailView extends View {
                     bCenterInCanvas.set(-1,-1);
         }
 
+    }
+
+    private int dpToPixConverter(float dp) {
+        float scale = mInterface.getContext().getResources().getDisplayMetrics().density;
+        return (int) (dp * scale * 0.5f);
     }
 
 }

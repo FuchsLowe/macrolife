@@ -7,10 +7,7 @@ import android.graphics.Path;
 import android.graphics.Point;
 import android.graphics.RectF;
 import android.view.View;
-
 import com.fuchsundlowe.macrolife.Interfaces.TailViewProtocol;
-import com.fuchsundlowe.macrolife.TestCases.TestDot;
-
 
 public class TailView extends View {
 

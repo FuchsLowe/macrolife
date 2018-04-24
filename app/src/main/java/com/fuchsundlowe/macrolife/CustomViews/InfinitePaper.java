@@ -4,14 +4,11 @@ import android.content.Context;
 import android.graphics.Color;
 import android.graphics.Point;
 import android.support.annotation.NonNull;
-import android.util.Log;
 import android.view.Display;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
-import android.widget.AbsoluteLayout;
-
 import com.fuchsundlowe.macrolife.Interfaces.ComplexTaskInterface;
 
 
@@ -48,7 +45,6 @@ public class InfinitePaper extends ViewGroup {
         // Am I scaling them 2x?
 
         float scale = mInterface.getScale();
-        Log.e("ON MEASURE", " " + mesC); mesC+=1;
         measureChildren(widthMeasureSpec, heightMeasureSpec);
 
         Point forMin = getMinSize();
@@ -66,8 +62,6 @@ public class InfinitePaper extends ViewGroup {
                 (int)regX,
                 (int) regY
         );
-
-
 
     }
     int layC = 0, mesC = 0;
@@ -108,6 +102,12 @@ public class InfinitePaper extends ViewGroup {
                }
             }
         }
+    }
+
+    @Override
+    protected void onSizeChanged(int w, int h, int oldw, int oldh) {
+        //super.onSizeChanged(w, h, oldw, oldh);
+        mInterface.stopChangesToLayoutTemp();
     }
 
     // returns minimum size so that children are always included in the view

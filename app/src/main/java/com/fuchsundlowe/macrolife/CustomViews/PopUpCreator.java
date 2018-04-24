@@ -3,7 +3,6 @@ package com.fuchsundlowe.macrolife.CustomViews;
 import android.content.Context;
 import android.graphics.Color;
 import android.graphics.Point;
-import android.util.Log;
 import android.view.KeyEvent;
 import android.view.View;
 import android.view.ViewGroup;
@@ -14,7 +13,6 @@ import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import com.fuchsundlowe.macrolife.Interfaces.PopUpProtocol;
-
 import java.util.Calendar;
 
 public class PopUpCreator {

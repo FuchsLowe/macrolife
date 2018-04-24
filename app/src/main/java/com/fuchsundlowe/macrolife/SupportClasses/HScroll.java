@@ -30,5 +30,11 @@ public class HScroll extends HorizontalScrollView {
     public boolean onTouchEvent(MotionEvent ev) {
         return false;
     }
+
+    @Override
+    protected void onSizeChanged(int w, int h, int oldw, int oldh) {
+
+        //super.onSizeChanged(w, h, oldw, oldh);
+    }
 }
 

@@ -12,6 +12,7 @@ import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.view.GestureDetectorCompat;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.GestureDetector;
 import android.view.MotionEvent;
 import android.view.ScaleGestureDetector;
@@ -35,7 +36,6 @@ import com.fuchsundlowe.macrolife.Interfaces.DataProviderProtocol;
 import com.fuchsundlowe.macrolife.Interfaces.PopUpProtocol;
 import com.fuchsundlowe.macrolife.SupportClasses.HScroll;
 import com.fuchsundlowe.macrolife.SupportClasses.VScroll;
-
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
@@ -48,6 +48,7 @@ public class ComplexTaskActivity extends AppCompatActivity implements ComplexTas
     private float MAX_SCALE = 0.5f, MIN_SCALE = 2.0f;
     private boolean globalEdit = false;
     private boolean movingBubble = false;
+    private boolean layoutIsChangin = false;
     private int INCREASE_PAPER_BY = 50;
 
     private List<SubGoalMaster> allChildren;
@@ -76,6 +77,19 @@ public class ComplexTaskActivity extends AppCompatActivity implements ComplexTas
         vScroll = findViewById(R.id.vScroll);
         hScroll = findViewById(R.id.hScroll);
 
+        vScroll.addOnLayoutChangeListener(new View.OnLayoutChangeListener() {
+            @Override
+            public void onLayoutChange(View v, int left, int top, int right, int bottom, int oldLeft, int oldTop, int oldRight, int oldBottom) {
+                stopChangesToLayoutTemp();
+            }
+        });
+        hScroll.addOnLayoutChangeListener(new View.OnLayoutChangeListener() {
+            @Override
+            public void onLayoutChange(View v, int left, int top, int right, int bottom, int oldLeft, int oldTop, int oldRight, int oldBottom) {
+                stopChangesToLayoutTemp();
+            }
+        });
+
         connectors = new ArrayList<>();
         scaleFactor = 1.0f; // Defines the default scale factor to start with
         masterID = getIntent().getIntExtra(Constants.LIST_VIEW_MASTER_ID, -1);
@@ -92,7 +106,7 @@ public class ComplexTaskActivity extends AppCompatActivity implements ComplexTas
             hScroll.setOnScrollChangeListener(new View.OnScrollChangeListener() {
                 @Override
                 public void onScrollChange(View v, int scrollX, int scrollY, int oldScrollX, int oldScrollY) {
-                    scchng.setBackgroundColor(Color.YELLOW);
+                    //scchng.setBackgroundColor(Color.YELLOW);
                     new Thread(new Runnable() {
                         @Override
                         public void run() {
@@ -101,7 +115,7 @@ public class ComplexTaskActivity extends AppCompatActivity implements ComplexTas
                                 runOnUiThread(new Runnable() {
                                     @Override
                                     public void run() {
-                                        scchng.setBackgroundColor(Color.WHITE);
+                                       // scchng.setBackgroundColor(Color.WHITE);
                                     }
                                 });
                             } catch (InterruptedException e) {
@@ -116,18 +130,6 @@ public class ComplexTaskActivity extends AppCompatActivity implements ComplexTas
 
         flasher = findViewById(R.id.flasher);
         scchng = findViewById(R.id.scchng);
-        /*
-        flasher.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                // What flasher does on click?
-
-                bubbleToParent();
-            }
-        });
-        */
-
-
     }
 
     private void signalGlobalEdit(boolean editStart) {
@@ -138,11 +140,13 @@ public class ComplexTaskActivity extends AppCompatActivity implements ComplexTas
                     BubbleView.ConnectorState.initiated);
             container.addView(mBubble);
             // Signal to all Chevrons to redraw themselves for editing.
+            setChevronFlag(1);
 
         } else {
             globalEdit = false;
             cancelBubble();
             bottomBar.releaseFields();
+            setChevronFlag(0);
         }
 
     }
@@ -174,6 +178,15 @@ public class ComplexTaskActivity extends AppCompatActivity implements ComplexTas
         movingBubble = false;
         container.removeView(mBubble);
         mBubble = null;
+    }
+
+    private void setChevronFlag(int flag) {
+        for (ComplexTaskChevron chev: wrapped) {
+            if (chev != viewManaged) {
+                chev.setStateFlag(flag);
+                // The View will invalidate himself
+            }
+        }
     }
 
     // Will spring back bubble to original position, due to not hooking up with other goal
@@ -220,6 +233,33 @@ public class ComplexTaskActivity extends AppCompatActivity implements ComplexTas
     }
 
     // Interface part:
+    public void stopChangesToLayoutTemp(){
+        //trackerOfBoolTest(true);
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    Log.e("Calling sleep", "NOW");
+                    Thread.sleep(1000);
+                    trackerOfBoolTest(false);
+                } catch (InterruptedException e) {
+                    trackerOfBoolTest(false);
+                    Log.e("Error", "Sleep interuoted");
+                }
+            }
+        });
+    }
+
+    private void trackerOfBoolTest(boolean test) {
+        Log.e("TEst is set to:", String.valueOf(test));
+        layoutIsChangin=test;
+        if (test) {
+            scchng.setBackgroundColor(Color.RED);
+        } else {
+            scchng.setBackgroundColor(Color.BLUE);
+        }
+    }
+
     public float getScale() {
         return scaleFactor;
     }
@@ -258,222 +298,131 @@ public class ComplexTaskActivity extends AppCompatActivity implements ComplexTas
     @Override
     public boolean onTouchEvent(MotionEvent event) {
 
-        mScaleDetector.onTouchEvent(event);
-        mGestureDetector.onTouchEvent(event); // checks if its a long press...
+        if (!layoutIsChangin) { // TODO: Will this work?
 
-        if (event.getAction() == MotionEvent.ACTION_DOWN) {
-            mx = event.getX();
-            my = event.getY();
+            mScaleDetector.onTouchEvent(event);
+            mGestureDetector.onTouchEvent(event); // checks if its a long press...
 
-            if (globalEdit) {
-                //if we have clicked at bubble, we move it subsequnetly, else we dismiss everything
-                if (isItABubble(mx, my)) {
-                    // We leave everything as it is so bubble can be moved...
-                    movingBubble = true;
-                    mTail = new TailView(this, mBubble.getMaster(), mBubble);
-                    mTail.setAlpha(0.5f);
-                    // Layout?
-                    container.addView(mTail);
-                    mTail.layout(
-                            mBubble.getLeft(),mBubble.getBottom(),
-                            mBubble.getRight(),mBubble.getMaster().getTop()
-                    );
+            if (event.getAction() == MotionEvent.ACTION_DOWN) {
+                mx = event.getX();
+                my = event.getY();
+
+                if (globalEdit) {
+                    //if we have clicked at bubble, we move it subsequnetly, else we dismiss everything
+                    if (isItABubble(mx, my)) {
+                        // We leave everything as it is so bubble can be moved...
+                        movingBubble = true;
+                        mTail = new TailView(this, mBubble.getMaster(), mBubble);
+                        mTail.setAlpha(0.5f);
+                        // Layout?
+                        container.addView(mTail);
+                        mTail.layout(
+                                mBubble.getLeft(), mBubble.getBottom(),
+                                mBubble.getRight(), mBubble.getMaster().getTop()
+                        );
+                    } else {
+                        signalGlobalEdit(false);
+                    }
                 } else {
-                   signalGlobalEdit(false);
+                    // if we have clicked at task, we move it, else we move background..
+                    childLookUp(mx, my);
                 }
             } else {
-                // if we have clicked at task, we move it, else we move background..
-                childLookUp(mx, my);
-            }
-        } else {
-            switch (event.getAction()) {
-                case MotionEvent.ACTION_MOVE:
-                    curX = event.getX();
-                    curY = event.getY();
+                switch (event.getAction()) {
+                    case MotionEvent.ACTION_MOVE:
+                        curX = event.getX();
+                        curY = event.getY();
 
-                    if (movingBubble) {
-                        // This is the default way so far of managing the location of the bubble
-                        mBubble.setTranslationX(mBubble.getTranslationX() + curX - mx);
-                        mBubble.setTranslationY(mBubble.getTranslationY() + curY - my);
+                        if (movingBubble) {
+                            // This is the default way so far of managing the location of the bubble
+                            mBubble.setTranslationX(mBubble.getTranslationX() + curX - mx);
+                            mBubble.setTranslationY(mBubble.getTranslationY() + curY - my);
 
-                        // This part is about moving the tail View:
-                        left(String.valueOf(mBubble.getY() + mBubble.getHeight()));
-                        right(String.valueOf(mBubble.getMaster().getY()));
-                        /*
-                        // TOP Container
-                        if ((mBubble.getY() + mBubble.getHeight()) <= mBubble.getMaster().getY()) {
-                            displayText(0);
-                            // Defining the side of container
-                            if (mBubble.getX() >= mBubble.getStartPosition().left) {
-                                // We add to the right margin
-                                mTail.layout(
-                                        mBubble.getStartPosition().left,
-                                        (int)(mBubble.getHeight() + mBubble.getY()),
-                                        (int)(mBubble.getWidth() + mBubble.getX()),
-                                        mBubble.getStartPosition().bottom
-                                );
-                            } else {
-                                mTail.layout(
-                                        (int)(mBubble.getX()),
-                                        (int)(mBubble.getY() + mBubble.getWidth()),
-                                        mBubble.getStartPosition().right,
-                                        mBubble.getStartPosition().bottom
-                                );
+                            // This part is about moving the tail View:
+                            left(String.valueOf(mBubble.getY() + mBubble.getHeight()));
+                            right(String.valueOf(mBubble.getMaster().getY()));
+
+                            mTail.updateLayout();
+                        } else if (viewManaged != null) {
+                            // we do the view
+                            transX = (int) (viewManaged.getTranslationX() + curX - mx); // Cancels going
+                            transY = (int) (viewManaged.getTranslationY() + curY - my);// our of bounds
+
+                            if (transX > 0 || (transX + viewManaged.getWidth()) < container.getWidth()) {
+                                viewManaged.setTranslationX(transX);
                             }
 
-                        // RIGHT Container
-                        } else if ((mBubble.getX()) >= mBubble.getMaster().getRight()) {
-                            this.displayText(1);
-
-                            // Lower Half
-                            if ((mBubble.getHeight() + mBubble.getY()) >=
-                                    (mBubble.getMaster().getBottom() - mBubble.getHeight()/2)) {
-                                mTail.setBackgroundColor(Color.YELLOW);
-                                mTail.layout(
-                                        mBubble.getMaster().getRight(),
-                                        mBubble.getMaster().getTop() + mBubble.getHeight()/2,
-                                        (int)(mBubble.getX()),
-                                        (int)(mBubble.getY() + mBubble.getHeight())
-                                );
-
-                             //Upper Half
-                            } else {
-                                mTail.setBackgroundColor(Color.GREEN);
-                                mTail.layout(
-                                        mBubble.getMaster().getRight(),
-                                        (int)(mBubble.getY()),
-                                        (int)(mBubble.getX()),
-                                        mBubble.getMaster().getBottom() - mBubble.getHeight()/2
-
-                                );
+                            if (transY > 0 || (transY + viewManaged.getHeight()) < container.getHeight()) {
+                                viewManaged.setTranslationY(transY);
                             }
 
-                        // LEFT Container
-                        } else if ((mBubble.getX() + mBubble.getWidth()) <= mBubble.getMaster().getLeft() ) {
-                            this.displayText(2);
-                            // Lower Half
-                            if ((mBubble.getHeight() + mBubble.getY()) >=
-                                    (mBubble.getMaster().getBottom() - mBubble.getHeight()/2)) {
-                                mTail.setBackgroundColor(Color.YELLOW);
-                                mTail.layout(
-                                        (int)mBubble.getX() + mBubble.getWidth(),
-                                        mBubble.getMaster().getTop() + mBubble.getHeight()/2,
-                                        mBubble.getMaster().getLeft(),
-                                        (int)(mBubble.getY() + mBubble.getHeight())
-                                );
-                                //Upper Half
-                            } else {
-                                mTail.setBackgroundColor(Color.GREEN);
-                                mTail.layout(
-                                        (int)(mBubble.getX() + mBubble.getWidth()),
-                                        (int)(mBubble.getY()),
-                                        mBubble.getMaster().getLeft(),
-                                        mBubble.getMaster().getBottom() - mBubble.getHeight()/2
-                                );
-                            }
-                        // BOTTOM Container
-                        } else if (mBubble.getY() >= mBubble.getMaster().getBottom()) {
-                            this.displayText(3);
-                            // Checks if its in right margin
-                            if (mBubble.getX() >= mBubble.getStartPosition().left) {
-                                mTail.layout(
-                                        mBubble.getStartPosition().left,
-                                        mBubble.getMaster().getBottom(),
-                                        (int)(mBubble.getX() + mBubble.getWidth()),
-                                        (int)(mBubble.getY())
-                                );
-                            // Left margin
-                            } else {
-                                mTail.layout(
-                                        (int)(mBubble.getX()),
-                                        mBubble.getMaster().getBottom(),
-                                        mBubble.getStartPosition().right,
-                                        (int)(mBubble.getY())
-                                );
 
+                            // if view goes out of bounds we increase the bounds...
+                            if (viewManaged.getX() + viewManaged.getWidth() > container.getWidth()) {
+                                animator = ValueAnimator.ofInt(container.getMeasuredWidth(),
+                                        INCREASE_PAPER_BY);
+                                animator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
+                                    @Override
+                                    public void onAnimationUpdate(ValueAnimator valueAnimator) {
+                                        int val = (Integer) valueAnimator.getAnimatedValue();
+                                        ViewGroup.LayoutParams layoutParams = container.getLayoutParams();
+                                        layoutParams.width = val;
+                                        container.setLayoutParams(layoutParams);
+                                    }
+                                });
+                                animator.setDuration(200);
+                                animator.start();
                             }
-                        // CENTER:
+                            if (viewManaged.getY() + viewManaged.getHeight() > container.getHeight()) {
+                                // We do the same thing for Height...
+                                animator = ValueAnimator.ofInt(container.getMeasuredHeight(),
+                                        INCREASE_PAPER_BY);
+                                animator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
+                                    @Override
+                                    public void onAnimationUpdate(ValueAnimator valueAnimator) {
+                                        int val = (Integer) valueAnimator.getAnimatedValue();
+                                        ViewGroup.LayoutParams layoutParams = container.getLayoutParams();
+                                        layoutParams.height = val;
+                                        container.setLayoutParams(layoutParams);
+                                    }
+                                });
+                                animator.setDuration(200);
+                                animator.start();
+                            }
                         } else {
-                            this.displayText(4);
-
+                            // we move the background...
+                            vScroll.scrollBy((int) (mx - curX), (int) (my - curY));
+                            hScroll.scrollBy((int) (mx - curX), (int) (my - curY));
                         }
 
-                        mTail.invalidate();
-                        */
-                        mTail.updateLayout();
-                    } else if (viewManaged != null) {
-                        // we do the view
-                        transX = (int)(viewManaged.getTranslationX() + curX - mx); // Cancels going
-                        transY = (int) (viewManaged.getTranslationY() + curY - my);// our of bounds
-                        //transX = Math.max(transX, 0);
-                        //transY = Math.max(transY,0);
-
-                        viewManaged.setTranslationX(transX);
-                        viewManaged.setTranslationY(transY);
-                        // if view goes out of bounds we increase the bounds...
-                        if (viewManaged.getX() + viewManaged.getWidth() > container.getWidth()) {
-                           animator = ValueAnimator.ofInt(container.getMeasuredWidth(),
-                                   INCREASE_PAPER_BY);
-                           animator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
-                               @Override
-                               public void onAnimationUpdate(ValueAnimator valueAnimator) {
-                                   int val = (Integer) valueAnimator.getAnimatedValue();
-                                   ViewGroup.LayoutParams layoutParams = container.getLayoutParams();
-                                   layoutParams.width = val;
-                                   container.setLayoutParams(layoutParams);
-                               }
-                           });
-                           animator.setDuration(200);
-                           animator.start();
+                        mx = curX;
+                        my = curY;
+                        break;
+                    case MotionEvent.ACTION_UP:
+                        if (viewManaged instanceof ComplexTaskChevron) {
+                            ((ComplexTaskChevron) viewManaged).updateNewCoordinates();
                         }
-                        if (viewManaged.getY() + viewManaged.getHeight() > container.getHeight()) {
-                            // We do the same thing for Height...
-                            animator = ValueAnimator.ofInt(container.getMeasuredHeight(),
-                                    INCREASE_PAPER_BY);
-                            animator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
-                                @Override
-                                public void onAnimationUpdate(ValueAnimator valueAnimator) {
-                                    int val = (Integer) valueAnimator.getAnimatedValue();
-                                    ViewGroup.LayoutParams layoutParams = container.getLayoutParams();
-                                    layoutParams.height = val;
-                                    container.setLayoutParams(layoutParams);
-                                }
-                            });
-                            animator.setDuration(200);
-                            animator.start();
+
+                        if (movingBubble) {
+                            bubbleToParent();
                         }
-                    } else {
-                        // we move the background...
-                        vScroll.scrollBy((int) (mx - curX), (int) (my - curY));
-                        hScroll.scrollBy((int) (mx - curX), (int) (my - curY));
-                    }
-
-                    mx = curX;
-                    my = curY;
-                    break;
-                case MotionEvent.ACTION_UP:
-                    if (viewManaged instanceof ComplexTaskChevron) {
-                        ((ComplexTaskChevron) viewManaged).updateNewCoordinates();
-                    }
-
-                    if (movingBubble) {
-                        bubbleToParent();
-                    }
-                    viewManaged = null;
-                    movingBubble = false;
-                    break;
-                case MotionEvent.ACTION_CANCEL:
-                    if (viewManaged instanceof ComplexTaskChevron) {
-                        ((ComplexTaskChevron) viewManaged).updateNewCoordinates();
-                    }
-                    if (movingBubble) {
-                        bubbleToParent();
-                    }
-                    viewManaged = null;
-                    movingBubble = false;
-                    break;
+                        viewManaged = null;
+                        movingBubble = false;
+                        break;
+                    case MotionEvent.ACTION_CANCEL:
+                        if (viewManaged instanceof ComplexTaskChevron) {
+                            ((ComplexTaskChevron) viewManaged).updateNewCoordinates();
+                        }
+                        if (movingBubble) {
+                            bubbleToParent();
+                        }
+                        viewManaged = null;
+                        movingBubble = false;
+                        break;
+                }
             }
         }
+
 
         return true;
     }
@@ -488,6 +437,7 @@ public class ComplexTaskActivity extends AppCompatActivity implements ComplexTas
                 scaleFactor = MAX_SCALE;
             }
             // That's good enough...
+
             container.setScaleY(scaleFactor);
             container.setScaleX(scaleFactor);
             return true;
@@ -497,6 +447,7 @@ public class ComplexTaskActivity extends AppCompatActivity implements ComplexTas
     private class LongPressDetector extends GestureDetector.SimpleOnGestureListener {
         @Override
         public void onLongPress(MotionEvent e) {
+            stopChangesToLayoutTemp();
             if (childLookUp(e.getX(),e.getY())) {
                 // We have clicked on view
                 if (viewManaged != null) {

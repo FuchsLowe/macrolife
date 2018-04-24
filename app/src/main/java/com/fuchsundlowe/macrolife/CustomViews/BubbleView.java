@@ -4,7 +4,6 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Rect;
-import android.graphics.RectF;
 import android.view.View;
 
 import com.fuchsundlowe.macrolife.Interfaces.TailViewProtocol;
@@ -75,6 +74,9 @@ public class BubbleView extends View {
                 break;
             case connected:
                 break;
+            case canceling:
+                // TODO: Drawing of the cancel bubble
+                break;
         }
     }
 
@@ -109,6 +111,6 @@ public class BubbleView extends View {
 
 
     public enum ConnectorState {
-        initiated, onMove, onConnect, connected;
+        initiated, onMove, onConnect, connected, canceling;
     }
 }

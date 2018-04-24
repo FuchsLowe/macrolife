@@ -7,7 +7,7 @@ import android.arch.persistence.room.*;
  * This is the class that manages Room database implemnetation.
  */
 
-@Database(version = 1, entities = {ComplexGoalMaster.class, ListMaster.class, ListObject.class,
+@Database(version = 2, entities = {ComplexGoalMaster.class, ListMaster.class, ListObject.class,
                                     OrdinaryEventMaster.class, RepeatingEventsChild.class,
                                     RepeatingEventMaster.class, SubGoalMaster.class})
 @android.arch.persistence.room.TypeConverters({TypeConverters.class})

@@ -4,6 +4,7 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Rect;
+import android.util.Log;
 import android.view.View;
 
 import com.fuchsundlowe.macrolife.Interfaces.TailViewProtocol;
@@ -20,10 +21,11 @@ public class BubbleView extends View {
     private ConnectorState mState;
     private float mX, mY;
     private int startLeft, startRight, startTop, startBottom;
+    private int currentState;
     private Rect bubbleRect;
     private boolean isAnimating = false;
+    private boolean canConnect = false;
     private View tailView;
-
 
     public BubbleView(TailViewProtocol protocol, ComplexTaskChevron master,
                       ConnectorState state) {
@@ -36,7 +38,7 @@ public class BubbleView extends View {
         draw_progress = 0.0f;
 
         penStroke = new Paint();
-        penStroke.setColor(Color.BLUE);
+        setBubbleState(0);
         penStroke.setStrokeWidth(WIDTH_OF_STROKE);
     }
 
@@ -104,11 +106,32 @@ public class BubbleView extends View {
         //requestLayout();
     }
 
+    // 1 means we can accept current connection, 0 we can't
+    private void setBubbleState(int state) {
+        switch (state) {
+            case 0:
+                penStroke.setColor(Color.BLUE);
+                break;
+            case 1:
+                penStroke.setColor(Color.GREEN);
+                break;
+        }
+        currentState = state;
+        invalidate();
+    }
+
     private int dpToPixConverter(float dp) {
         float scale = mProtocol.getContext().getResources().getDisplayMetrics().density;
         return (int) (dp * scale * 0.5f);
     }
 
+    // 0 is false, 1 is true
+    public void setConnectionOpportunity(int val) {
+        // If they are the same we don't make change
+        if (currentState!=val) {
+            setBubbleState(val);
+        }
+    }
 
     public enum ConnectorState {
         initiated, onMove, onConnect, connected, canceling;

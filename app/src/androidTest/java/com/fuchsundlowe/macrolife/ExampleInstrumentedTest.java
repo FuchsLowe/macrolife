@@ -18,20 +18,20 @@ import static org.junit.Assert.*;
 @RunWith(AndroidJUnit4.class)
 public class ExampleInstrumentedTest {
 
-    String[] arry;
-    String txt;
-
-    @Before
-    public void doShit() {
-        arry = new String[4];
-        txt = "I Love BUtter Cookies Jack... God Dam it man!";
-    }
-
     @Test
     public void useAppContext() throws Exception {
         // Context of the app under test.
-        for (String t: txt.split(" ", 4)) {
-            Log.d("Lengtof Arry: ", "" + arry.length);
+        boolean t, f;
+        t = true;
+        f = false;
+
+        String log = "";
+
+        if (t != t) {
+            log += "t not t logged_";
+        }
+        if (t==t) {
+            log += "t is t logged_";
         }
 
     }

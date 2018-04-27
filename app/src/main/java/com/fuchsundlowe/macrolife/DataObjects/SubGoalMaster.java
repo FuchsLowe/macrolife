@@ -41,7 +41,7 @@ public class SubGoalMaster extends DataMasterClass {
     }
 
     // Methods:
-    public int getParentID() {
+    public int  getParentID() {
         return this.parentID;
     }
     public int getParentSubGoal() {
@@ -66,8 +66,6 @@ public class SubGoalMaster extends DataMasterClass {
         this.mY = mY;
     }
 
-
-
     // Finds parent if any and returns it as Object. Can be SubMaster or ComplexGoalMaster
     public Object getParentGoal() {
         if (getParentID() == getParentSubGoal()) {
@@ -90,6 +88,5 @@ public class SubGoalMaster extends DataMasterClass {
     public void deleteMe() {
         this.getStorageMaster().deleteObject(this);
     }
-
 
 }

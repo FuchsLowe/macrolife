@@ -16,12 +16,18 @@ import android.view.View;
 import android.view.ViewOutlineProvider;
 import com.fuchsundlowe.macrolife.DataObjects.SubGoalMaster;
 import com.fuchsundlowe.macrolife.Interfaces.ComplexTaskInterface;
+import com.fuchsundlowe.macrolife.R;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class ComplexTaskChevron extends View {
 
     private SubGoalMaster data;
-    private ComplexTaskInterface protocol;
+    private ComplexTaskInterface mInterface;
     private Context context;
+    private TailView outTail; // can have only one out tail
+    private List<TailView> inTails; // can have multitude of in tails
 
     private int DEFAULT_H = 240;
     private int DEFAULT_W = 90;
@@ -29,8 +35,8 @@ public class ComplexTaskChevron extends View {
     private int DEFAULT_PADDING = 4;
     private int DEFAULT_Z = 2;
     private int DEFAULT_BOX_LINE = 2;
-    private int workWordCountedLenght;
     private int currentState = 0;
+    private int workWordCountedLenght;
     private float DEFUALT_TEXT_CUTTER = 0.8f; // distance between text and boundaries of view
     private float textWidth, textHeight, p;
     private boolean canAcceptValue = false;
@@ -39,11 +45,11 @@ public class ComplexTaskChevron extends View {
     private Paint boundsMarker;
     private Rect mBounds;
 
-    public ComplexTaskChevron(Context context, SubGoalMaster data, ComplexTaskInterface protocol) {
-        super(context);
+    public ComplexTaskChevron(SubGoalMaster data, ComplexTaskInterface mInterface) {
+        super(mInterface.getContext());
         this.data = data;
-        this.protocol = protocol;
-        this.context = context;
+        this.mInterface = mInterface;
+        this.context = mInterface.getContext();
 
         DEFAULT_TEXT = dpToPixConverter(DEFAULT_TEXT); // These three produce dp
         DEFAULT_BOX_LINE = dpToPixConverter(DEFAULT_BOX_LINE);
@@ -51,14 +57,14 @@ public class ComplexTaskChevron extends View {
 
         workWord = data.getTaskName();
 
-        // TODO: Coloring should be defined by state...
         textMarker = new Paint();
-        textMarker.setColor(Color.BLACK);
-        textMarker.setTextSize(DEFAULT_TEXT);
         boundsMarker = new Paint();
-        boundsMarker.setColor(Color.BLACK);
+        textMarker.setTextSize(DEFAULT_TEXT);
         boundsMarker.setStrokeWidth(dpToPixConverter(3));
         boundsMarker.setStyle(Paint.Style.STROKE);
+        setStateFlag(ChevronStates.normal, 0);
+
+        inTails = new ArrayList<>(4);
     }
 
     @Override
@@ -194,7 +200,7 @@ public class ComplexTaskChevron extends View {
 
     @Override
     protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
-       float scale = protocol.getScale();
+       float scale = mInterface.getScale();
 
        float minX = dpToPixConverter(DEFAULT_W * scale);
        float minY = dpToPixConverter(DEFAULT_H * scale);
@@ -218,6 +224,33 @@ public class ComplexTaskChevron extends View {
         return (int) (dp * scale * 0.5f);
     }
 
+    // Returning true means chain can't be used, false means it can be used
+    public boolean isFoundInChain(int idToCheck) {
+        /* This needs to be done better
+         * Checks if parent is the idToCheck. Parent can be null
+         * If not, then requests from wrapper parent data if any
+         * Checks parent. If parent is unlegible returns false
+         * if parent is legible, looks him up in wrapped objects and asks him to perfom check
+         */
+        if (data.getParentSubGoal() > 0) {
+            if (data.getParentSubGoal() != idToCheck) {
+                return mInterface.findChevWithID(data.getParentSubGoal()).isFoundInChain(idToCheck);
+            } else {
+                return true;
+            }
+        } else {
+            // Means that there is no parent to this one
+            return false;
+        }
+
+    }
+
+    public boolean canAccepConnection() { return canAcceptValue; }
+
+    public int getSubGoal() {
+        return data.getParentSubGoal();
+    }
+
     public int getDataID() {
         return data.getHashID();
     }
@@ -231,6 +264,46 @@ public class ComplexTaskChevron extends View {
     }
 
     public String getTaskName() { return data.getTaskName();}
+
+    public void reuseChevron(SubGoalMaster newData) {
+        // Switch the data
+        data = newData;
+        // Reset the information
+        workWord = data.getTaskName();
+            // These tail calls just remove reference here, they don't remove them from container.
+            // We're expected to reuse them in the next step
+        inTails.clear();
+        outTail = null;
+            // TODO: Does request layout reset the location or should we do it by ourselves?
+        // Requests redrawing and relayout
+        requestLayout();
+    }
+
+    public void setOutTail(TailView tail) {
+        this.outTail = tail;
+    }
+
+    public TailView getOutTail() {
+        return outTail;
+    }
+
+    public void addInTail(TailView tail) {
+        inTails.add(tail);
+    }
+
+    public void removeInTail(TailView tail) {
+        inTails.remove(tail);
+    }
+
+    // Changes made to layout so we invalidate all tails to redraw their canvas
+    public void invalidateTails() {
+        for (TailView t: inTails) {
+            t.updateLayout();
+        }
+        if (outTail != null) {
+            outTail.updateLayout();
+        }
+    }
 
     public void setNewValues(String newName, Integer newX, Integer newY,
                              Integer parentSubGoal, Boolean completed) {
@@ -249,7 +322,6 @@ public class ComplexTaskChevron extends View {
     public void animationDestroy() {
         data.deleteMe();
         this.animate().alpha(0f).setDuration(200).start();
-
     }
 
     public void animationPresentSelf() {
@@ -266,47 +338,62 @@ public class ComplexTaskChevron extends View {
         this.animate().x(data.getMX()).y(data.getMY()).translationZ(DEFAULT_Z).setDuration(200).start();
     }
 
+    // issuer value of 0 means no one issued the edit, while valid numbers are checked
+    public void setStateFlag(ChevronStates flag, int issuerOfEdit) {
+        if (!data.isTaskCompleted()) {
+            switch (flag) {
+                case normal: // Drawing regular box
+                    iSetFlag(0);
+                    break;
+                case globalEdit: // To determine if we can accept the connection
+                    /*
+                     * Preconditions:
+                     * Can't assign to itself
+                     * Can't assign to a loop of self.
+                     */
+                    if (issuerOfEdit >0) {
+                        if (isFoundInChain(issuerOfEdit)) {
+                            iSetFlag(2);
+                        } else {
+                            iSetFlag(1);
+                        }
+                    }
+                    break;
+            }
+        } else {
+            iSetFlag(3);
+        }
+
+        invalidate();
+    }
     /* These flags define what should this View draw.
      * 0 = draw normal box
      * 1 = globalEdit is signed, so draw altered box
      * 3 = we can't accept connection. Do note 2 is a request doesn't have to be granted!!!
      * 4 = this task is completed
      */
-    public void setStateFlag(int flag) {
-        if (flag == 0) {
-          iSetFlag(0);
-        } else if (flag == 1) {
-            // TODO: Determine if we can accept the connection
-            if (!data.isTaskCompleted()) { // Task is not completed, we can move on
-                if (data.getParentSubGoal() == 0) {
-
-                }
-
-            } else {
-                // Means this one is completed, thus no need for management of these colors at all
-            }
-
-        }
-        invalidate();
-    }
-
     private void iSetFlag(int flag) {
         switch (flag){
-            case 0:
+            case 0: // Normal state
                 boundsMarker.setColor(Color.BLACK);
                 boundsMarker.setAlpha(255);
                 textMarker.setColor(Color.BLACK);
                 textMarker.setAlpha(255);
                 canAcceptValue = false;
                 break;
-            case 1:
+            case 1: // Global edit signed, we can accept the incoming connection
                 boundsMarker.setColor(Color.GREEN);
                 boundsMarker.setAlpha(127);
                 textMarker.setColor(Color.BLACK);
                 textMarker.setAlpha(255);
                 canAcceptValue = true;
                 break;
-            case 3:
+            case 2: // Global Edit signed, but we can't accept the connection
+                boundsMarker.setColor(getResources().getColor(R.color.ORANGE_DEFAULT));
+                textMarker.setColor(getResources().getColor(R.color.ORANGE_DEFAULT));
+                canAcceptValue = false;
+                break;
+            case 3: // Completed task
                 boundsMarker.setColor(Color.DKGRAY);
                 boundsMarker.setAlpha(200);
                 textMarker.setColor(Color.DKGRAY);
@@ -323,6 +410,11 @@ public class ComplexTaskChevron extends View {
         this.data.setMX((int)getX());
         this.data.setMY((int) getY());
         this.data.updateMe();
+    }
+
+    public void setConnection(int withID) {
+        this.data.setParentSubGoal(withID);
+        updateNewCoordinates();
     }
 
     // Outline Provider:
@@ -379,6 +471,8 @@ public class ComplexTaskChevron extends View {
         }
     }
 
+    public enum ChevronStates {
+        normal, globalEdit
+    }
+
 }
-
-

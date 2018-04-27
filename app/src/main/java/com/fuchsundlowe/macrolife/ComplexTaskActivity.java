@@ -53,8 +53,8 @@ public class ComplexTaskActivity extends AppCompatActivity implements ComplexTas
 
     private List<SubGoalMaster> allChildren;
     private DataProviderProtocol data;
-    private List<ComplexTaskChevron> wrapped;
-    private List<TailView> connectors;
+    private List<ComplexTaskChevron> wrappedChildrenInChevrons;
+    private List<TailView> allTails;
 
     private VScroll vScroll;
     private HScroll hScroll;
@@ -66,6 +66,8 @@ public class ComplexTaskActivity extends AppCompatActivity implements ComplexTas
     private View viewManaged; // This is a holder for current view that's dragged
     private PopUpCreator bottomBar;
     private ValueAnimator animator;
+    private Rect hit;
+    private ComplexTaskChevron connectionCandidate;
 
     TextView flasher;
     TextView scchng;
@@ -77,6 +79,7 @@ public class ComplexTaskActivity extends AppCompatActivity implements ComplexTas
         vScroll = findViewById(R.id.vScroll);
         hScroll = findViewById(R.id.hScroll);
 
+        // Currently only Testing of implemnetation here
         vScroll.addOnLayoutChangeListener(new View.OnLayoutChangeListener() {
             @Override
             public void onLayoutChange(View v, int left, int top, int right, int bottom, int oldLeft, int oldTop, int oldRight, int oldBottom) {
@@ -90,7 +93,8 @@ public class ComplexTaskActivity extends AppCompatActivity implements ComplexTas
             }
         });
 
-        connectors = new ArrayList<>();
+        allTails = new ArrayList<>();
+        hit = new Rect();
         scaleFactor = 1.0f; // Defines the default scale factor to start with
         masterID = getIntent().getIntExtra(Constants.LIST_VIEW_MASTER_ID, -1);
         data = StorageMaster.getInstance(this);
@@ -146,18 +150,32 @@ public class ComplexTaskActivity extends AppCompatActivity implements ComplexTas
             globalEdit = false;
             cancelBubble();
             bottomBar.releaseFields();
+            viewManaged = null;
             setChevronFlag(0);
         }
 
     }
 
     private boolean childLookUp(float x, float y) {
-        Rect hit = new Rect();
-        for (ComplexTaskChevron object : wrapped) {
+        for (ComplexTaskChevron object : wrappedChildrenInChevrons) {
             object.getGlobalVisibleRect(hit);
             if (hit.contains((int) x, (int) y)) {
                 viewManaged = object;
                 return true;
+            }
+        }
+        return false;
+    }
+
+    // This one checks if bubble can establish connection with Chevron at specific location
+    private boolean canConnect(int x, int y) {
+        for (ComplexTaskChevron object : wrappedChildrenInChevrons) {
+            object.getGlobalVisibleRect(hit);
+            if (hit.contains(x,y)) {
+                if (object.canAccepConnection()) {
+                    connectionCandidate = object;
+                    return true;
+                }
             }
         }
         return false;
@@ -181,10 +199,19 @@ public class ComplexTaskActivity extends AppCompatActivity implements ComplexTas
     }
 
     private void setChevronFlag(int flag) {
-        for (ComplexTaskChevron chev: wrapped) {
+        for (ComplexTaskChevron chev: wrappedChildrenInChevrons) {
             if (chev != viewManaged) {
-                chev.setStateFlag(flag);
-                // The View will invalidate himself
+                switch (flag){
+                    case 0:
+                        chev.setStateFlag(ComplexTaskChevron.ChevronStates.normal,0);
+                        break;
+                    case 1:
+                        chev.setStateFlag(ComplexTaskChevron.ChevronStates.globalEdit,
+                                ((ComplexTaskChevron)viewManaged).getDataID());
+                        break;
+
+                    // The View will invalidate himself
+                }
             }
         }
     }
@@ -197,7 +224,6 @@ public class ComplexTaskActivity extends AppCompatActivity implements ComplexTas
             mTail = null;
         }
     }
-
     private void addPaper() {
         FrameLayout.LayoutParams p = new FrameLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT,
                 ViewGroup.LayoutParams.WRAP_CONTENT);
@@ -217,16 +243,79 @@ public class ComplexTaskActivity extends AppCompatActivity implements ComplexTas
         });
     }
     private void updateData() {
-       if (wrapped == null) {
-           wrapped = new ArrayList<>();
-           for (SubGoalMaster child: allChildren) {
-               ComplexTaskChevron temp = new ComplexTaskChevron(this, child, this);
-               wrapped.add(temp);
-               container.addView(temp);
-               temp.animationPresentSelf();
-           }
+       if (wrappedChildrenInChevrons == null) {
+           wrappedChildrenInChevrons = new ArrayList<>();
        }
+           // Reusing the chevrons:
+        if (wrappedChildrenInChevrons.size() > 0) {
+           if (wrappedChildrenInChevrons.size() > allChildren.size()) {
+               // We have more wrappers than children, thus we remove some
+               int excessWrappers = wrappedChildrenInChevrons.size() - allChildren.size();
+               for (; excessWrappers>0; excessWrappers--) {
+                   container.removeView(wrappedChildrenInChevrons.get(0));
+                   wrappedChildrenInChevrons.remove(0);
+               }
+               // Now we reassign the the remainder
+               for (int counter = 0; counter <= allChildren.size(); counter++) {
+                   wrappedChildrenInChevrons.get(counter).reuseChevron(allChildren.get(counter));
+               }
+           } else if (wrappedChildrenInChevrons.size() == allChildren.size()) {
+               // Number of wrappers is exact as the number of children to be wrapped
+               for (int counter = 0; counter <= allChildren.size(); counter++) {
+                   wrappedChildrenInChevrons.get(counter).reuseChevron(allChildren.get(counter));
+               }
+           } else {
+               // Means that we have more children than wrappers
+               int counter = 0;
+               for (SubGoalMaster master: allChildren) {
+                   if (counter <= wrappedChildrenInChevrons.size()) {
+                       wrappedChildrenInChevrons.get(counter).reuseChevron(master);
+                   } else {
+                       ComplexTaskChevron temp = new ComplexTaskChevron(master, this);
+                       wrappedChildrenInChevrons.add(temp);
+                       container.addView(temp);
+                       temp.animationPresentSelf();
+                   }
+               }
+           }
+        } else {
+           // Means that there are no chevrons to be reused, so we have to create new ones
+            for (SubGoalMaster child: allChildren) {
+                ComplexTaskChevron temp = new ComplexTaskChevron(child, this);
+                wrappedChildrenInChevrons.add(temp);
+                container.addView(temp);
+                temp.animationPresentSelf();
+            }
+        }
+       setAllTails(); // When we do the update then the tails are adjusted... Thast whats calling this
+    }
 
+    // A function that iterates over all wraped items and connects tails for given ones
+    private void setAllTails() {
+        // We first clear the tails so they don't duplicate if there are any
+        if ((allTails !=null) || (allTails.size() > 0)) {
+            for (TailView tailToBeRemoved : allTails) {
+                container.removeView(tailToBeRemoved);
+            }
+            allTails.clear();
+        }
+        for (ComplexTaskChevron chev: wrappedChildrenInChevrons) {
+            if (chev.getSubGoal() > 0) {
+                makeATail(chev, findChevWithID(chev.getSubGoal()));
+            }
+        }
+
+        // Reusing the tails:
+
+    }
+
+    private void makeATail(View tailOut, View tailIn) {
+        TailView temp = new TailView(this, tailOut, tailIn);
+        ((ComplexTaskChevron)tailOut).setOutTail(temp);
+        ((ComplexTaskChevron)tailIn).addInTail(temp);
+        allTails.add(temp);
+        container.addView(temp);
+        temp.invalidate();
     }
     private void defineBottomBar() {
         bottomBar = new PopUpCreator(PopUpCreator.COMPLEX_TASK_ACTIVITY, this);
@@ -250,14 +339,21 @@ public class ComplexTaskActivity extends AppCompatActivity implements ComplexTas
         });
     }
 
-    private void trackerOfBoolTest(boolean test) {
-        Log.e("TEst is set to:", String.valueOf(test));
-        layoutIsChangin=test;
-        if (test) {
-            scchng.setBackgroundColor(Color.RED);
-        } else {
-            scchng.setBackgroundColor(Color.BLUE);
+    // Looks for Chevron with requested ID. Returns null if there is none.
+    @Override
+    public ComplexTaskChevron findChevWithID(int iDentification) {
+        for (ComplexTaskChevron chev: wrappedChildrenInChevrons) {
+            if (chev.getDataID() == iDentification) {
+                return chev;
+            }
         }
+        return null;
+    }
+
+    private void trackerOfBoolTest(boolean test) {
+        //Log.e("TEst is set to:", String.valueOf(test));
+        //layoutIsChangin=test;
+
     }
 
     public float getScale() {
@@ -278,8 +374,8 @@ public class ComplexTaskActivity extends AppCompatActivity implements ComplexTas
                     end, Calendar.getInstance(), false, SourceType.local,
                     masterID, 0, x, y);
             temp.updateMe();
-            ComplexTaskChevron chev = new ComplexTaskChevron(this, temp, this);
-            wrapped.add(chev);
+            ComplexTaskChevron chev = new ComplexTaskChevron(temp, this);
+            wrappedChildrenInChevrons.add(chev);
             container.addView(chev);
             chev.animationPresentSelf();
         }
@@ -298,10 +394,10 @@ public class ComplexTaskActivity extends AppCompatActivity implements ComplexTas
     @Override
     public boolean onTouchEvent(MotionEvent event) {
 
-        if (!layoutIsChangin) { // TODO: Will this work?
+        mScaleDetector.onTouchEvent(event);
+        mGestureDetector.onTouchEvent(event); // checks if its a long press...
 
-            mScaleDetector.onTouchEvent(event);
-            mGestureDetector.onTouchEvent(event); // checks if its a long press...
+        if (!layoutIsChangin) {
 
             if (event.getAction() == MotionEvent.ACTION_DOWN) {
                 mx = event.getX();
@@ -314,7 +410,7 @@ public class ComplexTaskActivity extends AppCompatActivity implements ComplexTas
                         movingBubble = true;
                         mTail = new TailView(this, mBubble.getMaster(), mBubble);
                         mTail.setAlpha(0.5f);
-                        // Layout?
+                        // Layout? TODO: Should I use standar procedure?
                         container.addView(mTail);
                         mTail.layout(
                                 mBubble.getLeft(), mBubble.getBottom(),
@@ -338,24 +434,27 @@ public class ComplexTaskActivity extends AppCompatActivity implements ComplexTas
                             mBubble.setTranslationX(mBubble.getTranslationX() + curX - mx);
                             mBubble.setTranslationY(mBubble.getTranslationY() + curY - my);
 
-                            // This part is about moving the tail View:
-                            left(String.valueOf(mBubble.getY() + mBubble.getHeight()));
-                            right(String.valueOf(mBubble.getMaster().getY()));
+                            if ( canConnect( (int) (curX), (int) (curY)) ){
+                               mBubble.setConnectionOpportunity(1);
+                               //TEST:
+                                scchng.setBackgroundColor(Color.GREEN);
+                            } else {
+                                mBubble.setConnectionOpportunity(0);
+                                //TEST:
+                                scchng.setBackgroundColor(Color.RED);
+
+                            }
 
                             mTail.updateLayout();
                         } else if (viewManaged != null) {
                             // we do the view
-                            transX = (int) (viewManaged.getTranslationX() + curX - mx); // Cancels going
-                            transY = (int) (viewManaged.getTranslationY() + curY - my);// our of bounds
+                            transX = (int) (viewManaged.getTranslationX() + curX - mx);
+                            transY = (int) (viewManaged.getTranslationY() + curY - my);
 
-                            if (transX > 0 || (transX + viewManaged.getWidth()) < container.getWidth()) {
-                                viewManaged.setTranslationX(transX);
-                            }
+                            viewManaged.setTranslationX(transX);
+                            viewManaged.setTranslationY(transY);
 
-                            if (transY > 0 || (transY + viewManaged.getHeight()) < container.getHeight()) {
-                                viewManaged.setTranslationY(transY);
-                            }
-
+                            ((ComplexTaskChevron) viewManaged).invalidateTails();
 
                             // if view goes out of bounds we increase the bounds...
                             if (viewManaged.getX() + viewManaged.getWidth() > container.getWidth()) {
@@ -389,6 +488,8 @@ public class ComplexTaskActivity extends AppCompatActivity implements ComplexTas
                                 animator.setDuration(200);
                                 animator.start();
                             }
+
+
                         } else {
                             // we move the background...
                             vScroll.scrollBy((int) (mx - curX), (int) (my - curY));
@@ -399,15 +500,26 @@ public class ComplexTaskActivity extends AppCompatActivity implements ComplexTas
                         my = curY;
                         break;
                     case MotionEvent.ACTION_UP:
-                        if (viewManaged instanceof ComplexTaskChevron) {
-                            ((ComplexTaskChevron) viewManaged).updateNewCoordinates();
-                        }
-
                         if (movingBubble) {
-                            bubbleToParent();
+                            if (canConnect((int)(curX),(int) (curY))) {
+                                if (connectionCandidate != null) {
+                                    ((ComplexTaskChevron) viewManaged).setConnection
+                                            (connectionCandidate.getDataID());
+                                    // Cancel Bubble
+                                    cancelBubble();
+                                    // Establish a new Permanent Connector
+                                    makeATail(viewManaged, connectionCandidate);
+                                }
+                            } else {
+                                if (viewManaged!= null) {
+                                    ((ComplexTaskChevron) viewManaged).updateNewCoordinates();
+                                }
+                                bubbleToParent();
+                            }
                         }
-                        viewManaged = null;
+                       // viewManaged = null;
                         movingBubble = false;
+                        connectionCandidate = null;
                         break;
                     case MotionEvent.ACTION_CANCEL:
                         if (viewManaged instanceof ComplexTaskChevron) {
@@ -416,13 +528,13 @@ public class ComplexTaskActivity extends AppCompatActivity implements ComplexTas
                         if (movingBubble) {
                             bubbleToParent();
                         }
-                        viewManaged = null;
+                        //viewManaged = null;
                         movingBubble = false;
+                        connectionCandidate = null;
                         break;
                 }
             }
         }
-
 
         return true;
     }
@@ -430,6 +542,7 @@ public class ComplexTaskActivity extends AppCompatActivity implements ComplexTas
     private class Scaler extends ScaleGestureDetector.SimpleOnScaleGestureListener {
         @Override
         public boolean onScale(ScaleGestureDetector detector) {
+            stopChangesToLayoutTemp();
             scaleFactor *= detector.getScaleFactor();
             if (scaleFactor > MIN_SCALE) {
                 scaleFactor = MIN_SCALE;

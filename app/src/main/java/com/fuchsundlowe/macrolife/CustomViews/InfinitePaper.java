@@ -90,13 +90,14 @@ public class InfinitePaper extends ViewGroup {
 
                    BubbleView object = (BubbleView) getChildAt(i);
                    View parent = object.getMaster();
+
                    object.layout(
-                           parent.getLeft() +
-                                   ((parent.getWidth() - object.getMeasuredWidth()) / 2),
-                           parent.getTop() - object.getMeasuredHeight(),
-                           parent.getRight() -
-                                   ((parent.getWidth() - object.getMeasuredWidth()) / 2),
-                           parent.getTop()
+                           (int)(parent.getX() +
+                                   ((parent.getWidth() - object.getMeasuredWidth()) / 2)),
+                           (int)(parent.getY() - object.getMeasuredHeight()),
+                           (int)(parent.getX() + parent.getWidth() -
+                                   ((parent.getWidth() - object.getMeasuredWidth()) / 2)),
+                           (int)(parent.getY())
                    );
 
                }

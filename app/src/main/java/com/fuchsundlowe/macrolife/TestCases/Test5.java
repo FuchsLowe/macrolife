@@ -1,13 +1,12 @@
 package com.fuchsundlowe.macrolife.TestCases;
 
 import android.graphics.Color;
+import android.graphics.Matrix;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
-
-import com.fuchsundlowe.macrolife.CustomViews.BubbleView;
 import com.fuchsundlowe.macrolife.R;
 
 public class Test5 extends AppCompatActivity {
@@ -55,4 +54,9 @@ public class Test5 extends AppCompatActivity {
 
         return true;
     }
+
+    private void workTest() {
+        Matrix jack = new Matrix();
+    }
+
 }

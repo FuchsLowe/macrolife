@@ -3,6 +3,7 @@ package com.fuchsundlowe.macrolife.Interfaces;
 import android.app.Activity;
 import android.content.Context;
 import android.support.v7.app.AppCompatActivity;
+import android.view.View;
 import android.widget.LinearLayout;
 
 import java.util.Calendar;
@@ -18,5 +19,6 @@ public interface PopUpProtocol {
     void newTask(String name, Calendar start, Calendar end, Integer x, Integer y, int updateKey);
     AppCompatActivity getActivity();
     void globalEditDone();
+    void removeViewFromContainer(View toBeRemovedFromContainer);
 
 }

@@ -12,6 +12,7 @@ import android.graphics.drawable.Drawable;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.util.Log;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewOutlineProvider;
 import com.fuchsundlowe.macrolife.DataObjects.SubGoalMaster;
@@ -66,6 +67,7 @@ public class ComplexTaskChevron extends View {
 
         inTails = new ArrayList<>(4);
     }
+
 
     @Override
     protected void onDraw(Canvas canvas) {
@@ -247,6 +249,15 @@ public class ComplexTaskChevron extends View {
 
     public boolean canAccepConnection() { return canAcceptValue; }
 
+    // Asks only outgoing tail to alter his looks so it can be deleted
+    public void requestTailCancelOption() {
+        getOutTail().drawCancelationSign();
+    }
+    public void requestTailCancelSingWithdrawl()  {
+        getOutTail().tailCancelSignWithdrawl();
+    }
+
+
     public int getSubGoal() {
         return data.getParentSubGoal();
     }
@@ -359,6 +370,10 @@ public class ComplexTaskChevron extends View {
                         }
                     }
                     break;
+
+                case thisChevronIsBeingEdited:
+                    iSetFlag(4);
+                    break;
             }
         } else {
             iSetFlag(3);
@@ -380,6 +395,11 @@ public class ComplexTaskChevron extends View {
                 textMarker.setColor(Color.BLACK);
                 textMarker.setAlpha(255);
                 canAcceptValue = false;
+
+                if (currentState == 4) {
+                    // Means we where being edited and now the operation has been canceled
+                    getOutTail().tailCancelSignWithdrawl();
+                }
                 break;
             case 1: // Global edit signed, we can accept the incoming connection
                 boundsMarker.setColor(Color.GREEN);
@@ -400,6 +420,9 @@ public class ComplexTaskChevron extends View {
                 textMarker.setAlpha(200);
                 canAcceptValue = false;
                 break;
+            case 4: // We are being edited
+
+                break;
         }
         currentState = flag;
     }
@@ -414,7 +437,9 @@ public class ComplexTaskChevron extends View {
 
     public void setConnection(int withID) {
         this.data.setParentSubGoal(withID);
-        updateNewCoordinates();
+        if (withID > 0) {
+            updateNewCoordinates();
+        }
     }
 
     // Outline Provider:
@@ -472,7 +497,7 @@ public class ComplexTaskChevron extends View {
     }
 
     public enum ChevronStates {
-        normal, globalEdit
+        normal, globalEdit, thisChevronIsBeingEdited
     }
 
 }

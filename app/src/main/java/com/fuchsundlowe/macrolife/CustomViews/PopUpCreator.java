@@ -42,6 +42,7 @@ public class PopUpCreator {
     }
 
     // Method calls:
+    // Called when we are creating the tab for complex task activity
     private void setComplexTaskActivity() {
         name = new EditText(mInterface.getContext());
         name.setHint("New Task");
@@ -71,46 +72,45 @@ public class PopUpCreator {
 
         mParent.addView(name);
     }
-
-    public void editChevronInComplexActivity(final ComplexTaskChevron object) {
-
+    // This method edits the existing Chevron object from ComplexActivity like Activity
+    public void editChevronInComplexActivity(final ComplexTaskChevron chevronToEdit) {
         // Adds the start and end time modificators
         if (holder == null) {
-            name.setText(object.getTaskName());
+            name.setText(chevronToEdit.getTaskName());
             holder = new LinearLayout(mInterface.getContext());
             holder.setOrientation(LinearLayout.HORIZONTAL);
             LinearLayout.LayoutParams parms = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,
                     ViewGroup.LayoutParams.WRAP_CONTENT);
             holder.setLayoutParams(parms);
 
-            Button a = new Button(mInterface.getContext());
-            a.setOnClickListener(new View.OnClickListener() {
+            Button dateInvokerButton = new Button(mInterface.getContext());
+            dateInvokerButton.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
                     holder.setBackgroundColor(Color.BLUE);
                 }
             });
-            a.setText("Date");
+            dateInvokerButton.setText("Date");
 
-            Button b = new Button(mInterface.getContext());
-            b.setOnClickListener(new View.OnClickListener() {
+            Button timeInvokerButton = new Button(mInterface.getContext());
+            timeInvokerButton.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
 
                 }
             });
-            b.setText("Time");
+            timeInvokerButton.setText("Time");
 
             mParent.addView(holder);
 
             ViewGroup.LayoutParams buttonParams = new ViewGroup.LayoutParams(mParent.getWidth() / 2,
                     ViewGroup.LayoutParams.MATCH_PARENT
             );
-            a.setLayoutParams(buttonParams);
-            b.setLayoutParams(buttonParams);
+            dateInvokerButton.setLayoutParams(buttonParams);
+            timeInvokerButton.setLayoutParams(buttonParams);
 
-            holder.addView(a);
-            holder.addView(b);
+            holder.addView(dateInvokerButton);
+            holder.addView(timeInvokerButton);
 
             // TODO: here we define the Boolean for defining if the task is done...
 
@@ -121,12 +121,12 @@ public class PopUpCreator {
                 public void onClick(View v) {
                     if (name.length() > 0) {
                         if (clickLocation != null) {
-                            object.setNewValues(name.getText().toString(),
+                            chevronToEdit.setNewValues(name.getText().toString(),
                                     clickLocation.x, clickLocation.y,
                                     null, null);
                             clickLocation = null;
                         } else {
-                            object.setNewValues(name.getText().toString(),
+                            chevronToEdit.setNewValues(name.getText().toString(),
                                     null, null,
                                     null, null);
                         }
@@ -143,14 +143,15 @@ public class PopUpCreator {
             delete.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    object.animationDestroy();
+                    chevronToEdit.animationDestroy();
+                    mInterface.removeViewFromContainer(chevronToEdit);
                     releaseFields();
                     mInterface.globalEditDone();
                 }
             });
             mParent.addView(delete);
         } else {
-            name.setText(object.getTaskName());
+            name.setText(chevronToEdit.getTaskName());
         }
 
     }
@@ -175,7 +176,7 @@ public class PopUpCreator {
         clickLocation = new Point((int)x, (int)y);
 
     }
-
+    // This method manages appearance and disappearance of the soft keyboard
     public void softKeyboard(boolean appearance) {
         InputMethodManager imm = (InputMethodManager)
                 mInterface.getContext().getSystemService(Context.INPUT_METHOD_SERVICE);

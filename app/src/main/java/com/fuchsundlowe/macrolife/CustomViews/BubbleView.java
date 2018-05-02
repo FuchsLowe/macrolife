@@ -103,7 +103,7 @@ public class BubbleView extends View {
 
     public void animateToOriginalPosition() {
         this.layout(startLeft, startTop, startRight, startBottom);
-        //requestLayout();
+        //requestLayout(); I don't think it requires this
     }
 
     // 1 means we can accept current connection, 0 we can't

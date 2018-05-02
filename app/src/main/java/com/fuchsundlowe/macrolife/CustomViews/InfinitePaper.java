@@ -102,6 +102,12 @@ public class InfinitePaper extends ViewGroup {
 
                }
             }
+            // now try and set the tails?
+            for (int i = 0; i<getChildCount(); i++) {
+               if ( getChildAt(i) instanceof TailView) {
+                   ((TailView) getChildAt(i)).updateLayout();
+               }
+            }
         }
     }
 

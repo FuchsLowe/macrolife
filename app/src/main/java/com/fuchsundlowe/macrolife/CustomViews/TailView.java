@@ -1,5 +1,6 @@
 package com.fuchsundlowe.macrolife.CustomViews;
 
+import android.animation.ValueAnimator;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
@@ -8,6 +9,7 @@ import android.graphics.Point;
 import android.graphics.RectF;
 import android.util.Log;
 import android.view.View;
+
 import com.fuchsundlowe.macrolife.Interfaces.TailViewProtocol;
 
 public class TailView extends View {
@@ -16,33 +18,44 @@ public class TailView extends View {
     private View fromView, toView; // as in from this view the tail starts and to view the tail goes.
     private RectF tRect;
     private Point tC, topHorizon, bottomHorizon, aCenterInCanvas, bCenterInCanvas;
-    private Paint line, connectionHeadPen;
+    private Paint tailPen, connectionHeadPen, cancelBodyPen, cancelLinePen;
     private Path mPath;
     private int quadrant = 0;
-    private int lineWidth = 2;
+    private float calVal = 255 / 60;
+    private int TAIL_PEN_WIDTH = 2;
     private int connectionHeadRadius = 10;
-    private static int counter = 0;
-
-    //TestDot dOne,dTwo, dThree, dFour, tDot;
-
-    static void callCounter() {
-        counter+=1;
-        Log.e("Current count is:", String.valueOf(counter));
-    }
+    private int CANCEL_LINE_PEN_WIDTH = 3;
+    private float cancelLineStartingPoint;
+    private int CANCEL_LINE_CIRCLE_RADIUS = 35;
+    private int currentLineProgress = 0;
+    private float cancelLineIncrements;
+    private drawingState currentDrawingState;
 
     public TailView(TailViewProtocol protocol, View fromView, View toView)  {
         super(protocol.getContext());
-        callCounter();
         mInterface = protocol;
         this.fromView = fromView;
         this.toView = toView;
-        line = new Paint();
-        line.setColor(Color.BLACK);
-        line.setStyle(Paint.Style.STROKE);
-        line.setStrokeWidth(dpToPixConverter(lineWidth));
+        tailPen = new Paint();
+
+        tailPen.setColor(Color.BLACK);
+        tailPen.setStyle(Paint.Style.STROKE);
+        tailPen.setStrokeWidth(dpToPixConverter(TAIL_PEN_WIDTH));
+
         connectionHeadPen = new Paint();
         connectionHeadPen.setColor(Color.BLACK);
         connectionHeadPen.setStyle(Paint.Style.FILL);
+
+        cancelBodyPen = new Paint();
+        cancelBodyPen.setColor(Color.RED);
+        cancelBodyPen.setStyle(Paint.Style.FILL);
+
+        cancelLinePen = new Paint();
+        cancelLinePen.setColor(Color.WHITE);
+        cancelLinePen.setStyle(Paint.Style.STROKE);
+        CANCEL_LINE_PEN_WIDTH = dpToPixConverter(CANCEL_LINE_PEN_WIDTH);
+        cancelLinePen.setStrokeWidth(CANCEL_LINE_PEN_WIDTH);
+
         tRect = new RectF();
         tC = new Point();
         topHorizon = new Point();
@@ -52,6 +65,10 @@ public class TailView extends View {
         mPath = new Path();
         connectionHeadRadius = dpToPixConverter(connectionHeadRadius);
         setBackgroundColor(Color.TRANSPARENT);
+        cancelLineIncrements = (CANCEL_LINE_CIRCLE_RADIUS * 0.8f) / 40 ;
+
+        currentDrawingState = drawingState.notAppearing;
+
         /*
         dOne = new TestDot(protocol.getContext());
         dTwo = new TestDot(protocol.getContext());
@@ -76,36 +93,80 @@ public class TailView extends View {
 
     @Override
     protected void onDraw(Canvas canvas) {
-        calculateConnectionPoints(); // Defines the connection points.
-        mPath.reset();
-        mPath.moveTo(aCenterInCanvas.x, aCenterInCanvas.y);
-        switch (quadrant){
-            case 1:
-            case 3:
-                mPath.cubicTo(getWidth()/2, aCenterInCanvas.y,
-                        getWidth()/2, bCenterInCanvas.y, bCenterInCanvas.x, bCenterInCanvas.y);
-                break;
-            case 2:
-            case 4:
-                mPath.cubicTo(aCenterInCanvas.x, getHeight()/2,
-                        bCenterInCanvas.x, getHeight()/2,
-                        bCenterInCanvas.x, bCenterInCanvas.y
-                        );
-                break;
+        // For drawing the red thing, can I skip this somehow?
+            calculateConnectionPoints(); // Defines the connection points.
+            mPath.reset();
+            mPath.moveTo(aCenterInCanvas.x, aCenterInCanvas.y);
+            switch (quadrant) {
+                case 1:
+                case 3:
+                    mPath.cubicTo(getWidth() / 2, aCenterInCanvas.y,
+                            getWidth() / 2, bCenterInCanvas.y, bCenterInCanvas.x, bCenterInCanvas.y);
+                    break;
+                case 2:
+                case 4:
+                    mPath.cubicTo(aCenterInCanvas.x, getHeight() / 2,
+                            bCenterInCanvas.x, getHeight() / 2,
+                            bCenterInCanvas.x, bCenterInCanvas.y
+                    );
+                    break;
 
-        }
+            }
 
-        canvas.drawPath(mPath, line);
+            // Draws the tailPen
+            canvas.drawPath(mPath, tailPen);
 
-        // Drawing of the direction indicator
+            // Draws the connection head
+            canvas.drawCircle(bCenterInCanvas.x, bCenterInCanvas.y, connectionHeadRadius,
+                    connectionHeadPen);
+            //canvas.save();
 
-        // Circle point implementation:
-        canvas.drawCircle(bCenterInCanvas.x, bCenterInCanvas.y, connectionHeadRadius,
-                connectionHeadPen);
+            switch (currentDrawingState) {
+                case appearing:
+                case appeared:
+                    canvas.drawCircle(getWidth()/2,getHeight()/2,
+                            CANCEL_LINE_CIRCLE_RADIUS, cancelBodyPen);
+                    break;
+                case dismissing:
+                    break;
+                case clickOnCancel:
+                    break;
+                case notAppearing:
+                    break;
+            }
     }
     /*
      * Will update layout manually for location on screen in dependence to the sub and masterView
      */
+
+    // Instructs that we should draw cancelation sign in the middle of the tail view
+    public void drawCancelationSign() {
+        currentDrawingState = drawingState.appearing;
+        ValueAnimator animator = ValueAnimator.ofInt(0, 100);
+        animator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
+            @Override
+            public void onAnimationUpdate(ValueAnimator animation) {
+
+                invalidate();
+            }
+        });
+        animator.setDuration(750);
+        //animator.setRepeatCount(0);
+
+    }
+    // Called when we need to destroy the tailConnection between views A and B globally
+    public void removeTailLinkedge() {
+        if (toView instanceof ComplexTaskChevron) {
+           // (ComplexTaskChevron)toView
+        }
+    }
+    // User stops with the need to cancel the connection
+    public void tailCancelSignWithdrawl() {
+        if (currentDrawingState != drawingState.notAppearing) {
+            currentDrawingState = drawingState.dismissing;
+            invalidate();
+        }
+    }
     public void updateLayout() {
         switch (provideQuadrant()) {
             case 0: // Is OVERLAYING the fromView
@@ -296,10 +357,16 @@ public class TailView extends View {
         return (int) (dp * scale * 0.5f);
     }
 
+    // From View can be null, and if it is means we just changed the destination
     public void reuseTailView(View newFromView, View newToView) {
-        this.fromView = newFromView;
+        if (newFromView != null) {
+            this.fromView = newFromView;
+        }
         this.toView = newToView;
         updateLayout();
     }
 
+    private enum drawingState {
+        appearing, appeared, clickOnCancel, dismissing, notAppearing
+    }
 }

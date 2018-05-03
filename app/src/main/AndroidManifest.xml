@@ -37,7 +37,7 @@
         <activity android:name=".TestCases.TestActivity3" />
         <activity
             android:name=".ComplexTaskActivity"
-            android:windowSoftInputMode="adjustNothing" />
+            android:windowSoftInputMode="adjustResize" />
         <activity android:name=".TestCases.Test4" />
         <activity android:name=".TestCases.TestActivity4" />
         <activity android:name=".TestCases.Test5"></activity>

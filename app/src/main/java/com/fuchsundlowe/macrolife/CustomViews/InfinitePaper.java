@@ -4,6 +4,7 @@ import android.content.Context;
 import android.graphics.Color;
 import android.graphics.Point;
 import android.support.annotation.NonNull;
+import android.util.Log;
 import android.view.Display;
 import android.view.MotionEvent;
 import android.view.View;
@@ -18,7 +19,7 @@ public class InfinitePaper extends ViewGroup {
     private int MIN_WIDTH;
     private int MIN_HEIGHT;
     private int MIN_PADDING = 20;
-    private boolean firstAppearance = true;
+    private boolean shouldLayout = true;
     private Point clickLocation;
 
     public InfinitePaper(@NonNull Context context, ComplexTaskInterface mInterface) {
@@ -62,24 +63,29 @@ public class InfinitePaper extends ViewGroup {
     }
     @Override
     protected void onLayout(boolean changed, int l, int t, int r, int b) {
+        if (changed) {
+            Log.e("onLayout", "Changed = True");
+        }
         ComplexTaskChevron kid;
-        if (firstAppearance) { // We bring them on screen for the first time
-            firstAppearance = false;
-            for (int i = 0; i< getChildCount(); i++) {
-                if (getChildAt(i) instanceof ComplexTaskChevron) {
-                    kid = (ComplexTaskChevron) getChildAt(i);
-                    kid.layout(20, 50, kid.getWidth() + 20, kid.getHeight() + 50);
-                }
-            }
-        } else { // They just need resizing or something
             for (int i =0; i< getChildCount(); i++) {
                if (getChildAt(i) instanceof ComplexTaskChevron) {
                    kid = (ComplexTaskChevron) getChildAt(i);
-                   kid.layout(
-                           (int) (kid.getXFromData()),
-                           (int) (kid.getYFromData()),
-                           (int) ((kid.getXFromData() + kid.getMeasuredHeight())),
-                           (int) ((kid.getYFromData() + kid.getMeasuredWidth())));
+                   if (kid.getX() < 0.5 || kid.getY() <0.5) {
+                       kid.layout(
+                               (int) (kid.getXFromData()),
+                               (int) (kid.getYFromData()),
+                               (int) ((kid.getXFromData() + kid.getMeasuredHeight())),
+                               (int) ((kid.getYFromData() + kid.getMeasuredWidth())));
+                   } else {
+                       /* TODO: Does this work?
+                       kid.layout(
+                               (int)(kid.getX()),
+                               (int)(kid.getY()),
+                               (int)(kid.getX() + kid.getMeasuredHeight()),
+                               (int)(kid.getY() + kid.getMeasuredWidth()));
+                               */
+                   }
+
                } else if (getChildAt(i) instanceof BubbleView) {
 
                    BubbleView object = (BubbleView) getChildAt(i);
@@ -102,7 +108,12 @@ public class InfinitePaper extends ViewGroup {
                    ((TailView) getChildAt(i)).updateLayout();
                }
             }
-        }
+
+            /*
+             *
+             *
+             */
+
     }
     @Override
     protected void onSizeChanged(int w, int h, int oldw, int oldh) {

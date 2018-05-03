@@ -67,8 +67,6 @@ public class ComplexTaskChevron extends View {
 
         inTails = new ArrayList<>(4);
     }
-
-
     @Override
     protected void onDraw(Canvas canvas) {
 
@@ -199,7 +197,6 @@ public class ComplexTaskChevron extends View {
         }
         canvas.drawRect(mBounds,boundsMarker);
     }
-
     @Override
     protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
        float scale = mInterface.getScale();
@@ -214,18 +211,15 @@ public class ComplexTaskChevron extends View {
         setMeasuredDimension((int) (minX + dpToPixConverter(DEFAULT_PADDING)),
                 (int) (minY + dpToPixConverter(DEFAULT_PADDING)));
     }
-
     @Override
     protected void onSizeChanged(int w, int h, int oldw, int oldh) {
         setOutlineProvider(new CustomOutline(w, h));
     }
-
     // Utility method calls:
     private int dpToPixConverter(float dp) {
         float scale = context.getResources().getDisplayMetrics().density;
         return (int) (dp * scale * 0.5f);
     }
-
     // Returning true means chain can't be used, false means it can be used
     public boolean isFoundInChain(int idToCheck) {
         /* This needs to be done better
@@ -246,9 +240,7 @@ public class ComplexTaskChevron extends View {
         }
 
     }
-
-    public boolean canAccepConnection() { return canAcceptValue; }
-
+    public boolean canAcceptConnection() { return canAcceptValue; }
     // Asks only outgoing tail to alter his looks so it can be deleted
     public void requestTailCancelOption() {
         getOutTail().drawCancelationSign();
@@ -256,26 +248,19 @@ public class ComplexTaskChevron extends View {
     public void requestTailCancelSingWithdrawl()  {
         getOutTail().tailCancelSignWithdrawl();
     }
-
-
     public int getSubGoal() {
         return data.getParentSubGoal();
     }
-
     public int getDataID() {
         return data.getHashID();
     }
-
     public int getXFromData() {
         return data.getMX();
     }
-
     public int getYFromData() {
         return data.getMY();
     }
-
     public String getTaskName() { return data.getTaskName();}
-
     public void reuseChevron(SubGoalMaster newData) {
         // Switch the data
         data = newData;
@@ -289,23 +274,18 @@ public class ComplexTaskChevron extends View {
         // Requests redrawing and relayout
         requestLayout();
     }
-
     public void setOutTail(TailView tail) {
         this.outTail = tail;
     }
-
     public TailView getOutTail() {
         return outTail;
     }
-
     public void addInTail(TailView tail) {
         inTails.add(tail);
     }
-
     public void removeInTail(TailView tail) {
         inTails.remove(tail);
     }
-
     // Changes made to layout so we invalidate all tails to redraw their canvas
     public void invalidateTails() {
         for (TailView t: inTails) {
@@ -315,7 +295,6 @@ public class ComplexTaskChevron extends View {
             outTail.updateLayout();
         }
     }
-
     public void setNewValues(String newName, Integer newX, Integer newY,
                              Integer parentSubGoal, Boolean completed) {
         if (newName != null) { data.setTaskName(newName);}
@@ -327,14 +306,11 @@ public class ComplexTaskChevron extends View {
         this.requestLayout();
 
     }
-
     // Animation Calls:
-
     public void animationDestroy() {
         data.deleteMe();
         this.animate().alpha(0f).setDuration(200).start();
     }
-
     public void animationPresentSelf() {
         /* An old way of doing things
         ObjectAnimator forX = ObjectAnimator.ofFloat(this, "x", data.getMX());
@@ -348,7 +324,6 @@ public class ComplexTaskChevron extends View {
         // Simple animation of things:
         this.animate().x(data.getMX()).y(data.getMY()).translationZ(DEFAULT_Z).setDuration(200).start();
     }
-
     // issuer value of 0 means no one issued the edit, while valid numbers are checked
     public void setStateFlag(ChevronStates flag, int issuerOfEdit) {
         if (!data.isTaskCompleted()) {
@@ -381,7 +356,7 @@ public class ComplexTaskChevron extends View {
 
         invalidate();
     }
-    /* These flags define what should this View draw.
+    /** These flags define what should this View draw.
      * 0 = draw normal box
      * 1 = globalEdit is signed, so draw altered box
      * 3 = we can't accept connection. Do note 2 is a request doesn't have to be granted!!!
@@ -426,9 +401,7 @@ public class ComplexTaskChevron extends View {
         }
         currentState = flag;
     }
-
     // Touch Events management:
-
     public void updateNewCoordinates() {
         if (getX() > 0) {
             this.data.setMX((int) getX());
@@ -443,16 +416,13 @@ public class ComplexTaskChevron extends View {
 
         this.data.updateMe();
     }
-
     public void setConnection(int withID) {
         this.data.setParentSubGoal(withID);
         if (withID > 0) {
             updateNewCoordinates();
         }
     }
-
     // Outline Provider:
-
     private class CustomOutline extends ViewOutlineProvider {
 
         int width;
@@ -470,7 +440,6 @@ public class ComplexTaskChevron extends View {
             outline.setRect(0 + cPadding, cPadding, width - cPadding, height - cPadding);
         }
     }
-
     private class MyDrawable extends Drawable {
 
         Paint backColor;
@@ -504,9 +473,7 @@ public class ComplexTaskChevron extends View {
             return PixelFormat.OPAQUE;
         }
     }
-
     public enum ChevronStates {
         normal, globalEdit, thisChevronIsBeingEdited
     }
-
 }

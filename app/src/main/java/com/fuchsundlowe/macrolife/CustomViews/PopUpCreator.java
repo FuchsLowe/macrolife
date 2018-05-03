@@ -74,7 +74,7 @@ public class PopUpCreator {
     }
     // This method edits the existing Chevron object from ComplexActivity like Activity
     public void editChevronInComplexActivity(final ComplexTaskChevron chevronToEdit) {
-        // Adds the start and end time modificators
+        // Adds the start and end time mods
         if (holder == null) {
             name.setText(chevronToEdit.getTaskName());
             holder = new LinearLayout(mInterface.getContext());

@@ -1,6 +1,5 @@
 package com.fuchsundlowe.macrolife;
 
-import android.animation.Animator;
 import android.animation.AnimatorSet;
 import android.animation.LayoutTransition;
 import android.animation.ObjectAnimator;
@@ -143,7 +142,7 @@ public class ComplexTaskActivity extends AppCompatActivity implements ComplexTas
         for (ComplexTaskChevron object : wrappedChildrenInChevrons) {
             object.getGlobalVisibleRect(hit);
             if (hit.contains(x,y)) {
-                if (object.canAccepConnection()) {
+                if (object.canAcceptConnection()) {
                     connectionCandidate = object;
                     return true;
                 }

@@ -430,8 +430,17 @@ public class ComplexTaskChevron extends View {
     // Touch Events management:
 
     public void updateNewCoordinates() {
-        this.data.setMX((int)getX());
-        this.data.setMY((int) getY());
+        if (getX() > 0) {
+            this.data.setMX((int) getX());
+        } else {
+            this.data.setMX(0); // if its out of bounds, we save it at
+        }
+        if (getY() > 0) {
+            this.data.setMY((int) getY());
+        } else {
+            this.data.setMY(0);
+        }
+
         this.data.updateMe();
     }
 

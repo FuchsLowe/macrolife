@@ -1,13 +1,14 @@
 package com.fuchsundlowe.macrolife;
 
+import android.animation.Animator;
+import android.animation.AnimatorSet;
 import android.animation.LayoutTransition;
+import android.animation.ObjectAnimator;
 import android.animation.ValueAnimator;
 import android.arch.lifecycle.Observer;
 import android.content.Context;
-import android.graphics.Color;
 import android.graphics.Point;
 import android.graphics.Rect;
-import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.view.GestureDetectorCompat;
@@ -43,8 +44,8 @@ import java.util.List;
 public class ComplexTaskActivity extends AppCompatActivity implements ComplexTaskInterface,
         PopUpProtocol, TailViewProtocol {
 
-    private int masterID, transX, transY;
-    private float curX, curY, mx, my, scaleFactor;
+    private int masterID, translationX, translationY;
+    private float currentX, currentY, storedX, storedY, scaleFactor;
     private float MAX_SCALE = 0.5f, MIN_SCALE = 2.0f;
     private boolean globalEdit = false;
     private boolean movingBubble = false;
@@ -58,6 +59,7 @@ public class ComplexTaskActivity extends AppCompatActivity implements ComplexTas
 
     private VScroll vScroll;
     private HScroll hScroll;
+    private TextView masterNameDisplayed;
     private InfinitePaper container;
     private BubbleView mBubble;
     private TailView mTail;
@@ -69,9 +71,6 @@ public class ComplexTaskActivity extends AppCompatActivity implements ComplexTas
     private Rect hit;
     private ComplexTaskChevron connectionCandidate;
 
-    TextView flasher;
-    TextView scchng;
-
     // Lifecycle Calls:
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -79,67 +78,30 @@ public class ComplexTaskActivity extends AppCompatActivity implements ComplexTas
         setContentView(R.layout.complex_task_activity);
         vScroll = findViewById(R.id.vScroll);
         hScroll = findViewById(R.id.hScroll);
-
-        // Currently only Testing of implemnetation here
-        vScroll.addOnLayoutChangeListener(new View.OnLayoutChangeListener() {
-            @Override
-            public void onLayoutChange(View v, int left, int top, int right, int bottom, int oldLeft, int oldTop, int oldRight, int oldBottom) {
-                stopChangesToLayoutTemp();
-            }
-        });
-        hScroll.addOnLayoutChangeListener(new View.OnLayoutChangeListener() {
-            @Override
-            public void onLayoutChange(View v, int left, int top, int right, int bottom, int oldLeft, int oldTop, int oldRight, int oldBottom) {
-                stopChangesToLayoutTemp();
-            }
-        });
-
+        masterNameDisplayed = findViewById(R.id.MasterTaskName_CTA);
         allTails = new ArrayList<>();
         hit = new Rect();
         scaleFactor = 1.0f; // Defines the default scale factor to start with
         masterID = getIntent().getIntExtra(Constants.LIST_VIEW_MASTER_ID, -1);
         data = StorageMaster.getInstance(this);
+        masterNameDisplayed.setText(data.getComplexGoalBy(masterID).getTaskName());
         mScaleDetector = new ScaleGestureDetector(this, new Scaler());
         mGestureDetector = new GestureDetectorCompat(this, new LongPressDetector());
         INCREASE_PAPER_BY = dpToPixConverter(INCREASE_PAPER_BY);
 
+        // Initialization calls:
         addPaper();
         getData();
         defineBottomBar();
-
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            hScroll.setOnScrollChangeListener(new View.OnScrollChangeListener() {
-                @Override
-                public void onScrollChange(View v, int scrollX, int scrollY, int oldScrollX, int oldScrollY) {
-                    //scchng.setBackgroundColor(Color.YELLOW);
-                    new Thread(new Runnable() {
-                        @Override
-                        public void run() {
-                            try {
-                                Thread.sleep(1000);
-                                runOnUiThread(new Runnable() {
-                                    @Override
-                                    public void run() {
-                                       // scchng.setBackgroundColor(Color.WHITE);
-                                    }
-                                });
-                            } catch (InterruptedException e) {
-                                e.printStackTrace();
-                            }
-                        }
-                    }).start();
-
-                }
-            });
-        }
-
-        flasher = findViewById(R.id.flasher);
-        scchng = findViewById(R.id.scchng);
     }
     @Override
     protected void onStop() {
         super.onStop();
         // TODO: Should I call this to save the database?
+    }
+    // This method call is invoked when we want to close this activity
+    private void closeActivity() {
+        this.finish();
     }
     private void signalGlobalEdit(boolean editStart) {
         if (editStart) {
@@ -242,14 +204,13 @@ public class ComplexTaskActivity extends AppCompatActivity implements ComplexTas
     }
     private void getData() {
         data.findAllChildren(masterID).observe(this, new Observer<List<SubGoalMaster>>() {
-            // TODO: Follow up on this optimization. You need to redo the updateDataCall now...
             @Override
             public void onChanged(@Nullable List<SubGoalMaster> subGoalMasters) {
                 /*
                  * I only update on creation, if its not creation, the natural lifecycle of adding
                  * and removing Chevrons would do the job
                  */
-                if (allChildren == null) {
+                if (allChildren == null || allChildren.size() == 0) {
                     // There are no children displayed so we re-create all of them
                     allChildren = subGoalMasters;
                     updateData();
@@ -259,10 +220,13 @@ public class ComplexTaskActivity extends AppCompatActivity implements ComplexTas
     }
     private void updateData() {
        if (wrappedChildrenInChevrons == null) {
-           wrappedChildrenInChevrons = new ArrayList<>();
+           wrappedChildrenInChevrons = new ArrayList<>(allChildren.size());
        }
            // Reusing the chevrons:
         if (wrappedChildrenInChevrons.size() > 0) {
+           if (BuildConfig.DEBUG) {
+               throw new AssertionError();
+           }
            if (wrappedChildrenInChevrons.size() > allChildren.size()) {
                // We have more wrappers than children, thus we remove some
                int excessWrappers = wrappedChildrenInChevrons.size() - allChildren.size();
@@ -319,7 +283,7 @@ public class ComplexTaskActivity extends AppCompatActivity implements ComplexTas
         }
         for (ComplexTaskChevron chev: wrappedChildrenInChevrons) {
             if (chev.getSubGoal() > 0) {
-                temporaryChevronHolder = null; // so we don't get a reacurring chevron from previous calls
+                temporaryChevronHolder = null; // so we don't get a recurring chevron from previous calls
                 temporaryChevronHolder = findChevWithID(chev.getSubGoal());
                 if (temporaryChevronHolder != null) { // Means yes we have a valid connection
                     makeATail(chev, temporaryChevronHolder);
@@ -386,11 +350,12 @@ public class ComplexTaskActivity extends AppCompatActivity implements ComplexTas
     }
     public void newTask(String name, Calendar start, Calendar end, Integer x, Integer y, int updateKey) {
         if (updateKey == 0) {
-            SubGoalMaster temp = new SubGoalMaster(0, name, start,
+            SubGoalMaster newDataBeingMade = new SubGoalMaster(0, name, start,
                     end, Calendar.getInstance(), false, SourceType.local,
                     masterID, 0, x, y);
-            temp.updateMe();
-            ComplexTaskChevron chev = new ComplexTaskChevron(temp, this);
+            newDataBeingMade.updateMe();
+            allChildren.add(newDataBeingMade);
+            ComplexTaskChevron chev = new ComplexTaskChevron(newDataBeingMade, this);
             wrappedChildrenInChevrons.add(chev);
             container.addView(chev);
             chev.animationPresentSelf();
@@ -403,6 +368,10 @@ public class ComplexTaskActivity extends AppCompatActivity implements ComplexTas
     public AppCompatActivity getActivity() {
         return this;
     }
+    @Override
+    public ViewGroup getContainer() {
+        return container;
+    }
     // Touch events:
     @Override
     public boolean onTouchEvent(MotionEvent event) {
@@ -410,20 +379,17 @@ public class ComplexTaskActivity extends AppCompatActivity implements ComplexTas
         mScaleDetector.onTouchEvent(event);
         mGestureDetector.onTouchEvent(event); // checks if its a long press...
 
-        if (!layoutIsChangin) {
-
             if (event.getAction() == MotionEvent.ACTION_DOWN) {
-                mx = event.getX();
-                my = event.getY();
-
+                storedX = event.getX();
+                storedY = event.getY();
                 if (globalEdit) {
                     //if we have clicked at bubble, we move it subsequnetly, else we dismiss everything
-                    if (isItABubble(mx, my)) {
+                    if (isItABubble(storedX, storedY)) {
                         // We leave everything as it is so bubble can be moved...
                         movingBubble = true;
                         mTail = new TailView(this, mBubble.getMaster(), mBubble);
                         mTail.setAlpha(0.5f);
-                        // Layout? TODO: Should I use standar procedure?
+                        // Layout? TODO: Should I use standard procedure?
                         container.addView(mTail);
                         mTail.layout(
                                 mBubble.getLeft(), mBubble.getBottom(),
@@ -434,38 +400,33 @@ public class ComplexTaskActivity extends AppCompatActivity implements ComplexTas
                     }
                 } else {
                     // if we have clicked at task, we move it, else we move background..
-                    childLookUp(mx, my);
+                    childLookUp(storedX, storedY);
                 }
             } else {
                 switch (event.getAction()) {
                     case MotionEvent.ACTION_MOVE:
-                        curX = event.getX();
-                        curY = event.getY();
+                        currentX = event.getX();
+                        currentY = event.getY();
 
                         if (movingBubble) {
                             // This is the default way so far of managing the location of the bubble
-                            mBubble.setTranslationX(mBubble.getTranslationX() + curX - mx);
-                            mBubble.setTranslationY(mBubble.getTranslationY() + curY - my);
+                            mBubble.setTranslationX(mBubble.getTranslationX() + currentX - storedX);
+                            mBubble.setTranslationY(mBubble.getTranslationY() + currentY - storedY);
 
-                            if ( canConnect( (int) (curX), (int) (curY)) ){
+                            if ( canConnect( (int) (currentX), (int) (currentY)) ){
                                mBubble.setConnectionOpportunity(1);
-                               //TEST:
-                                scchng.setBackgroundColor(Color.GREEN);
                             } else {
                                 mBubble.setConnectionOpportunity(0);
-                                //TEST:
-                                scchng.setBackgroundColor(Color.RED);
-
                             }
 
                             mTail.updateLayout();
                         } else if (viewManaged != null) {
                             // we do the view
-                            transX = (int) (viewManaged.getTranslationX() + curX - mx);
-                            transY = (int) (viewManaged.getTranslationY() + curY - my);
+                            translationX = (int) (viewManaged.getTranslationX() + currentX - storedX);
+                            translationY = (int) (viewManaged.getTranslationY() + currentY - storedY);
 
-                            viewManaged.setTranslationX(transX);
-                            viewManaged.setTranslationY(transY);
+                            viewManaged.setTranslationX(translationX);
+                            viewManaged.setTranslationY(translationY);
 
                             ((ComplexTaskChevron) viewManaged).invalidateTails();
 
@@ -501,20 +462,18 @@ public class ComplexTaskActivity extends AppCompatActivity implements ComplexTas
                                 animator.setDuration(200);
                                 animator.start();
                             }
-
-
                         } else {
                             // we move the background...
-                            vScroll.scrollBy((int) (mx - curX), (int) (my - curY));
-                            hScroll.scrollBy((int) (mx - curX), (int) (my - curY));
+                            vScroll.scrollBy((int) (storedX - currentX), (int) (storedY - currentY));
+                            hScroll.scrollBy((int) (storedX - currentX), (int) (storedY - currentY));
                         }
 
-                        mx = curX;
-                        my = curY;
+                        storedX = currentX;
+                        storedY = currentY;
                         break;
                     case MotionEvent.ACTION_UP:
                         if (movingBubble) {
-                            if (canConnect((int)(curX),(int) (curY))) {
+                            if (canConnect((int)(currentX),(int) (currentY))) {
                                 if (connectionCandidate != null) {
                                     ((ComplexTaskChevron) viewManaged).setConnection
                                             (connectionCandidate.getDataID());
@@ -526,16 +485,46 @@ public class ComplexTaskActivity extends AppCompatActivity implements ComplexTas
                                     connectionCandidate.addInTail(mTail);
                                     allTails.add(mTail);
                                     mTail = null;
-                                    // Establish a new Permanent Connector
-                                    //makeATail(viewManaged, connectionCandidate);
                                 }
-                            } else {
-                                if (viewManaged!= null) {
-                                    ((ComplexTaskChevron) viewManaged).updateNewCoordinates();
-                                }
-
-                                bubbleToParent();
                             }
+                        } else {
+                            if (viewManaged!= null) {
+                                // Checks if view is out of bounds and then re-assigns it
+                                if (viewManaged.getX() < 0 ||
+                                        viewManaged.getY() < 0) {
+                                  float animationX, animationY;
+                                  if (viewManaged.getX() < 0) {
+                                      animationX = 0;
+                                  } else {
+                                      animationX = viewManaged.getY();
+                                  }
+                                  Log.d("X is" + viewManaged.getX(), " Y is:" + viewManaged.getY());
+                                  if (viewManaged.getY() < 0) {
+                                      animationY = 0;
+                                  } else {
+                                      animationY = viewManaged.getY();
+                                  }
+                                  ObjectAnimator forX = ObjectAnimator.ofFloat(viewManaged,
+                                            "x",animationX);
+                                  forX.setDuration(200);
+                                  ObjectAnimator forY = ObjectAnimator.ofFloat(viewManaged,
+                                          "y", animationY);
+                                  forY.setDuration(200);
+                                    AnimatorSet animatorHolder = new AnimatorSet();
+                                    animatorHolder.play(forX).with(forY);
+                                    forX.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
+                                        @Override
+                                        public void onAnimationUpdate(ValueAnimator animation) {
+                                            for (TailView tailToUpdate: allTails) {
+                                                tailToUpdate.updateLayout();
+                                            }
+                                        }
+                                    });
+                                    animatorHolder.start();
+                                }
+                                ((ComplexTaskChevron) viewManaged).updateNewCoordinates();
+                            }
+                            bubbleToParent();
                         }
                         if (!globalEdit) {
                             viewManaged = null;
@@ -556,7 +545,6 @@ public class ComplexTaskActivity extends AppCompatActivity implements ComplexTas
                         break;
                 }
             }
-        }
 
         return true;
     }
@@ -580,7 +568,7 @@ public class ComplexTaskActivity extends AppCompatActivity implements ComplexTas
     private class LongPressDetector extends GestureDetector.SimpleOnGestureListener {
         @Override
         public void onLongPress(MotionEvent e) {
-            stopChangesToLayoutTemp();
+            //stopChangesToLayoutTemp();
             if (childLookUp(e.getX(),e.getY())) {
                 // We have clicked on view
                 if (viewManaged != null) {
@@ -598,52 +586,13 @@ public class ComplexTaskActivity extends AppCompatActivity implements ComplexTas
 
         }
     }
-    @Override
-    public void displayText(int val){
-           switch (val){
-               case -1:
-                   break;
-               case 0:flasher.setBackgroundColor(Color.BLUE);
-                break;
-               case 1: flasher.setBackgroundColor(Color.RED);
-                break;
-               case 2: flasher.setBackgroundColor(Color.GREEN);
-                break;
-               case 3: flasher.setBackgroundColor(Color.YELLOW);
-                break;
-               case 4: flasher.setBackgroundColor(Color.BLACK);
-                break;
-           }
-
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    Thread.sleep(1000);
-                    runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
-                            flasher.setBackgroundColor(Color.WHITE);
-                        }
-                    });
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-            }
-        }); // TODO: NO START HERE
-    }
-    @Override
-    public ViewGroup getContainer() {
-        return container;
+    // Called by close button in layout
+    public void onClose(View view) {
+        closeActivity();
     }
     private int dpToPixConverter(float dp) {
         float scale = getResources().getDisplayMetrics().density;
         return (int) (dp * scale * 0.5f);
     }
-    void left(String val) {
-        flasher.setText(val);
-    }
-    void right(String val) {
-        scchng.setText(val);
-    }
+
 }

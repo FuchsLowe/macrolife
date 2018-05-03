@@ -30,6 +30,7 @@ public interface DataProviderProtocol {
     void updateObject(ComplexGoalMaster object);
     void insertObject(ComplexGoalMaster object);
     void subscribeObserver_ComplexGoal(LifecycleOwner lifecycleOwner, Observer<List<ComplexGoalMaster>> observer);
+    ComplexGoalMaster getComplexGoalBy(int masterGoalID);
    // LiveData<List<ComplexGoalMaster>> getAllComplexGoals();
 
     //Set<ListMaster>getAllListMasters();

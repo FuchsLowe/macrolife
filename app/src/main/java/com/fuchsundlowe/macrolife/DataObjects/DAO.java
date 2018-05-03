@@ -33,7 +33,7 @@ public interface DAO {
 
 
     @Query("SELECT * FROM ComplexGoalMaster")
-    public LiveData<List<ComplexGoalMaster>> getAllComplexGoalMasters();
+    LiveData<List<ComplexGoalMaster>> getAllComplexGoalMasters();
 
 
     // Managing OrdinaryEventMaster objects

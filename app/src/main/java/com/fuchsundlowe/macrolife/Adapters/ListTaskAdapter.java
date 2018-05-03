@@ -16,8 +16,6 @@ import com.fuchsundlowe.macrolife.R;
 
 import java.util.List;
 
-
-
 public class ListTaskAdapter extends RecyclerView.Adapter<ListTaskAdapter.BaseAdapter> {
 
     private DataProviderProtocol dataMaster;
@@ -30,21 +28,16 @@ public class ListTaskAdapter extends RecyclerView.Adapter<ListTaskAdapter.BaseAd
         this.mContext = context;
         implementLiveData();
     }
-
     @NonNull
     @Override
     public BaseAdapter onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-
         View card = LayoutInflater.from(mContext).inflate(R.layout.list_task_card, parent, false);
-
         return new BaseAdapter(card);
     }
-
     @Override
     public void onBindViewHolder(@NonNull BaseAdapter holder, int position) {
         holder.box.setText(data.get(position).getTaskName());
     }
-
     @Override
     public int getItemCount() {
         if (data != null) {
@@ -53,7 +46,6 @@ public class ListTaskAdapter extends RecyclerView.Adapter<ListTaskAdapter.BaseAd
             return 0;
         }
     }
-
     private void implementLiveData() {
         dataMaster = StorageMaster.optionalStorageMaster(); // Init's the dataMaster
         dataMaster.getListObjectsByParent(this.parentID).observeForever(new Observer<List<ListObject>>() {
@@ -64,15 +56,12 @@ public class ListTaskAdapter extends RecyclerView.Adapter<ListTaskAdapter.BaseAd
             }
         });
     }
-
     private void notifySetChange() {
         this.notifyDataSetChanged();
     }
 
     class BaseAdapter extends  RecyclerView.ViewHolder{
-
         CheckBox box;
-
         BaseAdapter(View itemView) {
             super(itemView);
             box = itemView.findViewById(R.id.card_checkBox);

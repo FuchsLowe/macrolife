@@ -17,41 +17,33 @@ import com.fuchsundlowe.macrolife.TestCases.TestActivity4;
 
 public class MasterScreen extends AppCompatActivity {
 
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_master_screen);
-
         //test2();
-        test2();
-
+        //test2();
+        toList(null);
     }
 
     public void toDay(View view) {
         Intent toDay = new Intent(this, DayView.class);
         startActivity(toDay);
     }
-
     public void toList(View view) {
         Intent toList = new Intent(this, ListView.class);
         startActivity(toList);
     }
-
     public void toTest(View view) {
         Intent toTest = new Intent(this, TestActivity.class);
         startActivity(toTest);
     }
-
     public void test2() {
         Intent toTest2 = new Intent(this, ComplexTaskActivity.class);
         startActivity(toTest2);
     }
-
     void test3() {
         Intent toTest3 = new Intent(this, Test5.class);
         startActivity(toTest3);
     }
-
-
 }

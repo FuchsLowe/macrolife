@@ -41,7 +41,6 @@ public class ListTask extends AppCompatActivity {
         }
         initiateBottomBar();
     }
-
     private void defineMasterName() {
         data.getListMasterByID(masterID).observe(this, new Observer<ListMaster>() {
             @Override
@@ -50,13 +49,11 @@ public class ListTask extends AppCompatActivity {
             }
         });
     }
-
     private void initiateRecyclerView() {
         // This defines the way new items will be stored in view
         centerBar.setLayoutManager(new LinearLayoutManager(this));
         centerBar.setAdapter(new ListTaskAdapter(masterID, this));
     }
-
     private void initiateBottomBar() {
         newTaskText = findViewById(R.id.newTask_card);
         newTaskText.setOnEditorActionListener(new TextView.OnEditorActionListener() {
@@ -71,15 +68,12 @@ public class ListTask extends AppCompatActivity {
             }
         });
     }
-
     private void createNewSubTask() {
         ListObject newTask = new ListObject(newTaskText.getText().toString(), false,
                 masterID,0);
         data.insertObject(newTask);
     }
-
     public void onDone(View view){
         this.finish();
     }
-
 }

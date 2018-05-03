@@ -167,6 +167,7 @@ public class TailView extends View {
             invalidate();
         }
     }
+    // This is my method for custom layout update
     public void updateLayout() {
         switch (provideQuadrant()) {
             case 0: // Is OVERLAYING the fromView
@@ -255,7 +256,6 @@ public class TailView extends View {
 
         if (tC.y < fromView.getY()) {
             // means its above the topLine
-            mInterface.displayText(1);
             if (tC.x < topHorizon.x) {
                 // Its quadrant 1
                 quadrant = 1;
@@ -268,7 +268,6 @@ public class TailView extends View {
             }
         } else if (tC.y > (fromView.getY() + fromView.getHeight())) {
             // Means its under bottomLine
-            mInterface.displayText(2);
             if (tC.x < bottomHorizon.x) {
                 // Its quadrant 1
                 quadrant = 1;
@@ -281,7 +280,6 @@ public class TailView extends View {
             }
         } else {
             // its between the topLine and bottomLine
-            mInterface.displayText(3);
             if (tC.x < fromView.getX()) {
                 // Its quadrant 1
                 quadrant = 1;

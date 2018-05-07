@@ -44,8 +44,7 @@ public class RepeatingEventMaster extends DataMasterClass {
                                 boolean taskCompleted, SourceType taskOriginalSource) {
         super(hashID, taskName, taskStartTime, taskEndTime, taskCreatedTimeStamp,
                 taskCompleted, taskOriginalSource);
-        // Called to fill in the values for subEvents.
-        //populateMe(); TODO: Define how will I do this... WHo should be in charge of finding the children?
+
     }
 
     private void createMap() {

@@ -31,6 +31,7 @@ import com.fuchsundlowe.macrolife.DataObjects.SourceType;
 import com.fuchsundlowe.macrolife.DataObjects.SubGoalMaster;
 import com.fuchsundlowe.macrolife.EngineClasses.StorageMaster;
 import com.fuchsundlowe.macrolife.Interfaces.ComplexTaskInterface;
+import com.fuchsundlowe.macrolife.Interfaces.ScaleInterface;
 import com.fuchsundlowe.macrolife.Interfaces.TailViewProtocol;
 import com.fuchsundlowe.macrolife.Interfaces.DataProviderProtocol;
 import com.fuchsundlowe.macrolife.Interfaces.PopUpProtocol;
@@ -45,10 +46,9 @@ public class ComplexTaskActivity extends AppCompatActivity implements ComplexTas
 
     private int masterID, translationX, translationY;
     private float currentX, currentY, storedX, storedY, scaleFactor;
-    private float MAX_SCALE = 0.5f, MIN_SCALE = 2.0f;
+    private float MAX_SCALE = 0.5f, MIN_SCALE = 1.0f;
     private boolean globalEdit = false;
     private boolean movingBubble = false;
-    private boolean layoutIsChangin = false;
     private int INCREASE_PAPER_BY = 50;
 
     private List<SubGoalMaster> allChildren;
@@ -94,6 +94,12 @@ public class ComplexTaskActivity extends AppCompatActivity implements ComplexTas
         defineBottomBar();
     }
     @Override
+    protected void onStart() {
+        super.onStart();
+        vScroll.scrollTo(hScroll.getWidth() / 2, 0); // SHould scroll it to middle
+
+    }
+    @Override
     protected void onStop() {
         super.onStop();
         // TODO: Should I call this to save the database?
@@ -123,16 +129,29 @@ public class ComplexTaskActivity extends AppCompatActivity implements ComplexTas
             globalEdit = false;
             cancelBubble();
             bottomBar.releaseFields();
+            /*
+             * If View managed is chevron
+             * We grab out Tail
+             * We request the cancel
+             * Down the drain the tail checks if it is doing any draiwng and acts accordingly
+             */
+            if (viewManaged instanceof ComplexTaskChevron) {
+                if (((ComplexTaskChevron) viewManaged).getOutTail() != null) {
+                    ((ComplexTaskChevron) viewManaged).getOutTail().removeCancelSign();
+                }
+            }
             viewManaged = null;
             setChevronFlag(0);
         }
     }
     private boolean childLookUp(float x, float y) {
-        for (ComplexTaskChevron object : wrappedChildrenInChevrons) {
-            object.getGlobalVisibleRect(hit);
-            if (hit.contains((int) x, (int) y)) {
-                viewManaged = object;
-                return true;
+        if (wrappedChildrenInChevrons != null) {
+            for (ComplexTaskChevron object : wrappedChildrenInChevrons) {
+                object.getGlobalVisibleRect(hit);
+                if (hit.contains((int) x, (int) y)) {
+                    viewManaged = object;
+                    return true;
+                }
             }
         }
         return false;
@@ -150,6 +169,20 @@ public class ComplexTaskActivity extends AppCompatActivity implements ComplexTas
         }
         return false;
     }
+
+    private boolean canConnect(BubbleView bubble) {
+        Rect bubbleRect = new Rect();
+        bubble.getHitRect(bubbleRect);
+        for (ComplexTaskChevron object:wrappedChildrenInChevrons) {
+            object.getGlobalVisibleRect(hit);
+            if (hit.contains(bubbleRect)) {
+                connectionCandidate = object;
+                return true;
+            }
+        }
+        return false;
+    }
+
     private boolean isItABubble(float x, float y) {
         if (mBubble != null) {
             Rect hit = new Rect();
@@ -302,6 +335,15 @@ public class ComplexTaskActivity extends AppCompatActivity implements ComplexTas
        // newTailBeingCreated.updateLayout(); not working...
         return newTailBeingCreated;
     }
+    // Will dissow the view from container and from allTails
+    public void removeATail(View tailToBeRemoved) {
+        container.removeView(tailToBeRemoved);
+        allTails.remove(tailToBeRemoved);
+    }
+    // centers the container in such a way that all tasks are visible
+    private void centerTheView() {
+
+    }
     // Interface part:
     public void stopChangesToLayoutTemp(){
         //trackerOfBoolTest(true);
@@ -337,9 +379,6 @@ public class ComplexTaskActivity extends AppCompatActivity implements ComplexTas
         //Log.e("TEst is set to:", String.valueOf(test));
         //layoutIsChangin=test;
 
-    }
-    public float getScale() {
-        return scaleFactor;
     }
     public LinearLayout getLinearBox() {
         return findViewById(R.id.bottom_layout);
@@ -407,12 +446,17 @@ public class ComplexTaskActivity extends AppCompatActivity implements ComplexTas
                         currentX = event.getX();
                         currentY = event.getY();
 
+                        translationX = (int) ((currentX - storedX));
+                        translationY = (int) ((currentY - storedY));
+
                         if (movingBubble) {
                             // This is the default way so far of managing the location of the bubble
-                            mBubble.setTranslationX(mBubble.getTranslationX() + currentX - storedX);
-                            mBubble.setTranslationY(mBubble.getTranslationY() + currentY - storedY);
 
-                            if ( canConnect( (int) (currentX), (int) (currentY)) ){
+                            mBubble.setTranslationX(mBubble.getTranslationX() + translationX);
+                            mBubble.setTranslationY(mBubble.getTranslationY() + translationY);
+
+                            if (canConnect((int)(currentX), (int)(currentY))) {
+                            //if (canConnect(mBubble)) {
                                mBubble.setConnectionOpportunity(1);
                             } else {
                                 mBubble.setConnectionOpportunity(0);
@@ -421,11 +465,8 @@ public class ComplexTaskActivity extends AppCompatActivity implements ComplexTas
                             mTail.updateLayout();
                         } else if (viewManaged != null) {
                             // we do the view
-                            translationX = (int) (viewManaged.getTranslationX() + currentX - storedX);
-                            translationY = (int) (viewManaged.getTranslationY() + currentY - storedY);
-
-                            viewManaged.setTranslationX(translationX);
-                            viewManaged.setTranslationY(translationY);
+                            viewManaged.setTranslationX(viewManaged.getTranslationX() + translationX);
+                            viewManaged.setTranslationY(viewManaged.getTranslationY() +translationY);
 
                             ((ComplexTaskChevron) viewManaged).invalidateTails();
 
@@ -473,6 +514,7 @@ public class ComplexTaskActivity extends AppCompatActivity implements ComplexTas
                     case MotionEvent.ACTION_UP:
                         if (movingBubble) {
                             if (canConnect((int)(currentX),(int) (currentY))) {
+                            //if (canConnect(mBubble)) {
                                 if (connectionCandidate != null) {
                                     ((ComplexTaskChevron) viewManaged).setConnection
                                             (connectionCandidate.getDataID());
@@ -485,6 +527,8 @@ public class ComplexTaskActivity extends AppCompatActivity implements ComplexTas
                                     allTails.add(mTail);
                                     mTail = null;
                                 }
+                            } else {
+                                bubbleToParent();
                             }
                         } else {
                             if (viewManaged!= null) {
@@ -550,17 +594,16 @@ public class ComplexTaskActivity extends AppCompatActivity implements ComplexTas
     private class Scaler extends ScaleGestureDetector.SimpleOnScaleGestureListener {
         @Override
         public boolean onScale(ScaleGestureDetector detector) {
-            stopChangesToLayoutTemp();
             scaleFactor *= detector.getScaleFactor();
             if (scaleFactor > MIN_SCALE) {
                 scaleFactor = MIN_SCALE;
             } else if (scaleFactor < MAX_SCALE) {
                 scaleFactor = MAX_SCALE;
             }
-            // That's good enough...
-
-            container.setScaleY(scaleFactor);
+            container.measure((int)(container.getMeasuredWidth() * scaleFactor),
+                    (int)(container.getMeasuredHeight() * scaleFactor));
             container.setScaleX(scaleFactor);
+            container.setScaleY(scaleFactor);
             return true;
         }
     }

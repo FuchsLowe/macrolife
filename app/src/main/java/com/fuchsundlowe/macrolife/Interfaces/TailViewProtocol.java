@@ -1,6 +1,7 @@
 package com.fuchsundlowe.macrolife.Interfaces;
 
 import android.content.Context;
+import android.view.View;
 import android.view.ViewGroup;
 
 import com.fuchsundlowe.macrolife.CustomViews.BubbleView;
@@ -13,6 +14,7 @@ public interface TailViewProtocol {
 
     Context getContext();
     ViewGroup getContainer();
+    void removeATail(View tailToBeRemoved);
     //BubbleView getParent();
 
 }

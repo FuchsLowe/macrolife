@@ -12,17 +12,17 @@ import android.graphics.drawable.Drawable;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.util.Log;
-import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewOutlineProvider;
 import com.fuchsundlowe.macrolife.DataObjects.SubGoalMaster;
 import com.fuchsundlowe.macrolife.Interfaces.ComplexTaskInterface;
+import com.fuchsundlowe.macrolife.Interfaces.ScaleInterface;
 import com.fuchsundlowe.macrolife.R;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class ComplexTaskChevron extends View {
+public class ComplexTaskChevron extends View  implements ScaleInterface{
 
     private SubGoalMaster data;
     private ComplexTaskInterface mInterface;
@@ -38,8 +38,9 @@ public class ComplexTaskChevron extends View {
     private int DEFAULT_BOX_LINE = 2;
     private int currentState = 0;
     private int workWordCountedLenght;
+    private int BOUNDS_MARKER_WIDTH = 3;
     private float DEFUALT_TEXT_CUTTER = 0.8f; // distance between text and boundaries of view
-    private float textWidth, textHeight, p;
+    private float textWidth, textHeight, currentScale;
     private boolean canAcceptValue = false;
     private String workWord;
     private Paint textMarker;
@@ -55,21 +56,22 @@ public class ComplexTaskChevron extends View {
         DEFAULT_TEXT = dpToPixConverter(DEFAULT_TEXT); // These three produce dp
         DEFAULT_BOX_LINE = dpToPixConverter(DEFAULT_BOX_LINE);
         DEFAULT_PADDING = dpToPixConverter(DEFAULT_PADDING);
+        BOUNDS_MARKER_WIDTH = dpToPixConverter(BOUNDS_MARKER_WIDTH);
 
         workWord = data.getTaskName();
 
         textMarker = new Paint();
         boundsMarker = new Paint();
+
         textMarker.setTextSize(DEFAULT_TEXT);
-        boundsMarker.setStrokeWidth(dpToPixConverter(3));
         boundsMarker.setStyle(Paint.Style.STROKE);
         setStateFlag(ChevronStates.normal, 0);
-
+        currentScale = 1f;
         inTails = new ArrayList<>(4);
     }
     @Override
     protected void onDraw(Canvas canvas) {
-
+        textMarker.setTextSize(DEFAULT_TEXT * currentScale);
         textWidth = textMarker.measureText(workWord);
         textHeight = DEFAULT_TEXT;
         workWord = data.getTaskName();
@@ -195,14 +197,13 @@ public class ComplexTaskChevron extends View {
         if (mBounds == null) {
             mBounds = new Rect(0,0,getWidth(), getHeight());
         }
+        boundsMarker.setStrokeWidth(BOUNDS_MARKER_WIDTH * currentScale);
         canvas.drawRect(mBounds,boundsMarker);
     }
     @Override
     protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
-       float scale = mInterface.getScale();
-
-       float minX = dpToPixConverter(DEFAULT_W * scale);
-       float minY = dpToPixConverter(DEFAULT_H * scale);
+        float minX = dpToPixConverter(DEFAULT_W );
+        float minY = dpToPixConverter(DEFAULT_H );
 
        setMinimumHeight((int)minY + 1);
        setMinimumWidth((int) minX + 1);
@@ -243,10 +244,10 @@ public class ComplexTaskChevron extends View {
     public boolean canAcceptConnection() { return canAcceptValue; }
     // Asks only outgoing tail to alter his looks so it can be deleted
     public void requestTailCancelOption() {
-        getOutTail().drawCancelationSign();
+        getOutTail().createCancelSign();
     }
     public void requestTailCancelSingWithdrawl()  {
-        getOutTail().tailCancelSignWithdrawl();
+        getOutTail().removeCancelSign();
     }
     public int getSubGoal() {
         return data.getParentSubGoal();
@@ -283,8 +284,11 @@ public class ComplexTaskChevron extends View {
     public void addInTail(TailView tail) {
         inTails.add(tail);
     }
-    public void removeInTail(TailView tail) {
-        inTails.remove(tail);
+    public void removeTailLink(TailView tailToRemove) {
+        inTails.remove(tailToRemove);
+        if (outTail == tailToRemove) {
+            outTail = null;
+        }
     }
     // Changes made to layout so we invalidate all tails to redraw their canvas
     public void invalidateTails() {
@@ -305,6 +309,25 @@ public class ComplexTaskChevron extends View {
 
         this.requestLayout();
 
+    }
+    // Interface:
+    // Part of ScaleInterface, will work to adjust self to new dimentions
+    @Override
+    public void setNewScale(float newScale) {
+        // Should increase own size... both X and Y
+        currentScale = newScale;
+
+        Rect currentLayout = new Rect();
+
+        currentLayout.left = (int)(this.getLeft());
+        currentLayout.top = (int)(this.getTop());
+        currentLayout.right = (int)(this.getRight() * currentScale);
+        currentLayout.bottom = (int)(this.getBottom() * currentScale);
+        this.layout(
+                currentLayout.left, currentLayout.top,
+                currentLayout.right, currentLayout.bottom
+        );
+        invalidate();
     }
     // Animation Calls:
     public void animationDestroy() {
@@ -373,7 +396,7 @@ public class ComplexTaskChevron extends View {
 
                 if (currentState == 4) {
                     // Means we where being edited and now the operation has been canceled
-                    getOutTail().tailCancelSignWithdrawl();
+                    getOutTail().removeCancelSign();
                 }
                 break;
             case 1: // Global edit signed, we can accept the incoming connection
@@ -418,9 +441,7 @@ public class ComplexTaskChevron extends View {
     }
     public void setConnection(int withID) {
         this.data.setParentSubGoal(withID);
-        if (withID > 0) {
-            updateNewCoordinates();
-        }
+        updateNewCoordinates();
     }
     // Outline Provider:
     private class CustomOutline extends ViewOutlineProvider {

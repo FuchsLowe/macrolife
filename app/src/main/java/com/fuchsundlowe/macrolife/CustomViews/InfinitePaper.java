@@ -11,16 +11,17 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
 import com.fuchsundlowe.macrolife.Interfaces.ComplexTaskInterface;
+import com.fuchsundlowe.macrolife.Interfaces.ScaleInterface;
 
-public class InfinitePaper extends ViewGroup {
+public class InfinitePaper extends ViewGroup implements ScaleInterface {
 
     private Context mContext;
     private ComplexTaskInterface mInterface;
     private int MIN_WIDTH;
     private int MIN_HEIGHT;
     private int MIN_PADDING = 20;
-    private boolean shouldLayout = true;
     private Point clickLocation;
+    private float currentScale = 1;
 
     public InfinitePaper(@NonNull Context context, ComplexTaskInterface mInterface) {
         super(context);
@@ -40,24 +41,22 @@ public class InfinitePaper extends ViewGroup {
     // Should set minWidth & height for Children size
     @Override
     protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
-        // Am I scaling them 2x?
-        float scale = mInterface.getScale();
         measureChildren(widthMeasureSpec, heightMeasureSpec);
 
         Point forMin = getMinSize();
         forMin.set((int) Math.max(forMin.x, MIN_WIDTH),
-                (int) Math.max(forMin.y, MIN_HEIGHT));
+                    (int) Math.max(forMin.y, MIN_HEIGHT));
 
         setMinimumHeight(forMin.x);
         setMinimumWidth(forMin.y);
 
         float regX, regY;
         regX = Math.max(MIN_WIDTH, forMin.x + dpToPixConverter(MIN_PADDING));
-        regY =  Math.max(MIN_HEIGHT, forMin.y + dpToPixConverter(MIN_PADDING));
+        regY = Math.max(MIN_HEIGHT, forMin.y + dpToPixConverter(MIN_PADDING));
 
         setMeasuredDimension(
-                (int)regX,
-                (int) regY
+                (int) (regX * currentScale),
+                (int) (regY * currentScale)
         );
 
     }
@@ -108,18 +107,15 @@ public class InfinitePaper extends ViewGroup {
                    ((TailView) getChildAt(i)).updateLayout();
                }
             }
-
-            /*
-             *
-             *
-             */
-
     }
+    // Part of ScaleInterface, will work to adjust self to new dimentions
     @Override
-    protected void onSizeChanged(int w, int h, int oldw, int oldh) {
-        //super.onSizeChanged(w, h, oldw, oldh);
-        mInterface.stopChangesToLayoutTemp();
+    public void setNewScale(float newScale) {
+        // SHould increase own size... both X and Y
+        this.currentScale = newScale;
+        this.requestLayout();
     }
+
     // returns minimum size so that children are always included in the view
     private Point getMinSize() {
         Point temp = new Point();
@@ -150,7 +146,7 @@ public class InfinitePaper extends ViewGroup {
         Point size = new Point();
         display.getSize(size);
 
-        MIN_WIDTH = size.x;
+        MIN_WIDTH = size.x * 2;
         MIN_HEIGHT = size.y;
 
     }

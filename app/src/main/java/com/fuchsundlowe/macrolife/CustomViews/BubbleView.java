@@ -104,6 +104,7 @@ public class BubbleView extends View {
     public void animateToOriginalPosition() {
         this.layout(startLeft, startTop, startRight, startBottom);
         //requestLayout(); I don't think it requires this
+        this.animate().x(startLeft).y(startTop).setDuration(200).start();
     }
 
     // 1 means we can accept current connection, 0 we can't

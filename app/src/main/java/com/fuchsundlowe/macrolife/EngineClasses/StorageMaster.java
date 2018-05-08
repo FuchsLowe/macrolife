@@ -289,6 +289,13 @@ public class StorageMaster implements DataProviderProtocol {
     public LiveData<List<RepeatingEventMaster>> getAllRepeatingEventMasterss() {
         return allRepeatingEventMasters;
     }
+    public Set<RepeatingEventMaster>getSubordinateRepearingStaticMasters(int forMasterID) {
+        Set<RepeatingEventMaster> tempHolder = new HashSet<>();
+        for (RepeatingEventMaster object: getAllRepeatingEventMasters().getValue()) {
+            if (object.getParentID() == forMasterID) {tempHolder.add(object);}
+        }
+        return tempHolder;
+    }
     public void insertObject(final RepeatingEventMaster object){
         new Thread(new Runnable() {
             @Override
@@ -302,6 +309,12 @@ public class StorageMaster implements DataProviderProtocol {
     public void subscribeObserver_RepeatingMaster(LifecycleOwner lifecycleOwner, Observer<List<RepeatingEventMaster>> observer) {
         getAllRepeatingEventMasterss().observe(lifecycleOwner, observer);
     }
+
+    @Override
+    public LiveData<List<RepeatingEventMaster>> getAllSubordinateRepeatingEventMasters(int forMasterID) {
+        return dataAccessObject.getAllRepeatingMasters(forMasterID);
+    }
+
     public LiveData<List<RepeatingEventMaster>> getAllRepeatingEventMasters() {
         return allRepeatingEventMasters;
     }
@@ -403,6 +416,7 @@ public class StorageMaster implements DataProviderProtocol {
     public LiveData<List<SubGoalMaster>> getAllSubGoalMasters() {
         return allSubGoalMasters;
     }
+
     public void insertObject(final SubGoalMaster object){
         new Thread(new Runnable() {
             @Override
@@ -475,10 +489,8 @@ public class StorageMaster implements DataProviderProtocol {
     }
     // onCreation:
     private StorageMaster(Context appContext) {
-        Log.d("Storage Master ","Reported");
         this.dataBase = Room.databaseBuilder(appContext, DataProvider.class, "StandardDB").build();
         this.dataAccessObject = dataBase.daoObject();
-
         initializeLiveData();
     }
     // General purpose methods:

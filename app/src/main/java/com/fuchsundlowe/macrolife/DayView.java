@@ -34,14 +34,11 @@ public class DayView extends FragmentActivity {
         // Required empty public constructor
         dataMaster = StorageMaster.getInstance(this);
     }
-
     // Life-cycle events:
-
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         currentDay = Calendar.getInstance();
-
         // We are expecting a passed day in form of long to be delivered
         if (savedInstanceState != null) {
             Long day = savedInstanceState.getLong(Constants.DAY_TO_DISPLAY);
@@ -51,14 +48,12 @@ public class DayView extends FragmentActivity {
         }
         setContentView(R.layout.day_layout);
     }
-
     @Override
     public void onStart() {
         super.onStart();
         initiateTopBar();
         initiateBottomBar();
     }
-
     // TopBar Implementation:
     private void initiateTopBar() {
         if (topBar == null) {
@@ -70,7 +65,6 @@ public class DayView extends FragmentActivity {
         topBar.setPageTransformer(true, new ZoomOut_PageTransformer());
         topBar.setCurrentItem(NUM_OF_VIEWS / 2); // S we have equal number of fragments on each side
     }
-
     private class PageAdapterMaster extends FragmentStatePagerAdapter {
 
         public PageAdapterMaster(FragmentManager fm) {
@@ -103,19 +97,13 @@ public class DayView extends FragmentActivity {
         }
 
     }
-
     // Bottom Bar Implementation:
-
     private GridView grid;
-
     private void initiateBottomBar() {
         grid = findViewById(R.id.grid);
         grid.setNumColumns(2);
         grid.setAdapter(new PopUpGridAdapter(this));
     }
-
-
-
     /*
     private DayHolder currentDay;
     private DayHolder nextDay;

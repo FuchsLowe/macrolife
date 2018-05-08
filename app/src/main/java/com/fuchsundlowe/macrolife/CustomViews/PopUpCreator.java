@@ -14,6 +14,12 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 import com.fuchsundlowe.macrolife.Interfaces.PopUpProtocol;
 import java.util.Calendar;
+/*
+ * The Pseudo-Code:
+ * Get Initiated and displays demanded view
+ * Can transition from one view to other
+ *
+ */
 
 public class PopUpCreator {
     // Types it can create
@@ -40,10 +46,10 @@ public class PopUpCreator {
                 break;
         }
     }
-
     // Method calls:
     // Called when we are creating the tab for complex task activity
     private void setComplexTaskActivity() {
+        // Basically this just sets implemnetation for name field
         name = new EditText(mInterface.getContext());
         name.setHint("New Task");
         name.setSingleLine(true);
@@ -155,7 +161,6 @@ public class PopUpCreator {
         }
 
     }
-
     // Called when we need to relaese editing fields
     public void releaseFields() {
         while (mParent.getChildCount() > 1) {
@@ -169,12 +174,11 @@ public class PopUpCreator {
         name.setText("");
         name.setHint("New Task");
     }
-
+    // Stores new data for creation of new Chevron at clicked location
     public void setNewTask(float x, float y) {
         name.setText("");
         softKeyboard(true);
         clickLocation = new Point((int)x, (int)y);
-
     }
     // This method manages appearance and disappearance of the soft keyboard
     public void softKeyboard(boolean appearance) {

@@ -14,6 +14,10 @@ import android.support.annotation.Nullable;
 import android.util.Log;
 import android.view.View;
 import android.view.ViewOutlineProvider;
+
+import com.fuchsundlowe.macrolife.DataObjects.Chevronable;
+import com.fuchsundlowe.macrolife.DataObjects.DataMasterClass;
+import com.fuchsundlowe.macrolife.DataObjects.RepeatingEventMaster;
 import com.fuchsundlowe.macrolife.DataObjects.SubGoalMaster;
 import com.fuchsundlowe.macrolife.Interfaces.ComplexTaskInterface;
 import com.fuchsundlowe.macrolife.Interfaces.ScaleInterface;
@@ -22,9 +26,9 @@ import com.fuchsundlowe.macrolife.R;
 import java.util.ArrayList;
 import java.util.List;
 
-public class ComplexTaskChevron extends View  implements ScaleInterface{
+public class ComplexTaskChevron extends View  implements ScaleInterface {
 
-    private SubGoalMaster data;
+    private Chevronable data;
     private ComplexTaskInterface mInterface;
     private Context context;
     private TailView outTail; // can have only one out tail
@@ -36,6 +40,7 @@ public class ComplexTaskChevron extends View  implements ScaleInterface{
     private int DEFAULT_PADDING = 4;
     private int DEFAULT_Z = 2;
     private int DEFAULT_BOX_LINE = 2;
+    private float widthOfRepeatingEventIndicator = 0.15f;
     private int currentState = 0;
     private int workWordCountedLenght;
     private int BOUNDS_MARKER_WIDTH = 3;
@@ -45,9 +50,10 @@ public class ComplexTaskChevron extends View  implements ScaleInterface{
     private String workWord;
     private Paint textMarker;
     private Paint boundsMarker;
+    private Paint repeatingEventIndicatorMarker;
     private Rect mBounds;
 
-    public ComplexTaskChevron(SubGoalMaster data, ComplexTaskInterface mInterface) {
+    public ComplexTaskChevron(Chevronable data, ComplexTaskInterface mInterface) {
         super(mInterface.getContext());
         this.data = data;
         this.mInterface = mInterface;
@@ -65,10 +71,15 @@ public class ComplexTaskChevron extends View  implements ScaleInterface{
 
         textMarker.setTextSize(DEFAULT_TEXT);
         boundsMarker.setStyle(Paint.Style.STROKE);
+        repeatingEventIndicatorMarker = new Paint();
+        repeatingEventIndicatorMarker.setColor(Color.BLACK);
+        repeatingEventIndicatorMarker.setStyle(Paint.Style.FILL_AND_STROKE);
+        repeatingEventIndicatorMarker.setStrokeCap(Paint.Cap.SQUARE);
         setStateFlag(ChevronStates.normal, 0);
         currentScale = 1f;
         inTails = new ArrayList<>(4);
     }
+
     @Override
     protected void onDraw(Canvas canvas) {
         textMarker.setTextSize(DEFAULT_TEXT * currentScale);
@@ -199,6 +210,16 @@ public class ComplexTaskChevron extends View  implements ScaleInterface{
         }
         boundsMarker.setStrokeWidth(BOUNDS_MARKER_WIDTH * currentScale);
         canvas.drawRect(mBounds,boundsMarker);
+        if (isRepeatingTask()) {
+            repeatingEventIndicatorMarker.setStrokeWidth((getHeight() * widthOfRepeatingEventIndicator));
+            canvas.drawLine(
+                    0,
+                    getHeight() - (getHeight() * widthOfRepeatingEventIndicator),
+                    getWidth() + 0,
+                    getHeight() - (getHeight() * widthOfRepeatingEventIndicator),
+                    repeatingEventIndicatorMarker
+                    );
+        }
     }
     @Override
     protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
@@ -262,7 +283,7 @@ public class ComplexTaskChevron extends View  implements ScaleInterface{
         return data.getMY();
     }
     public String getTaskName() { return data.getTaskName();}
-    public void reuseChevron(SubGoalMaster newData) {
+    public void reuseChevron(Chevronable newData) {
         // Switch the data
         data = newData;
         // Reset the information
@@ -379,6 +400,13 @@ public class ComplexTaskChevron extends View  implements ScaleInterface{
 
         invalidate();
     }
+    public boolean isRepeatingTask() {
+        if (data instanceof RepeatingEventMaster) {
+            return true;
+        } else {
+            return false;
+        }
+    }
     /** These flags define what should this View draw.
      * 0 = draw normal box
      * 1 = globalEdit is signed, so draw altered box
@@ -425,14 +453,14 @@ public class ComplexTaskChevron extends View  implements ScaleInterface{
         currentState = flag;
     }
     // Touch Events management:
-    public void updateNewCoordinates() {
+    public void saveData() {
         if (getX() > 0) {
             this.data.setMX((int) getX());
         } else {
-            this.data.setMX(0); // if its out of bounds, we save it at
+            this.data.setMY(0); // if its out of bounds, we save it at
         }
         if (getY() > 0) {
-            this.data.setMY((int) getY());
+            this.data.setMX((int) getY());
         } else {
             this.data.setMY(0);
         }
@@ -441,7 +469,6 @@ public class ComplexTaskChevron extends View  implements ScaleInterface{
     }
     public void setConnection(int withID) {
         this.data.setParentSubGoal(withID);
-        updateNewCoordinates();
     }
     // Outline Provider:
     private class CustomOutline extends ViewOutlineProvider {

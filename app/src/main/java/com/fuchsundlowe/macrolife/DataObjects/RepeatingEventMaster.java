@@ -3,14 +3,9 @@ package com.fuchsundlowe.macrolife.DataObjects;
 import android.arch.persistence.room.Entity;
 import android.arch.persistence.room.Ignore;
 
-import com.fuchsundlowe.macrolife.EngineClasses.StorageMaster;
-
-import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Hashtable;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -33,18 +28,20 @@ import java.util.Set;
         4. Once that month is done, you are asked if you want this to be repeated till end of period...
          */
 @Entity(primaryKeys = {"hashID"})
-public class RepeatingEventMaster extends DataMasterClass {
+public class RepeatingEventMaster extends Chevronable {
 
     // Variables:
     @Ignore
     private Map<DayOfWeek, Set<RepeatingEventsChild>> events;
 
+    // Constructor:
     public RepeatingEventMaster(int hashID, String taskName, Calendar taskStartTime,
                                 Calendar taskEndTime, Calendar taskCreatedTimeStamp,
-                                boolean taskCompleted, SourceType taskOriginalSource) {
-        super(hashID, taskName, taskStartTime, taskEndTime, taskCreatedTimeStamp,
-                taskCompleted, taskOriginalSource);
-
+                                boolean taskCompleted, SourceType taskOriginalSource,
+                                int parentSubGoal, int parentID, int mX, int mY) {
+        super(hashID, taskName, taskStartTime, taskEndTime,
+                taskCreatedTimeStamp, taskCompleted, taskOriginalSource,
+                parentSubGoal, parentID, mX, mY);
     }
 
     private void createMap() {

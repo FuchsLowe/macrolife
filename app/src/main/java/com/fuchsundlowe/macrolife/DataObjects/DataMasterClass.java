@@ -1,5 +1,6 @@
 package com.fuchsundlowe.macrolife.DataObjects;
 
+import android.arch.persistence.room.Entity;
 import android.arch.persistence.room.Ignore;
 import com.fuchsundlowe.macrolife.EngineClasses.StorageMaster;
 import java.util.Calendar;
@@ -47,26 +48,21 @@ public abstract class DataMasterClass {
             this.hashID = hashID;
         }
     }
-
-
     // public getters and setters for variables and support methods
     public int getHashID() { return this.hashID;}
     public void setHashID(int hashID) {this.hashID = hashID;}
-
     public String getTaskName(){
         return this.taskName;
     }
     public void setTaskName(String taskName) {
         this.taskName = taskName;
     }
-
     public Calendar getTaskStartTime() {
         return this.taskStartTime;
     }
     public void setTaskStartTime(Calendar taskStartTime) {
         this.taskStartTime = taskStartTime;
     }
-
     // Returns true if end time is after the beginning, and false if end time is before start time.
     public boolean setTaskEndTime(Calendar taskEndTime) {
         Calendar startTime = this.getTaskStartTime();
@@ -80,22 +76,18 @@ public abstract class DataMasterClass {
     public Calendar getTaskEndTime() {
         return this.taskEndTime;
     }
-
     public Calendar getTaskCreatedTimeStamp() {
         return this.taskCreatedTimeStamp;
     }
     public void setTaskCreatedTimeStamp(Calendar taskCreatedTimeStamp) {
         this.taskCreatedTimeStamp = taskCreatedTimeStamp;
     }
-
     public void setTaskCompleted(boolean taskCompleted) {
         this.taskCompleted = taskCompleted;
     }
     public boolean isTaskCompleted() {
         return this.taskCompleted;
     }
-
-
     private int createNextID() {
         Random random = new Random();
         int newHash;
@@ -104,22 +96,16 @@ public abstract class DataMasterClass {
         } while (storageMaster.checkIfIDisAssigned(newHash));
         return newHash;
     }
-
     public StorageMaster getStorageMaster() {return this.storageMaster; }
-
-
     public void setTaskOriginalSource(SourceType type) {
         this.taskOriginalSource = type;
     }
-
     public SourceType getTaskOriginalSource() {
         return this.taskOriginalSource;
     }
-
     // This method must check if there is stored ID and if yes update, if no insert. It also
     // should manage insertion into dataMaster class
     public abstract void updateMe();
-
     public abstract void deleteMe();
 
 }

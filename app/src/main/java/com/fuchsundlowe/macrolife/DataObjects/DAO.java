@@ -96,6 +96,8 @@ public interface DAO {
     @Query("SELECT * FROM RepeatingEventMaster")
     public LiveData<List<RepeatingEventMaster>> getAllRepeatingEventMaster();
 
+    @Query("SELECT * FROM RepeatingEventMaster WHERE parentID =:withParentID")
+    LiveData<List<RepeatingEventMaster>> getAllRepeatingMasters(int withParentID);
 
     // Manages RepeatingEventsChild objects:
     @Insert(onConflict = OnConflictStrategy.REPLACE)
@@ -109,6 +111,7 @@ public interface DAO {
 
     @Query("SELECT * FROM RepeatingEventsChild")
     public LiveData<List<RepeatingEventsChild>> getAllRepeatingEventsChild();
+
 
 
     // Manages SubGoalMaster objects:

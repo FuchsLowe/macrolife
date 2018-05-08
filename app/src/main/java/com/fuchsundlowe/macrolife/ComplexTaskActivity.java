@@ -26,12 +26,13 @@ import com.fuchsundlowe.macrolife.CustomViews.ComplexTaskChevron;
 import com.fuchsundlowe.macrolife.CustomViews.InfinitePaper;
 import com.fuchsundlowe.macrolife.CustomViews.PopUpCreator;
 import com.fuchsundlowe.macrolife.CustomViews.TailView;
+import com.fuchsundlowe.macrolife.DataObjects.Chevronable;
 import com.fuchsundlowe.macrolife.DataObjects.Constants;
+import com.fuchsundlowe.macrolife.DataObjects.RepeatingEventMaster;
 import com.fuchsundlowe.macrolife.DataObjects.SourceType;
 import com.fuchsundlowe.macrolife.DataObjects.SubGoalMaster;
 import com.fuchsundlowe.macrolife.EngineClasses.StorageMaster;
 import com.fuchsundlowe.macrolife.Interfaces.ComplexTaskInterface;
-import com.fuchsundlowe.macrolife.Interfaces.ScaleInterface;
 import com.fuchsundlowe.macrolife.Interfaces.TailViewProtocol;
 import com.fuchsundlowe.macrolife.Interfaces.DataProviderProtocol;
 import com.fuchsundlowe.macrolife.Interfaces.PopUpProtocol;
@@ -49,10 +50,11 @@ public class ComplexTaskActivity extends AppCompatActivity implements ComplexTas
     private float MAX_SCALE = 0.5f, MIN_SCALE = 1.0f;
     private boolean globalEdit = false;
     private boolean movingBubble = false;
+    private boolean repeatingArrivals = false, subGoalArrivals = false;
     private int INCREASE_PAPER_BY = 50;
 
-    private List<SubGoalMaster> allChildren;
-    private DataProviderProtocol data;
+    private List<Chevronable> allChildren;
+    private DataProviderProtocol dataProvider;
     private List<ComplexTaskChevron> wrappedChildrenInChevrons;
     private List<TailView> allTails;
 
@@ -64,7 +66,7 @@ public class ComplexTaskActivity extends AppCompatActivity implements ComplexTas
     private TailView mTail;
     private ScaleGestureDetector mScaleDetector;
     private GestureDetectorCompat mGestureDetector;
-    private View viewManaged; // This is a holder for current view that's dragged
+    private ComplexTaskChevron viewManaged; // This is a holder for current view that's dragged
     private PopUpCreator bottomBar;
     private ValueAnimator animator;
     private Rect hit;
@@ -82,27 +84,27 @@ public class ComplexTaskActivity extends AppCompatActivity implements ComplexTas
         hit = new Rect();
         scaleFactor = 1.0f; // Defines the default scale factor to start with
         masterID = getIntent().getIntExtra(Constants.LIST_VIEW_MASTER_ID, -1);
-        data = StorageMaster.getInstance(this);
-        masterNameDisplayed.setText(data.getComplexGoalBy(masterID).getTaskName());
+        dataProvider = StorageMaster.getInstance(this);
+        masterNameDisplayed.setText(dataProvider.getComplexGoalBy(masterID).getTaskName());
         mScaleDetector = new ScaleGestureDetector(this, new Scaler());
         mGestureDetector = new GestureDetectorCompat(this, new LongPressDetector());
         INCREASE_PAPER_BY = dpToPixConverter(INCREASE_PAPER_BY);
+        wrappedChildrenInChevrons = new ArrayList<>(12);
 
         // Initialization calls:
         addPaper();
-        getData();
+        getDynamicDataUpdates();
         defineBottomBar();
     }
     @Override
     protected void onStart() {
         super.onStart();
-        vScroll.scrollTo(hScroll.getWidth() / 2, 0); // SHould scroll it to middle
-
+        // TODO: Shoudl Scroll so it encompassess all the views
     }
     @Override
     protected void onStop() {
         super.onStop();
-        // TODO: Should I call this to save the database?
+        saveData();
     }
     // This method call is invoked when we want to close this activity
     private void closeActivity() {
@@ -124,7 +126,6 @@ public class ComplexTaskActivity extends AppCompatActivity implements ComplexTas
                 // Signal to all Chevrons to redraw themselves for editing.
                 setChevronFlag(1);
             }
-
         } else {
             globalEdit = false;
             cancelBubble();
@@ -135,12 +136,12 @@ public class ComplexTaskActivity extends AppCompatActivity implements ComplexTas
              * We request the cancel
              * Down the drain the tail checks if it is doing any draiwng and acts accordingly
              */
-            if (viewManaged instanceof ComplexTaskChevron) {
-                if (((ComplexTaskChevron) viewManaged).getOutTail() != null) {
-                    ((ComplexTaskChevron) viewManaged).getOutTail().removeCancelSign();
+            if (viewManaged != null) {
+                if (viewManaged.getOutTail() != null) {
+                    viewManaged.getOutTail().removeCancelSign();
                 }
+                viewManaged = null;
             }
-            viewManaged = null;
             setChevronFlag(0);
         }
     }
@@ -169,20 +170,6 @@ public class ComplexTaskActivity extends AppCompatActivity implements ComplexTas
         }
         return false;
     }
-
-    private boolean canConnect(BubbleView bubble) {
-        Rect bubbleRect = new Rect();
-        bubble.getHitRect(bubbleRect);
-        for (ComplexTaskChevron object:wrappedChildrenInChevrons) {
-            object.getGlobalVisibleRect(hit);
-            if (hit.contains(bubbleRect)) {
-                connectionCandidate = object;
-                return true;
-            }
-        }
-        return false;
-    }
-
     private boolean isItABubble(float x, float y) {
         if (mBubble != null) {
             Rect hit = new Rect();
@@ -234,22 +221,59 @@ public class ComplexTaskActivity extends AppCompatActivity implements ComplexTas
         hScroll.addView(container);
         container.getLayoutTransition().enableTransitionType(LayoutTransition.CHANGING);
     }
-    private void getData() {
-        data.findAllChildren(masterID).observe(this, new Observer<List<SubGoalMaster>>() {
+    private boolean isChevronableStored(Chevronable objectToCheck) {
+        for (Chevronable storedObject: allChildren) {
+            if (storedObject.getHashID() == objectToCheck.getHashID()) {
+                return true;
+            }
+        }
+        return false;
+    }
+    // This method wraps and presents to Container chevronable objects
+    private void wrapAndPresent(Chevronable chevronable) {
+        ComplexTaskChevron temp = new ComplexTaskChevron(chevronable, this);
+        wrappedChildrenInChevrons.add(temp);
+        container.addView(temp);
+        temp.animationPresentSelf();
+    }
+    // Will update data continuously when new data is set in the database, a work in progress
+    private void getDynamicDataUpdates() {
+        allChildren = new ArrayList<>();
+        dataProvider.findAllChildren(masterID).observe(this, new Observer<List<SubGoalMaster>>() {
             @Override
             public void onChanged(@Nullable List<SubGoalMaster> subGoalMasters) {
-                /*
-                 * I only update on creation, if its not creation, the natural lifecycle of adding
-                 * and removing Chevrons would do the job
-                 */
-                if (allChildren == null || allChildren.size() == 0) {
-                    // There are no children displayed so we re-create all of them
-                    allChildren = subGoalMasters;
-                    updateData();
+                for (SubGoalMaster arrival: subGoalMasters) {
+                    if (!isChevronableStored(arrival)) {
+                        allChildren.add(arrival);
+                        wrapAndPresent(arrival);
+                    }
                 }
+                setAllTails();
+            }
+        });
+        dataProvider.getAllSubordinateRepeatingEventMasters(masterID).observe(this, new Observer<List<RepeatingEventMaster>>() {
+            @Override
+            public void onChanged(@Nullable List<RepeatingEventMaster> repeatingEventMasters) {
+                for (RepeatingEventMaster arrival: repeatingEventMasters) {
+                    if (!isChevronableStored(arrival)) {
+                        allChildren.add(arrival);
+                        wrapAndPresent(arrival);
+
+                    }
+                }
+                setAllTails();
             }
         });
     }
+    // Will fetch data onlyOnce
+    @Deprecated
+    private void getStaticDataUpdate() {
+        allChildren = new ArrayList<>();
+        allChildren.addAll(dataProvider.getAllSubGoalsByMasterId(masterID));
+        allChildren.addAll(dataProvider.getSubordinateRepearingStaticMasters(masterID));
+        updateData();
+    }
+    @Deprecated
     private void updateData() {
        if (wrappedChildrenInChevrons == null) {
            wrappedChildrenInChevrons = new ArrayList<>(allChildren.size());
@@ -278,7 +302,7 @@ public class ComplexTaskActivity extends AppCompatActivity implements ComplexTas
            } else {
                // Means that we have more children than wrappers
                int counter = 0;
-               for (SubGoalMaster master: allChildren) {
+               for (Chevronable master: allChildren) {
                    if (counter <= wrappedChildrenInChevrons.size()) {
                        wrappedChildrenInChevrons.get(counter).reuseChevron(master);
                    } else {
@@ -291,7 +315,7 @@ public class ComplexTaskActivity extends AppCompatActivity implements ComplexTas
            }
         } else {
            // Means that there are no chevrons to be reused, so we have to create new ones
-            for (SubGoalMaster child: allChildren) {
+            for (Chevronable child: allChildren) {
                 ComplexTaskChevron temp = new ComplexTaskChevron(child, this);
                 wrappedChildrenInChevrons.add(temp);
                 container.addView(temp);
@@ -305,6 +329,7 @@ public class ComplexTaskActivity extends AppCompatActivity implements ComplexTas
     }
     // A function that iterates over all wraped items and connects tails for given ones
     private void setAllTails() {
+        // TODO: This is unefficient: Will need to reuse tails, and not just remake them
         ComplexTaskChevron temporaryChevronHolder; // used for optimizing the code
         // We first clear the tails so they don't duplicate if there are any
         if ((allTails !=null) || (allTails.size() > 0)) {
@@ -343,6 +368,11 @@ public class ComplexTaskActivity extends AppCompatActivity implements ComplexTas
     // centers the container in such a way that all tasks are visible
     private void centerTheView() {
 
+    }
+    private void saveData() {
+        for (ComplexTaskChevron object: wrappedChildrenInChevrons) {
+            object.saveData();
+        }
     }
     // Interface part:
     public void stopChangesToLayoutTemp(){
@@ -390,7 +420,8 @@ public class ComplexTaskActivity extends AppCompatActivity implements ComplexTas
         if (updateKey == 0) {
             SubGoalMaster newDataBeingMade = new SubGoalMaster(0, name, start,
                     end, Calendar.getInstance(), false, SourceType.local,
-                    masterID, 0, x, y);
+                    0, masterID, x, y);
+
             newDataBeingMade.updateMe();
             allChildren.add(newDataBeingMade);
             ComplexTaskChevron chev = new ComplexTaskChevron(newDataBeingMade, this);
@@ -565,7 +596,7 @@ public class ComplexTaskActivity extends AppCompatActivity implements ComplexTas
                                     });
                                     animatorHolder.start();
                                 }
-                                ((ComplexTaskChevron) viewManaged).updateNewCoordinates();
+                                //((ComplexTaskChevron) viewManaged).saveData();
                             }
                             bubbleToParent();
                         }
@@ -576,9 +607,7 @@ public class ComplexTaskActivity extends AppCompatActivity implements ComplexTas
                         }
                         break;
                     case MotionEvent.ACTION_CANCEL:
-                        if (viewManaged instanceof ComplexTaskChevron) {
-                            ((ComplexTaskChevron) viewManaged).updateNewCoordinates();
-                        }
+                        //((ComplexTaskChevron) viewManaged).saveData();
                         if (movingBubble) {
                             bubbleToParent();
                         }

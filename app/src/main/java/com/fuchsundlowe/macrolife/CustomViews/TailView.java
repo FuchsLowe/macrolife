@@ -119,7 +119,6 @@ public class TailView extends View {
             animator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
                 @Override
                 public void onAnimationUpdate(ValueAnimator animation) {
-
                     if ((int)(animation.getAnimatedValue()) == 100) {
                         // Means we are done with animating
                         currentDrawingState = drawingState.notAppearing;

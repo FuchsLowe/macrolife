@@ -274,7 +274,7 @@ public class ListFragment extends Fragment implements DateAndTimeProtocol {
             case 3:
                 RepeatingEventMaster repeatingEventMaster = new RepeatingEventMaster(0,
                         taskName, startDate, endDate, Calendar.getInstance(), false,
-                        SourceType.local);
+                        SourceType.local, 0, 0 , 0 , 0);
                 dataMaster.insertObject(repeatingEventMaster);
                 // TODO: Lead to Week to assign repeating tasks?
                 break;

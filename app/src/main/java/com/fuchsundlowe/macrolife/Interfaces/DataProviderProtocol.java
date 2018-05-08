@@ -23,7 +23,6 @@ import java.util.Set;
 
 public interface DataProviderProtocol {
 
-
     //LiveData<List<ComplexGoalMaster>> getComplexGoals();
     void deleteObject(ComplexGoalMaster object);
     Set<ComplexGoalMaster> getComplexGoalsByDay(Calendar day);
@@ -64,6 +63,8 @@ public interface DataProviderProtocol {
     void insertObject(RepeatingEventMaster object);
     void subscribeObserver_RepeatingMaster(LifecycleOwner lifecycleOwner, Observer<List<RepeatingEventMaster>> observer);
     //LiveData<List<RepeatingEventMaster>> getAllRepeatingEventMasters();
+    LiveData<List<RepeatingEventMaster>>getAllSubordinateRepeatingEventMasters(int forMasterID);
+    Set<RepeatingEventMaster>getSubordinateRepearingStaticMasters(int forMasterID);
 
     //Set<RepeatingEventsChild>getAllRepeatingEventChildren();
     void deleteObject(RepeatingEventsChild object);

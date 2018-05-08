@@ -12,59 +12,22 @@ import java.util.Set;
  * TODO: Eventually will need the implememtation of location as a refference in system.
  */
 @Entity(primaryKeys = {"hashID"})
-public class SubGoalMaster extends DataMasterClass {
-    // Instance variables:
-    private int parentID; // Is reference to a ComplexGoalMaster, a must
-    private int parentSubGoal; // Is reference to a another subGoal that lies up in chain or
-    // even master goal... If returns nill then it is not subjetcted to any pattern
-
-    private int mX; // These two are positional elements for Chevron View
-    private int mY;
-
+public class SubGoalMaster extends Chevronable {
 
     @Ignore
     private Set<Integer> childrenGoalsIDs; // Of any usage?
 
     // Constructor:
+
     public SubGoalMaster(int hashID, String taskName, Calendar taskStartTime,
                          Calendar taskEndTime, Calendar taskCreatedTimeStamp,
-                         boolean taskCompleted, SourceType taskOriginalSource, int parentID,
-                         int parentSubGoal, Integer mX, Integer mY) {
-
+                         boolean taskCompleted, SourceType taskOriginalSource,
+                         int parentSubGoal, int parentID, int mX, int mY) {
         super(hashID, taskName, taskStartTime, taskEndTime,
-                taskCreatedTimeStamp, taskCompleted,
-                taskOriginalSource);
-        this.mX = mX;
-        this.mY = mY;
-        this.parentID=parentID;
-        this.parentSubGoal=parentSubGoal;
+                taskCreatedTimeStamp, taskCompleted, taskOriginalSource,
+                parentSubGoal, parentID, mX, mY);
     }
 
-    // Methods:
-    public int  getParentID() {
-        return this.parentID;
-    }
-    public int getParentSubGoal() {
-        return this.parentSubGoal;
-    }
-    public void setParentSubGoal(int newParent){
-        parentSubGoal = newParent;
-    }
-
-    public int getMX() {
-        return this.mX;
-    }
-    public void setMX(int mX) {
-        this.mX = mX;
-    }
-
-    public int getMY() {
-        return mY;
-    }
-
-    public void setMY(int mY) {
-        this.mY = mY;
-    }
 
     // Finds parent if any and returns it as Object. Can be SubMaster or ComplexGoalMaster
     public Object getParentGoal() {

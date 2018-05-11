@@ -5,6 +5,7 @@ import android.arch.lifecycle.LiveData;
 import android.arch.lifecycle.Observer;
 import android.arch.persistence.room.Room;
 import android.content.Context;
+import android.support.annotation.Nullable;
 import android.util.Log;
 
 import com.fuchsundlowe.macrolife.CustomViews.ComplexTaskChevron;
@@ -28,7 +29,7 @@ public class StorageMaster implements DataProviderProtocol {
     private DataProvider dataBase;
     private DAO dataAccessObject;
     private static StorageMaster self = null;
-
+    // Public constructors...
     public static StorageMaster getInstance(Context context) {
         if (self == null) {
             self = new StorageMaster(context);
@@ -49,7 +50,6 @@ public class StorageMaster implements DataProviderProtocol {
                                               Observer<List<ComplexGoalMaster>> observer){
         getComplexGoals().observe(lifecycleOwner, observer);
     }
-    // Will return null if there is no such object
     @Override
     public ComplexGoalMaster getComplexGoalBy(int masterGoalID) {
         for (ComplexGoalMaster goalObject: getAllComplexGoals().getValue() ) {
@@ -111,7 +111,8 @@ public class StorageMaster implements DataProviderProtocol {
         }
         return false;
     }
-//================================================================================
+
+
     // ListMaster
     private LiveData<List<ListMaster>> allListMasters;
     public LiveData<List<ListMaster>> getAllListMasters() {
@@ -174,6 +175,8 @@ public class StorageMaster implements DataProviderProtocol {
         }
         return false;
     }
+
+
     // ListObject
     private LiveData<List<ListObject>> allListObjects;
     public LiveData<List<ListObject>> getListObjects() {
@@ -284,6 +287,8 @@ public class StorageMaster implements DataProviderProtocol {
         }
         return false;
     }
+
+
     // RepeatingEventMaster
     private LiveData<List<RepeatingEventMaster>> allRepeatingEventMasters;
     public LiveData<List<RepeatingEventMaster>> getAllRepeatingEventMasterss() {
@@ -309,12 +314,10 @@ public class StorageMaster implements DataProviderProtocol {
     public void subscribeObserver_RepeatingMaster(LifecycleOwner lifecycleOwner, Observer<List<RepeatingEventMaster>> observer) {
         getAllRepeatingEventMasterss().observe(lifecycleOwner, observer);
     }
-
     @Override
     public LiveData<List<RepeatingEventMaster>> getAllSubordinateRepeatingEventMasters(int forMasterID) {
         return dataAccessObject.getAllRepeatingMasters(forMasterID);
     }
-
     public LiveData<List<RepeatingEventMaster>> getAllRepeatingEventMasters() {
         return allRepeatingEventMasters;
     }
@@ -411,10 +414,12 @@ public class StorageMaster implements DataProviderProtocol {
         }
         return hashSet;
     }
+
+
     // SubGoalMaster
-    private LiveData<List<SubGoalMaster>> allSubGoalMasters;
+    private List<SubGoalMaster> allSubGoalMasters;
     public LiveData<List<SubGoalMaster>> getAllSubGoalMasters() {
-        return allSubGoalMasters;
+        return dataAccessObject.getAllSubGoalMaster();
     }
 
     public void insertObject(final SubGoalMaster object){
@@ -430,8 +435,13 @@ public class StorageMaster implements DataProviderProtocol {
     public void subscribeObserver_SubGoal(LifecycleOwner lifecycleOwner, Observer<List<SubGoalMaster>> observer) {
 
     }
-    public void updateObject(SubGoalMaster object) {
-        dataAccessObject.updateTask(object);
+    public void updateObject(final SubGoalMaster object) {
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                dataAccessObject.updateTask(object);
+            }
+        }).start();
     }
     public void deleteObject(final SubGoalMaster object) {
         new Thread(new Runnable() {
@@ -487,6 +497,8 @@ public class StorageMaster implements DataProviderProtocol {
         }
         return null;
     }
+
+
     // onCreation:
     private StorageMaster(Context appContext) {
         this.dataBase = Room.databaseBuilder(appContext, DataProvider.class, "StandardDB").build();
@@ -550,7 +562,7 @@ public class StorageMaster implements DataProviderProtocol {
             }
         }
 
-        List<SubGoalMaster> subGoalMasterSet = getAllSubGoalMasters().getValue();
+        List<SubGoalMaster> subGoalMasterSet = allSubGoalMasters;
         if (subGoalMasterSet != null) {
             for (SubGoalMaster value : subGoalMasterSet) {
                 if (value.getHashID() == idToCheck) {
@@ -648,7 +660,14 @@ public class StorageMaster implements DataProviderProtocol {
         allListObjects = dataAccessObject.getAllListObject();
         allOrdinaryEventMasters = dataAccessObject.getAllOrdinaryEventMasters();
         allRepeatingEventChildren = dataAccessObject.getAllRepeatingEventsChild();
-        allSubGoalMasters = dataAccessObject.getAllSubGoalMaster();
+        // SubGoalMaster observer forever
+        dataAccessObject.getAllSubGoalMaster().observeForever(new Observer<List<SubGoalMaster>>() {
+            @Override
+            public void onChanged(@Nullable List<SubGoalMaster> subGoalMasters) {
+                allSubGoalMasters = subGoalMasters;
+            }
+        });
+        //allSubGoalMasters = dataAccessObject.getAllSubGoalMaster();
         allRepeatingEventMasters = dataAccessObject.getAllRepeatingEventMaster();
     }
     @Override

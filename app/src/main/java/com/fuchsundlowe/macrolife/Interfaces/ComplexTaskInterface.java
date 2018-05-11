@@ -10,7 +10,6 @@ import com.fuchsundlowe.macrolife.CustomViews.ComplexTaskChevron;
  */
 
 public interface ComplexTaskInterface {
-    void stopChangesToLayoutTemp();
     Context getContext();
     ComplexTaskChevron findChevWithID(int iDentification);
 }

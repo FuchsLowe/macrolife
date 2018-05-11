@@ -23,14 +23,12 @@ import java.util.Set;
 
 public interface DataProviderProtocol {
 
-    //LiveData<List<ComplexGoalMaster>> getComplexGoals();
     void deleteObject(ComplexGoalMaster object);
     Set<ComplexGoalMaster> getComplexGoalsByDay(Calendar day);
     void updateObject(ComplexGoalMaster object);
     void insertObject(ComplexGoalMaster object);
     void subscribeObserver_ComplexGoal(LifecycleOwner lifecycleOwner, Observer<List<ComplexGoalMaster>> observer);
     ComplexGoalMaster getComplexGoalBy(int masterGoalID);
-   // LiveData<List<ComplexGoalMaster>> getAllComplexGoals();
 
     //Set<ListMaster>getAllListMasters();
     void deleteObject(ListMaster object);

@@ -50,7 +50,6 @@ public class ComplexTaskActivity extends AppCompatActivity implements ComplexTas
     private float MAX_SCALE = 0.5f, MIN_SCALE = 1.0f;
     private boolean globalEdit = false;
     private boolean movingBubble = false;
-    private boolean repeatingArrivals = false, subGoalArrivals = false;
     private int INCREASE_PAPER_BY = 50;
 
     private List<Chevronable> allChildren;
@@ -110,108 +109,8 @@ public class ComplexTaskActivity extends AppCompatActivity implements ComplexTas
     private void closeActivity() {
         this.finish();
     }
-    private void signalGlobalEdit(boolean editStart) {
-        if (editStart) {
-            // Create a Bubble view and ConnectorView adjecent to the current ViewManaged
-            globalEdit = true; // Just indicator
-            // I need to establish if it should commence bubble creation or cancelation of tail?
-            if (((ComplexTaskChevron)viewManaged).getOutTail() != null) {
-                // means we have a tail already, thus we signal that we can destroy it
-                ((ComplexTaskChevron)viewManaged).requestTailCancelOption();
-            } else {
-                // we don't have outTail and we can create a bubble to make one
-                mBubble = new BubbleView(this, (ComplexTaskChevron) viewManaged,
-                        BubbleView.ConnectorState.initiated);
-                container.addView(mBubble);
-                // Signal to all Chevrons to redraw themselves for editing.
-                setChevronFlag(1);
-            }
-        } else {
-            globalEdit = false;
-            cancelBubble();
-            bottomBar.releaseFields();
-            /*
-             * If View managed is chevron
-             * We grab out Tail
-             * We request the cancel
-             * Down the drain the tail checks if it is doing any draiwng and acts accordingly
-             */
-            if (viewManaged != null) {
-                if (viewManaged.getOutTail() != null) {
-                    viewManaged.getOutTail().removeCancelSign();
-                }
-                viewManaged = null;
-            }
-            setChevronFlag(0);
-        }
-    }
-    private boolean childLookUp(float x, float y) {
-        if (wrappedChildrenInChevrons != null) {
-            for (ComplexTaskChevron object : wrappedChildrenInChevrons) {
-                object.getGlobalVisibleRect(hit);
-                if (hit.contains((int) x, (int) y)) {
-                    viewManaged = object;
-                    return true;
-                }
-            }
-        }
-        return false;
-    }
-    // This one checks if bubble can establish connection with Chevron at specific location
-    private boolean canConnect(int x, int y) {
-        for (ComplexTaskChevron object : wrappedChildrenInChevrons) {
-            object.getGlobalVisibleRect(hit);
-            if (hit.contains(x,y)) {
-                if (object.canAcceptConnection()) {
-                    connectionCandidate = object;
-                    return true;
-                }
-            }
-        }
-        return false;
-    }
-    private boolean isItABubble(float x, float y) {
-        if (mBubble != null) {
-            Rect hit = new Rect();
-            mBubble.getGlobalVisibleRect(hit);
-            if (hit.contains((int) x, (int) y)) {
-                return true;
-            }
-        }
-        return false;
-    }
-    private void cancelBubble() {
-        movingBubble = false;
-        if (mBubble != null) {
-            container.removeView(mBubble);
-            mBubble = null;
-        }
-    }
-    private void setChevronFlag(int flag) {
-        for (ComplexTaskChevron chev: wrappedChildrenInChevrons) {
-            if (chev != viewManaged) {
-                switch (flag){
-                    case 0:
-                        chev.setStateFlag(ComplexTaskChevron.ChevronStates.normal,0);
-                        break;
-                    case 1:
-                        chev.setStateFlag(ComplexTaskChevron.ChevronStates.globalEdit,
-                                ((ComplexTaskChevron)viewManaged).getDataID());
-                        break;
 
-
-                }
-            }
-        }
-    }
-    // Will spring back bubble to original position, due to not hooking up with other goal
-    private void bubbleToParent() {
-        if (mBubble != null) {
-            mBubble.animateToOriginalPosition();
-            container.removeView(mTail);
-            mTail = null;
-        }
-    }
+    // Central Frame:
     private void addPaper() {
         FrameLayout.LayoutParams p = new FrameLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT,
                 ViewGroup.LayoutParams.WRAP_CONTENT);
@@ -221,22 +120,13 @@ public class ComplexTaskActivity extends AppCompatActivity implements ComplexTas
         hScroll.addView(container);
         container.getLayoutTransition().enableTransitionType(LayoutTransition.CHANGING);
     }
-    private boolean isChevronableStored(Chevronable objectToCheck) {
-        for (Chevronable storedObject: allChildren) {
-            if (storedObject.getHashID() == objectToCheck.getHashID()) {
-                return true;
-            }
-        }
-        return false;
+
+    // Bottom Frame:
+    private void defineBottomBar() {
+        bottomBar = new PopUpCreator(PopUpCreator.COMPLEX_TASK_ACTIVITY, this);
     }
-    // This method wraps and presents to Container chevronable objects
-    private void wrapAndPresent(Chevronable chevronable) {
-        ComplexTaskChevron temp = new ComplexTaskChevron(chevronable, this);
-        wrappedChildrenInChevrons.add(temp);
-        container.addView(temp);
-        temp.animationPresentSelf();
-    }
-    // Will update data continuously when new data is set in the database, a work in progress
+
+    // Database:
     private void getDynamicDataUpdates() {
         allChildren = new ArrayList<>();
         dataProvider.findAllChildren(masterID).observe(this, new Observer<List<SubGoalMaster>>() {
@@ -275,46 +165,46 @@ public class ComplexTaskActivity extends AppCompatActivity implements ComplexTas
     }
     @Deprecated
     private void updateData() {
-       if (wrappedChildrenInChevrons == null) {
-           wrappedChildrenInChevrons = new ArrayList<>(allChildren.size());
-       }
-           // Reusing the chevrons:
+        if (wrappedChildrenInChevrons == null) {
+            wrappedChildrenInChevrons = new ArrayList<>(allChildren.size());
+        }
+        // Reusing the chevrons:
         if (wrappedChildrenInChevrons.size() > 0) {
-           if (BuildConfig.DEBUG) {
-               throw new AssertionError();
-           }
-           if (wrappedChildrenInChevrons.size() > allChildren.size()) {
-               // We have more wrappers than children, thus we remove some
-               int excessWrappers = wrappedChildrenInChevrons.size() - allChildren.size();
-               for (; excessWrappers>0; excessWrappers--) {
-                   container.removeView(wrappedChildrenInChevrons.get(0));
-                   wrappedChildrenInChevrons.remove(0);
-               }
-               // Now we reassign the the remainder
-               for (int counter = 0; counter <= allChildren.size(); counter++) {
-                   wrappedChildrenInChevrons.get(counter).reuseChevron(allChildren.get(counter));
-               }
-           } else if (wrappedChildrenInChevrons.size() == allChildren.size()) {
-               // Number of wrappers is exact as the number of children to be wrapped
-               for (int counter = 0; counter <= allChildren.size(); counter++) {
-                   wrappedChildrenInChevrons.get(counter).reuseChevron(allChildren.get(counter));
-               }
-           } else {
-               // Means that we have more children than wrappers
-               int counter = 0;
-               for (Chevronable master: allChildren) {
-                   if (counter <= wrappedChildrenInChevrons.size()) {
-                       wrappedChildrenInChevrons.get(counter).reuseChevron(master);
-                   } else {
-                       ComplexTaskChevron temp = new ComplexTaskChevron(master, this);
-                       wrappedChildrenInChevrons.add(temp);
-                       container.addView(temp);
-                       temp.animationPresentSelf();
-                   }
-               }
-           }
+            if (BuildConfig.DEBUG) {
+                throw new AssertionError();
+            }
+            if (wrappedChildrenInChevrons.size() > allChildren.size()) {
+                // We have more wrappers than children, thus we remove some
+                int excessWrappers = wrappedChildrenInChevrons.size() - allChildren.size();
+                for (; excessWrappers>0; excessWrappers--) {
+                    container.removeView(wrappedChildrenInChevrons.get(0));
+                    wrappedChildrenInChevrons.remove(0);
+                }
+                // Now we reassign the the remainder
+                for (int counter = 0; counter <= allChildren.size(); counter++) {
+                    wrappedChildrenInChevrons.get(counter).reuseChevron(allChildren.get(counter));
+                }
+            } else if (wrappedChildrenInChevrons.size() == allChildren.size()) {
+                // Number of wrappers is exact as the number of children to be wrapped
+                for (int counter = 0; counter <= allChildren.size(); counter++) {
+                    wrappedChildrenInChevrons.get(counter).reuseChevron(allChildren.get(counter));
+                }
+            } else {
+                // Means that we have more children than wrappers
+                int counter = 0;
+                for (Chevronable master: allChildren) {
+                    if (counter <= wrappedChildrenInChevrons.size()) {
+                        wrappedChildrenInChevrons.get(counter).reuseChevron(master);
+                    } else {
+                        ComplexTaskChevron temp = new ComplexTaskChevron(master, this);
+                        wrappedChildrenInChevrons.add(temp);
+                        container.addView(temp);
+                        temp.animationPresentSelf();
+                    }
+                }
+            }
         } else {
-           // Means that there are no chevrons to be reused, so we have to create new ones
+            // Means that there are no chevrons to be reused, so we have to create new ones
             for (Chevronable child: allChildren) {
                 ComplexTaskChevron temp = new ComplexTaskChevron(child, this);
                 wrappedChildrenInChevrons.add(temp);
@@ -322,10 +212,161 @@ public class ComplexTaskActivity extends AppCompatActivity implements ComplexTas
                 temp.animationPresentSelf();
             }
         }
-       setAllTails(); // When we do the update then the tails are adjusted... Thast whats calling this
+        setAllTails(); // When we do the update then the tails are adjusted... Thast whats calling this
     }
-    private void defineBottomBar() {
-        bottomBar = new PopUpCreator(PopUpCreator.COMPLEX_TASK_ACTIVITY, this);
+    private void saveData() {
+        for (ComplexTaskChevron object: wrappedChildrenInChevrons) {
+            object.saveData();
+        }
+    }
+
+
+    // Global Changes:
+    private void signalGlobalEdit(boolean editStart) {
+        if (editStart) {
+            // Create a Bubble view and ConnectorView adjecent to the current ViewManaged
+            globalEdit = true; // Just indicator
+            // I need to establish if it should commence bubble creation or cancelation of tail?
+            if (((ComplexTaskChevron)viewManaged).getOutTail() != null) {
+                // means we have a tail already, thus we signal that we can destroy it
+                ((ComplexTaskChevron)viewManaged).requestTailCancelOption();
+            } else {
+                // we don't have outTail and we can create a bubble to make one
+                mBubble = new BubbleView(this, (ComplexTaskChevron) viewManaged,
+                        BubbleView.ConnectorState.initiated);
+                container.addView(mBubble);
+                // Signal to all Chevrons to redraw themselves for editing.
+                setChevronFlag(1);
+            }
+        } else {
+            globalEdit = false;
+            cancelBubble();
+            bottomBar.releaseFields();
+            /*
+             * If View managed is chevron
+             * We grab out Tail
+             * We request the cancel
+             * Down the drain the tail checks if it is doing any draiwng and acts accordingly
+             */
+            if (viewManaged != null) {
+                if (viewManaged.getOutTail() != null) {
+                    viewManaged.getOutTail().removeCancelSign();
+                }
+                viewManaged = null;
+            }
+            setChevronFlag(0);
+        }
+    }
+    public void globalEditDone() {
+        signalGlobalEdit(false);
+    }
+
+
+    // Chevron Related Methods:
+    private void wrapAndPresent(Chevronable chevronable) {
+        // This method wraps and presents to Container chevronable objects
+        ComplexTaskChevron temp = new ComplexTaskChevron(chevronable, this);
+        wrappedChildrenInChevrons.add(temp);
+        container.addView(temp);
+        temp.animationPresentSelf();
+    }
+    private boolean chevronLookUp(float x, float y) {
+        if (wrappedChildrenInChevrons != null) {
+            for (ComplexTaskChevron object : wrappedChildrenInChevrons) {
+                object.getGlobalVisibleRect(hit);
+                if (hit.contains((int) x, (int) y)) {
+                    viewManaged = object;
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+    // This one checks if bubble can establish connection with Chevron at specific location
+    private boolean chevronToConnect(int x, int y) {
+        for (ComplexTaskChevron object : wrappedChildrenInChevrons) {
+            object.getGlobalVisibleRect(hit);
+            if (hit.contains(x,y)) {
+                if (object.canAcceptConnection()) {
+                    connectionCandidate = object;
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+    private void setChevronFlag(int flag) {
+        for (ComplexTaskChevron chev: wrappedChildrenInChevrons) {
+            if (chev != viewManaged) {
+                switch (flag){
+                    case 0:
+                        chev.setStateFlag(ComplexTaskChevron.ChevronStates.normal,0);
+                        break;
+                    case 1:
+                        chev.setStateFlag(ComplexTaskChevron.ChevronStates.globalEdit,
+                                ((ComplexTaskChevron)viewManaged).getDataID());
+                        break;
+                }
+            }
+        }
+    }
+    private boolean isChevronableStored(Chevronable objectToCheck) {
+        for (Chevronable storedObject: allChildren) {
+            if (storedObject.getHashID() == objectToCheck.getHashID()) {
+                return true;
+            }
+        }
+        return false;
+    }
+    // Looks for Chevron with requested ID. Returns null if there is none.
+    @Override
+    public ComplexTaskChevron findChevWithID(int iDentification) {
+        for (ComplexTaskChevron chev: wrappedChildrenInChevrons) {
+            if (chev.getDataID() == iDentification) {
+                return chev;
+            }
+        }
+        return null;
+    }
+
+
+    // Bubble Related Methods:
+    private boolean isItABubble(float x, float y) {
+        if (mBubble != null) {
+            Rect hit = new Rect();
+            mBubble.getGlobalVisibleRect(hit);
+            if (hit.contains((int) x, (int) y)) {
+                return true;
+            }
+        }
+        return false;
+    }
+    private void bubbleToParent() {
+        if (mBubble != null) {
+            mBubble.animateToOriginalPosition();
+            container.removeView(mTail);
+            mTail = null;
+        }
+    }
+    private void cancelBubble() {
+        movingBubble = false;
+        if (mBubble != null) {
+            container.removeView(mBubble);
+            mBubble = null;
+        }
+    }
+
+
+    // Tail Related Methods:
+    private TailView makeATail(View tailOut, View tailIn) {
+        // Creates a tail, adds it to container and all tails list and returns it
+        TailView newTailBeingCreated = new TailView(this, tailOut, tailIn);
+        ((ComplexTaskChevron)tailOut).setOutTail(newTailBeingCreated);
+        ((ComplexTaskChevron)tailIn).addInTail(newTailBeingCreated);
+        allTails.add(newTailBeingCreated);
+        container.addView(newTailBeingCreated);
+        // newTailBeingCreated.updateLayout(); not working...
+        return newTailBeingCreated;
     }
     // A function that iterates over all wraped items and connects tails for given ones
     private void setAllTails() {
@@ -350,65 +391,16 @@ public class ComplexTaskActivity extends AppCompatActivity implements ComplexTas
             }
         }
     }
-    // Creates a tail, adds it to container and all tails list and returns it
-    private TailView makeATail(View tailOut, View tailIn) {
-        TailView newTailBeingCreated = new TailView(this, tailOut, tailIn);
-        ((ComplexTaskChevron)tailOut).setOutTail(newTailBeingCreated);
-        ((ComplexTaskChevron)tailIn).addInTail(newTailBeingCreated);
-        allTails.add(newTailBeingCreated);
-        container.addView(newTailBeingCreated);
-       // newTailBeingCreated.updateLayout(); not working...
-        return newTailBeingCreated;
-    }
     // Will dissow the view from container and from allTails
     public void removeATail(View tailToBeRemoved) {
         container.removeView(tailToBeRemoved);
         allTails.remove(tailToBeRemoved);
     }
-    // centers the container in such a way that all tasks are visible
-    private void centerTheView() {
 
-    }
-    private void saveData() {
-        for (ComplexTaskChevron object: wrappedChildrenInChevrons) {
-            object.saveData();
-        }
-    }
-    // Interface part:
-    public void stopChangesToLayoutTemp(){
-        //trackerOfBoolTest(true);
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    Log.e("Calling sleep", "NOW");
-                    Thread.sleep(1000);
-                    trackerOfBoolTest(false);
-                } catch (InterruptedException e) {
-                    trackerOfBoolTest(false);
-                    Log.e("Error", "Sleep interuoted");
-                }
-            }
-        });
-    }
+    // INTERFACE: PopUpProtocol:
     @Override
     public void removeViewFromContainer(View toBeRemovedFromContainer) {
         container.removeView(toBeRemovedFromContainer);
-    }
-    // Looks for Chevron with requested ID. Returns null if there is none.
-    @Override
-    public ComplexTaskChevron findChevWithID(int iDentification) {
-        for (ComplexTaskChevron chev: wrappedChildrenInChevrons) {
-            if (chev.getDataID() == iDentification) {
-                return chev;
-            }
-        }
-        return null;
-    }
-    private void trackerOfBoolTest(boolean test) {
-        //Log.e("TEst is set to:", String.valueOf(test));
-        //layoutIsChangin=test;
-
     }
     public LinearLayout getLinearBox() {
         return findViewById(R.id.bottom_layout);
@@ -416,6 +408,7 @@ public class ComplexTaskActivity extends AppCompatActivity implements ComplexTas
     public Context getContext() {
         return this;
     }
+    // TODO: To be changed! Does not belong here
     public void newTask(String name, Calendar start, Calendar end, Integer x, Integer y, int updateKey) {
         if (updateKey == 0) {
             SubGoalMaster newDataBeingMade = new SubGoalMaster(0, name, start,
@@ -431,16 +424,17 @@ public class ComplexTaskActivity extends AppCompatActivity implements ComplexTas
         }
     }
     @Override
-    public void globalEditDone() {
-        signalGlobalEdit(false);
-    }
     public AppCompatActivity getActivity() {
         return this;
     }
+
+    // INTERFACE: TailViewProtocol
     @Override
     public ViewGroup getContainer() {
         return container;
     }
+
+
     // Touch events:
     @Override
     public boolean onTouchEvent(MotionEvent event) {
@@ -469,7 +463,7 @@ public class ComplexTaskActivity extends AppCompatActivity implements ComplexTas
                     }
                 } else {
                     // if we have clicked at task, we move it, else we move background..
-                    childLookUp(storedX, storedY);
+                    chevronLookUp(storedX, storedY);
                 }
             } else {
                 switch (event.getAction()) {
@@ -486,8 +480,8 @@ public class ComplexTaskActivity extends AppCompatActivity implements ComplexTas
                             mBubble.setTranslationX(mBubble.getTranslationX() + translationX);
                             mBubble.setTranslationY(mBubble.getTranslationY() + translationY);
 
-                            if (canConnect((int)(currentX), (int)(currentY))) {
-                            //if (canConnect(mBubble)) {
+                            if (chevronToConnect((int)(currentX), (int)(currentY))) {
+                            //if (chevronToConnect(mBubble)) {
                                mBubble.setConnectionOpportunity(1);
                             } else {
                                 mBubble.setConnectionOpportunity(0);
@@ -544,8 +538,8 @@ public class ComplexTaskActivity extends AppCompatActivity implements ComplexTas
                         break;
                     case MotionEvent.ACTION_UP:
                         if (movingBubble) {
-                            if (canConnect((int)(currentX),(int) (currentY))) {
-                            //if (canConnect(mBubble)) {
+                            if (chevronToConnect((int)(currentX),(int) (currentY))) {
+                            //if (chevronToConnect(mBubble)) {
                                 if (connectionCandidate != null) {
                                     ((ComplexTaskChevron) viewManaged).setConnection
                                             (connectionCandidate.getDataID());
@@ -640,7 +634,7 @@ public class ComplexTaskActivity extends AppCompatActivity implements ComplexTas
         @Override
         public void onLongPress(MotionEvent e) {
             //stopChangesToLayoutTemp();
-            if (childLookUp(e.getX(),e.getY())) {
+            if (chevronLookUp(e.getX(),e.getY())) {
                 // We have clicked on view
                 if (viewManaged != null) {
                     if (viewManaged instanceof ComplexTaskChevron) {
@@ -661,6 +655,9 @@ public class ComplexTaskActivity extends AppCompatActivity implements ComplexTas
     public void onClose(View view) {
         closeActivity();
     }
+
+
+    // Utility Methods:
     private int dpToPixConverter(float dp) {
         float scale = getResources().getDisplayMetrics().density;
         return (int) (dp * scale * 0.5f);

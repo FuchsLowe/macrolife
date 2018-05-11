@@ -60,6 +60,7 @@ public class PopUpCreator {
                 if (actionId == EditorInfo.IME_ACTION_DONE) {
                     if (v.getText().length() > 0) {
                         if (clickLocation == null) {
+                            // TODO: This should be done by this class
                             mInterface.newTask(v.getText().toString(), null, null,
                                     DEFAULT_SPAWN_X, DEFAULT_SPAWN_Y, 0);
                         } else {

@@ -13,16 +13,16 @@ import android.view.View;
 
 /**
  * Created by macbook on 2/13/18.
+ * This is Chrono-View
  */
 
-public class DayViewBackLayout extends View {
+public class ChronoView extends View {
 
     // StandardValues
     private int LINE_COLOR = Color.BLACK;
     private int SCALE_FACTOR = 10; // Defines how many hours we will show at screen at one time...
     private int RIGHT_PADDING = 5;
     private int LEFT_PADDING = 10;
-    private boolean SHOW_DOTTED_LINE = false; //TODO: Not yet implemented
     private boolean SHOW_HOURS = false;
     private int LINE_WIDTH = 1;
     private int ROW_IN_DP = 36;
@@ -42,7 +42,7 @@ public class DayViewBackLayout extends View {
 
 
     // Public constructor that makes initialization of values as well at the same time
-    public DayViewBackLayout(Context context, int workableHeight) {
+    public ChronoView(Context context, int workableHeight) {
         super(context);
 
         this.context = context;

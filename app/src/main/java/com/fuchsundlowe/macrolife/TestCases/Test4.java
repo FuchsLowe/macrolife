@@ -1,16 +1,12 @@
 package com.fuchsundlowe.macrolife.TestCases;
 
-import android.animation.ObjectAnimator;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.ViewPropertyAnimator;
 import android.widget.EditText;
 import android.widget.SeekBar;
 
-import com.fuchsundlowe.macrolife.CustomViews.ComplexTaskChevron;
-import com.fuchsundlowe.macrolife.CustomViews.DayViewBackLayout;
 import com.fuchsundlowe.macrolife.R;
 
 public class Test4 extends AppCompatActivity {

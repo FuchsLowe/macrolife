@@ -7,14 +7,18 @@ import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentStatePagerAdapter;
 import android.support.v4.view.PagerAdapter;
 import android.support.v4.view.ViewPager;
-import android.widget.GridView;
-import com.fuchsundlowe.macrolife.Adapters.PopUpGridAdapter;
+import android.util.Log;
+import android.view.ViewGroup;
+
 import com.fuchsundlowe.macrolife.DataObjects.Constants;
 import com.fuchsundlowe.macrolife.EngineClasses.StorageMaster;
-import com.fuchsundlowe.macrolife.FragmentModels.TopBarFragment_DayView;
+import com.fuchsundlowe.macrolife.FragmentModels.DateDisplay_DayView;
 import com.fuchsundlowe.macrolife.Interfaces.DataProviderProtocol;
-import com.fuchsundlowe.macrolife.SupportClasses.ZoomOut_PageTransformer;
+import com.fuchsundlowe.macrolife.Interfaces.DayViewTopFragmentCallback;
 
+import java.text.SimpleDateFormat;
+import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
 import java.util.Calendar;
 
 /**
@@ -22,186 +26,175 @@ import java.util.Calendar;
  *  Chronological view of the daily duties.
  *  Requests information to fill in this specific day based on day atribute.
  */
-public class DayView extends FragmentActivity {
+public class DayView extends FragmentActivity implements DayViewTopFragmentCallback {
 
-    private int NUM_OF_VIEWS  = 100;
-    private ViewPager topBar;
-    private PagerAdapter adapter;
     private DataProviderProtocol dataMaster;
-    private Calendar currentDay;
+    private Calendar currentDisplayedDay;
+    private Calendar startPosition;
+    private ViewGroup central, bottom;
+    private ViewPager dateDisplay, dayDisplay;
+    private PagerAdapter dayPageAdapter, datePageAdapter;
+    private DayView self;
+    private int currentDayPosition, currentDatePosition;
+    private ArrayList<DateDisplay_DayView> topBarFragments;
 
-    public DayView() {
-        // Required empty public constructor
-        dataMaster = StorageMaster.getInstance(this);
-    }
     // Life-cycle events:
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        currentDay = Calendar.getInstance();
         // We are expecting a passed day in form of long to be delivered
         if (savedInstanceState != null) {
             Long day = savedInstanceState.getLong(Constants.DAY_TO_DISPLAY);
             if (day != null) {
-                currentDay.setTimeInMillis(day);
+                currentDisplayedDay.setTimeInMillis(day);
+            } else {
+                currentDisplayedDay = Calendar.getInstance();
             }
+        } else {
+            currentDisplayedDay = Calendar.getInstance();
         }
+        startPosition = (Calendar) currentDisplayedDay.clone();
+
+        topBarFragments = new ArrayList<>();
+
         setContentView(R.layout.day_layout);
-    }
-    @Override
-    public void onStart() {
-        super.onStart();
-        initiateTopBar();
-        initiateBottomBar();
-    }
-    // TopBar Implementation:
-    private void initiateTopBar() {
-        if (topBar == null) {
-            topBar = (ViewPager) findViewById(R.id.top_bar);
-        }
+        self = this;
+        dataMaster = StorageMaster.getInstance(this);
+        central = findViewById(R.id.DayView_Central);
 
-        adapter = new PageAdapterMaster(getSupportFragmentManager());
-        topBar.setAdapter(adapter);
-        topBar.setPageTransformer(true, new ZoomOut_PageTransformer());
-        topBar.setCurrentItem(NUM_OF_VIEWS / 2); // S we have equal number of fragments on each side
-    }
-    private class PageAdapterMaster extends FragmentStatePagerAdapter {
+        dateDisplay = findViewById(R.id.DateDisplay);
+        datePageAdapter = new TopPageAdapter(getSupportFragmentManager());
+        dateDisplay.setAdapter(datePageAdapter);
+        dateDisplay.setCurrentItem(52); // we drop it in the middle
 
-        public PageAdapterMaster(FragmentManager fm) {
+        dayDisplay = findViewById(R.id.DayDisplay);
+        dayPageAdapter = new CentralPageAdapter(getSupportFragmentManager());
+        dayDisplay.setAdapter(dayPageAdapter);
+        dayDisplay.setCurrentItem(365);
+
+        definePageTransformerCallbacks();
+
+        bottom = findViewById(R.id.DayView_Bottom);
+    }
+    public void setNewSelectedDay(Calendar newSelectedDay) {
+        /*
+         * Here We receive the new day to display
+         * we need to get the week and select the day to display from that week
+         *
+         * we need to show that day in bottom bar as well
+         */
+        getDate(newSelectedDay);
+        //sets the week:
+        long differenceInWeeks = distanceInWeeks(startPosition, newSelectedDay);
+        dateDisplay.setCurrentItem((int) (52 + differenceInWeeks),
+                true);
+
+        long differenceInDays = distanceInDays(startPosition, newSelectedDay);
+        dayDisplay.setCurrentItem((int) (365 + differenceInDays), true);
+
+        currentDisplayedDay = newSelectedDay;
+    }
+    private long distanceInWeeks(Calendar start, Calendar end) {
+        long difference = start.getTimeInMillis() - end.getTimeInMillis();
+
+        return difference / (1000 * 3600 * 24 * 7);
+    }
+    private long distanceInDays(Calendar start, Calendar end) {
+        long difference = start.getTimeInMillis() - end.getTimeInMillis();
+
+        return difference / (1000 * 3600 * 24);
+    }
+
+    // Page Transformers
+    private void definePageTransformerCallbacks() {
+        dateDisplay.addOnPageChangeListener(new ViewPager.OnPageChangeListener() {
+            @Override
+            public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {
+
+            }
+
+            @Override
+            public void onPageSelected(int position) {
+                currentDatePosition = position;
+            }
+
+            @Override
+            public void onPageScrollStateChanged(int state) {
+
+            }
+        });
+
+        dayDisplay.addOnPageChangeListener(new ViewPager.OnPageChangeListener() {
+            @Override
+            public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {
+
+            }
+
+            @Override
+            public void onPageSelected(int position) {
+                currentDayPosition = position;
+            }
+
+            @Override
+            public void onPageScrollStateChanged(int state) {
+
+            }
+        });
+    }
+    private class TopPageAdapter extends FragmentStatePagerAdapter {
+        final int NUMBER_OF_WEEKS = 104; // good for scrolling up to a year in both directions
+
+        public TopPageAdapter(FragmentManager fm) {
             super(fm);
         }
-        private Integer currentValue;
-        private Calendar startTime;
         @Override
-
         public Fragment getItem(int position) {
-            if (currentValue == null) {
-                currentValue = position;
-                TopBarFragment_DayView barFragment = new TopBarFragment_DayView();
-                barFragment.setDay(currentDay);
-                startTime = currentDay;
-                return barFragment;
-            } else {
-                TopBarFragment_DayView barFragment = new TopBarFragment_DayView();
-                Calendar tempHolder = Calendar.getInstance();
-                tempHolder.setTime(startTime.getTime());
-                tempHolder.roll(Calendar.DAY_OF_YEAR, position - currentValue);
-                barFragment.setDay(tempHolder);
-                return barFragment;
-            }
+            DateDisplay_DayView newFragment = new DateDisplay_DayView();
+            Calendar toPass = (Calendar) currentDisplayedDay.clone();
+            toPass.roll(Calendar.WEEK_OF_YEAR,position - 52);
+            calendarDatesHolder.add(toPass);
+            newFragment.defineTopBar(self, toPass);
+            topBarFragments.add(newFragment);
+            return newFragment;
+        }
+        @Override
+        public int getCount() {
+            return NUMBER_OF_WEEKS;
+        }
+    }
+
+    private class CentralPageAdapter extends FragmentStatePagerAdapter {
+
+        final int NUMBER_OF_DAYS = 730; // or 2 years worth of days
+        public CentralPageAdapter(FragmentManager fm) {
+            super(fm);
+        }
+
+        @Override
+        public Fragment getItem(int position) {
+            return null;
         }
 
         @Override
         public int getCount() {
-            return NUM_OF_VIEWS;
-        }
-
-    }
-    // Bottom Bar Implementation:
-    private GridView grid;
-    private void initiateBottomBar() {
-        grid = findViewById(R.id.grid);
-        grid.setNumColumns(2);
-        grid.setAdapter(new PopUpGridAdapter(this));
-    }
-    /*
-    private DayHolder currentDay;
-    private DayHolder nextDay;
-    private DayHolder previousDay;
-
-    // Assuming that this is called only from the onCreate method, this function defines day to show
-    // and its adjacent days
-    private void setMetaData(Long dayInLong) {
-        Calendar tempTime = Calendar.getInstance();
-
-        tempTime.setTime(new Date(dayInLong)); // Does adjustment of time
-        currentDay = new DayHolder(tempTime, dataMaster);
-
-        tempTime.roll(Calendar.DAY_OF_MONTH,true); // changed the time for 1 day
-        nextDay = new DayHolder(tempTime, dataMaster);
-
-        tempTime.roll(Calendar.DAY_OF_MONTH, -2); // changes time for -2 days
-        previousDay = new DayHolder(tempTime, dataMaster);
-    }
-
-    // Methods for swaping and handling of the days:
-    private void nextDay() {
-        DayHolder tempHolder = previousDay;
-        previousDay = currentDay;
-        currentDay = nextDay;
-        Calendar next = Calendar.getInstance();
-        next.setTime(currentDay.thisDay.getTime());
-        next.roll(Calendar.DAY_OF_MONTH,true);
-        tempHolder.reuseMe(next);// SHould load the new time
-        nextDay = tempHolder;
-    }
-
-    private void previousDay() {
-        DayHolder tempHolder = nextDay;
-        nextDay = currentDay;
-        currentDay = previousDay;
-        Calendar next = Calendar.getInstance();
-        next.setTime(currentDay.thisDay.getTime());
-        next.roll(Calendar.DAY_OF_MONTH,false);
-        tempHolder.reuseMe(next);
-        previousDay = tempHolder;
-    }
-
-    // Holders for CurrentDay, nextDay and previousDay
-    private class DayHolder {
-
-        protected Calendar thisDay;
-        private DataProviderProtocol dataProvider;
-        private Set<ComplexGoalMaster> complexGoalMasters;
-        private Set<SubGoalMaster> subGoalMasters;
-        private Set<ListMaster> listMasters;
-        private Set<OrdinaryEventMaster> ordinaryEventMasters;
-        private Set<RepeatingEventMaster> repeatingEventMasters;
-        private Set<RepeatingEventsChild> repeatingEventsChildren;
-
-        public DayHolder(Calendar forDay, DataProviderProtocol dataBase) {
-            // Implements the fetching and loading of the files
-            thisDay = forDay;
-            dataProvider = dataBase;
-            complexGoalMasters = new HashSet<>();
-            subGoalMasters = new HashSet<>();
-            listMasters = new HashSet<>();
-            ordinaryEventMasters = new HashSet<>();
-            repeatingEventMasters = new HashSet<>();
-            repeatingEventsChildren = new HashSet<>();
-            //fillInTheSets(); TODO: Temp Solution
-        }
-
-        public void reuseMe(Calendar newDay) {
-            thisDay = newDay;
-            cleansTheSets();
-            fillInTheSets();
-        }
-
-        // Manages the calls for populating the sets, assumes sets are initiated, only at
-        // creation of the class gets called
-        private void fillInTheSets() {
-            complexGoalMasters = dataProvider.getComplexGoalsByDay(thisDay);
-            for (ComplexGoalMaster master: complexGoalMasters) {
-                subGoalMasters.addAll(dataProvider.getAllSubGoalsByMasterId(master.getHashID()));
-            }
-            listMasters = dataProvider.getAllListMastersByDay(thisDay);
-            ordinaryEventMasters = dataProvider.getAllOrdinaryTasksByDay(thisDay);
-            repeatingEventMasters = dataProvider.getAllRepeatingEventMastersByDay(thisDay);
-            for (RepeatingEventMaster master: repeatingEventMasters) {
-                repeatingEventsChildren.addAll(dataProvider.
-                        getAllRepeatingChildrenByParent(master.getHashID()));
-            }
-        }
-
-        private void cleansTheSets() {
-            complexGoalMasters.clear();
-            subGoalMasters.clear();
-            listMasters.clear();
-            ordinaryEventMasters.clear();
-            repeatingEventsChildren.clear();
-            repeatingEventMasters.clear();
+            return 0;
         }
     }
-*/
+
+    // Temporary methods and stuff:
+    ArrayList<Calendar> calendarDatesHolder = new ArrayList<>(40);
+    String defineCalendars() {
+        StringBuilder toReturn = new StringBuilder();
+        for (Calendar type : calendarDatesHolder) {
+            toReturn.append(getDate(type));
+            toReturn.append("\n");
+        }
+        return toReturn.toString();
+    }
+    private String getDate(Calendar val) {
+        SimpleDateFormat format = new SimpleDateFormat("MMMM dd, yyyy");
+        String value = format.format(val.getTime());
+        Log.d("Date Sent:"," " + value );
+        return  value;
+    }
 }

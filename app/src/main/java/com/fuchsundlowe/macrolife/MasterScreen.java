@@ -23,7 +23,7 @@ public class MasterScreen extends AppCompatActivity {
         setContentView(R.layout.activity_master_screen);
         //test2();
         //test2();
-        toList(null);
+        toDay(null);
     }
 
     public void toDay(View view) {

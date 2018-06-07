@@ -13,18 +13,19 @@ import java.util.List;
 /**
  * Created by macbook on 2/2/18.
  */
+@Deprecated
 @Dao
 public interface DAO {
 
     // Managing ComplexGoal objects:
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    void insertTask(ComplexGoalMaster event);
+    void insertTask(ComplexGoal event);
     @Delete
-    void deleteTask(ComplexGoalMaster event);
+    void deleteTask(ComplexGoal event);
     @Update(onConflict = OnConflictStrategy.REPLACE)
-    void updateTask(ComplexGoalMaster eventMaster);
-    @Query("SELECT * FROM ComplexGoalMaster")
-    LiveData<List<ComplexGoalMaster>> getAllComplexGoalMasters();
+    void updateTask(ComplexGoal eventMaster);
+    @Query("SELECT * FROM ComplexGoal")
+    LiveData<List<ComplexGoal>> getAllComplexGoalMasters();
 
 
     // Managing OrdinaryEventMaster objects
@@ -75,15 +76,15 @@ public interface DAO {
     @Query("SELECT * FROM RepeatingEventMaster WHERE parentID =:withParentID")
     LiveData<List<RepeatingEventMaster>> getAllRepeatingMasters(int withParentID);
 
-    // Manages RepeatingEventsChild objects:
+    // Manages RepeatingEvent objects:
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    void insertTask(RepeatingEventsChild event);
+    void insertTask(RepeatingEvent event);
     @Delete
-    void deleteTask(RepeatingEventsChild event);
+    void deleteTask(RepeatingEvent event);
     @Update(onConflict = OnConflictStrategy.REPLACE)
-    void updateTask(RepeatingEventsChild eventMaster);
-    @Query("SELECT * FROM RepeatingEventsChild")
-    public LiveData<List<RepeatingEventsChild>> getAllRepeatingEventsChild();
+    void updateTask(RepeatingEvent eventMaster);
+    @Query("SELECT * FROM RepeatingEvent")
+    public LiveData<List<RepeatingEvent>> getAllRepeatingEventsChild();
 
 
     // Manages SubGoalMaster objects:
@@ -99,8 +100,8 @@ public interface DAO {
     LiveData<List<SubGoalMaster>> findAllChildren(int ofMaster);
     // TestQuerry:
 
-    @Query("SELECT ComplexGoalMaster.hashID AS hashID, ComplexGoalMaster.taskName as name " +
-    "FROM ComplexGoalMaster " + "WHERE taskCompleted = 0"
+    @Query("SELECT ComplexGoal.hashID AS hashID, ComplexGoal.taskName as name " +
+    "FROM ComplexGoal " + "WHERE taskCompleted = 0"
     )
     LiveData<List<PopUpData>> loadPopUpValues();
 }

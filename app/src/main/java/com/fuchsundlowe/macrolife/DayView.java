@@ -1,6 +1,7 @@
 package com.fuchsundlowe.macrolife;
 
 import android.os.Bundle;
+import android.os.Debug;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentManager;
@@ -9,17 +10,19 @@ import android.support.v4.view.PagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.util.Log;
 import android.view.ViewGroup;
-
 import com.fuchsundlowe.macrolife.DataObjects.Constants;
 import com.fuchsundlowe.macrolife.EngineClasses.StorageMaster;
 import com.fuchsundlowe.macrolife.FragmentModels.DateDisplay_DayView;
+import com.fuchsundlowe.macrolife.FragmentModels.DayDisplay_DayView;
+import com.fuchsundlowe.macrolife.Interfaces.DataProviderNewProtocol;
 import com.fuchsundlowe.macrolife.Interfaces.DataProviderProtocol;
 import com.fuchsundlowe.macrolife.Interfaces.DayViewTopFragmentCallback;
-
 import java.text.SimpleDateFormat;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Timer;
+import java.util.TimerTask;
 
 /**
  * This class provides day view fragment for app. Main features expected here are:
@@ -28,7 +31,7 @@ import java.util.Calendar;
  */
 public class DayView extends FragmentActivity implements DayViewTopFragmentCallback {
 
-    private DataProviderProtocol dataMaster;
+    private DataProviderNewProtocol dataMaster;
     private Calendar currentDisplayedDay;
     private Calendar startPosition;
     private ViewGroup central, bottom;
@@ -59,7 +62,7 @@ public class DayView extends FragmentActivity implements DayViewTopFragmentCallb
 
         setContentView(R.layout.day_layout);
         self = this;
-        dataMaster = StorageMaster.getInstance(this);
+        // TODO: Define Storage Master
         central = findViewById(R.id.DayView_Central);
 
         dateDisplay = findViewById(R.id.DateDisplay);
@@ -75,37 +78,101 @@ public class DayView extends FragmentActivity implements DayViewTopFragmentCallb
         definePageTransformerCallbacks();
 
         bottom = findViewById(R.id.DayView_Bottom);
-    }
-    public void setNewSelectedDay(Calendar newSelectedDay) {
-        /*
-         * Here We receive the new day to display
-         * we need to get the week and select the day to display from that week
-         *
-         * we need to show that day in bottom bar as well
-         */
-        getDate(newSelectedDay);
-        //sets the week:
-        long differenceInWeeks = distanceInWeeks(startPosition, newSelectedDay);
-        dateDisplay.setCurrentItem((int) (52 + differenceInWeeks),
-                true);
 
+    }
+
+    // Date Manipulation & DayViewCallback interface implementation
+    public void setNewSelectedDay(Calendar newSelectedDay, boolean shouldChangeWeek) {
+        currentDisplayedDay = newSelectedDay;
+
+        //sets the week:
+        if (shouldChangeWeek) { // makes calculation if it should change week
+            long differenceInWeeks = distanceInWeeks(startPosition, newSelectedDay);
+            dateDisplay.setCurrentItem((int) (52 + differenceInWeeks),
+                    true);
+        }
+        // Sets the day Display
         long differenceInDays = distanceInDays(startPosition, newSelectedDay);
         dayDisplay.setCurrentItem((int) (365 + differenceInDays), true);
-
-        currentDisplayedDay = newSelectedDay;
     }
     private long distanceInWeeks(Calendar start, Calendar end) {
-        long difference = start.getTimeInMillis() - end.getTimeInMillis();
+        long difference;
 
-        return difference / (1000 * 3600 * 24 * 7);
+        if (start.get(Calendar.YEAR) == end.get(Calendar.YEAR)) {
+            difference = end.get(Calendar.WEEK_OF_YEAR) - start.get(Calendar.WEEK_OF_YEAR);
+        } else if (start.before(end)) {
+            difference = 52 - start.get(Calendar.WEEK_OF_YEAR) + end.get(Calendar.WEEK_OF_YEAR);
+        } else {
+            difference = end.get(Calendar.WEEK_OF_YEAR) - 52 - start.get(Calendar.WEEK_OF_YEAR);
+        }
+
+        return difference;
     }
     private long distanceInDays(Calendar start, Calendar end) {
-        long difference = start.getTimeInMillis() - end.getTimeInMillis();
+        long difference;
 
-        return difference / (1000 * 3600 * 24);
+        if (start.get(Calendar.YEAR) == end.get(Calendar.YEAR)) {
+            difference = end.get(Calendar.DAY_OF_YEAR) - start.get(Calendar.DAY_OF_YEAR);
+        } else if (start.before(end)) {
+            difference = 365 - start.get(Calendar.DAY_OF_YEAR) + end.get(Calendar.DAY_OF_YEAR);
+        } else {
+            difference = start.get(Calendar.DAY_OF_YEAR) + 365 - end.get(Calendar.DAY_OF_YEAR);
+            difference *= -1;
+        }
+
+        //Test clause
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+            long chronoDistance = ChronoUnit.DAYS.between(start.toInstant(),end.toInstant());
+            if (chronoDistance != difference) {
+                throw (new Error("Invalid calculation~!"));
+            }
+        }
+
+        return difference;
     }
 
     // Page Transformers
+    private class TopPageAdapter extends FragmentStatePagerAdapter {
+        final int NUMBER_OF_WEEKS = 104; // good for scrolling up to a year in both directions
+
+        public TopPageAdapter(FragmentManager fm) {
+            super(fm);
+        }
+        @Override
+        public Fragment getItem(int position) {
+            DateDisplay_DayView newFragment = new DateDisplay_DayView();
+            Calendar toPass = (Calendar) startPosition.clone();
+            toPass.add(Calendar.WEEK_OF_YEAR,position - 52);
+            calendarDatesHolder.add(toPass); // TODO: part of test
+            newFragment.defineTopBar(self, toPass);
+            topBarFragments.add(newFragment);
+            return newFragment;
+        }
+        @Override
+        public int getCount() {
+            return NUMBER_OF_WEEKS;
+        }
+    }
+    private class CentralPageAdapter extends FragmentStatePagerAdapter {
+
+        final int NUMBER_OF_DAYS = 730; // or 2 years worth of days
+        public CentralPageAdapter(FragmentManager fm) {
+            super(fm);
+        }
+
+        @Override
+        public Fragment getItem(int position) {
+            DayDisplay_DayView newFragment = new DayDisplay_DayView();
+            // TODO: pass info to define it.
+
+            return newFragment;
+        }
+
+        @Override
+        public int getCount() {
+            return NUMBER_OF_DAYS;
+        }
+    }
     private void definePageTransformerCallbacks() {
         dateDisplay.addOnPageChangeListener(new ViewPager.OnPageChangeListener() {
             @Override
@@ -141,45 +208,6 @@ public class DayView extends FragmentActivity implements DayViewTopFragmentCallb
             }
         });
     }
-    private class TopPageAdapter extends FragmentStatePagerAdapter {
-        final int NUMBER_OF_WEEKS = 104; // good for scrolling up to a year in both directions
-
-        public TopPageAdapter(FragmentManager fm) {
-            super(fm);
-        }
-        @Override
-        public Fragment getItem(int position) {
-            DateDisplay_DayView newFragment = new DateDisplay_DayView();
-            Calendar toPass = (Calendar) currentDisplayedDay.clone();
-            toPass.roll(Calendar.WEEK_OF_YEAR,position - 52);
-            calendarDatesHolder.add(toPass);
-            newFragment.defineTopBar(self, toPass);
-            topBarFragments.add(newFragment);
-            return newFragment;
-        }
-        @Override
-        public int getCount() {
-            return NUMBER_OF_WEEKS;
-        }
-    }
-
-    private class CentralPageAdapter extends FragmentStatePagerAdapter {
-
-        final int NUMBER_OF_DAYS = 730; // or 2 years worth of days
-        public CentralPageAdapter(FragmentManager fm) {
-            super(fm);
-        }
-
-        @Override
-        public Fragment getItem(int position) {
-            return null;
-        }
-
-        @Override
-        public int getCount() {
-            return 0;
-        }
-    }
 
     // Temporary methods and stuff:
     ArrayList<Calendar> calendarDatesHolder = new ArrayList<>(40);
@@ -194,7 +222,7 @@ public class DayView extends FragmentActivity implements DayViewTopFragmentCallb
     private String getDate(Calendar val) {
         SimpleDateFormat format = new SimpleDateFormat("MMMM dd, yyyy");
         String value = format.format(val.getTime());
-        Log.d("Date Sent:"," " + value );
         return  value;
     }
+
 }

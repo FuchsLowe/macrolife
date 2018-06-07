@@ -12,6 +12,7 @@ import java.util.Set;
  * This class holds list objects and is used to create views that dispaly list like goals.
  * Examples would be grocelry list etc.
  */
+@Deprecated
 @Entity(primaryKeys = {"hashID"})
 public class ListMaster extends DataMasterClass {
     // Instance Variables:

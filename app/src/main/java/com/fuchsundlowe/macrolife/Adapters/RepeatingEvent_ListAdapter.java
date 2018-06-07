@@ -16,7 +16,7 @@ import java.util.List;
 /**
  * Created by macbook on 3/12/18.
  */
-
+@Deprecated
 public class RepeatingEvent_ListAdapter extends RecyclerView.Adapter<RepeatingEvent_ListAdapter.ViewHolder>{
 
     public void updateDataBase(List<RepeatingEventMaster> newData) {

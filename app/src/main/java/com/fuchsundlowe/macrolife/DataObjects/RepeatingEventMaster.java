@@ -27,12 +27,13 @@ import java.util.Set;
             3.1. Here you designate each template per week...
         4. Once that month is done, you are asked if you want this to be repeated till end of period...
          */
+@Deprecated
 @Entity(primaryKeys = {"hashID"})
 public class RepeatingEventMaster extends Chevronable {
 
     // Variables:
     @Ignore
-    private Map<DayOfWeek, Set<RepeatingEventsChild>> events;
+    private Map<DayOfWeek, Set<RepeatingEvent>> events;
 
     // Constructor:
     public RepeatingEventMaster(int hashID, String taskName, Calendar taskStartTime,
@@ -46,13 +47,13 @@ public class RepeatingEventMaster extends Chevronable {
 
     private void createMap() {
         events = new HashMap<>();
-        events.put(DayOfWeek.monday, new HashSet<RepeatingEventsChild>());
-        events.put(DayOfWeek.tuesday, new HashSet<RepeatingEventsChild>());
-        events.put(DayOfWeek.wednesday, new HashSet<RepeatingEventsChild>());
-        events.put(DayOfWeek.thursday, new HashSet<RepeatingEventsChild>());
-        events.put(DayOfWeek.friday, new HashSet<RepeatingEventsChild>());
-        events.put(DayOfWeek.saturday, new HashSet<RepeatingEventsChild>());
-        events.put(DayOfWeek.sunday, new HashSet<RepeatingEventsChild>());
+        events.put(DayOfWeek.monday, new HashSet<RepeatingEvent>());
+        events.put(DayOfWeek.tuesday, new HashSet<RepeatingEvent>());
+        events.put(DayOfWeek.wednesday, new HashSet<RepeatingEvent>());
+        events.put(DayOfWeek.thursday, new HashSet<RepeatingEvent>());
+        events.put(DayOfWeek.friday, new HashSet<RepeatingEvent>());
+        events.put(DayOfWeek.saturday, new HashSet<RepeatingEvent>());
+        events.put(DayOfWeek.sunday, new HashSet<RepeatingEvent>());
     }
 
     // Manages the creation of map and populates it with values:
@@ -61,11 +62,11 @@ public class RepeatingEventMaster extends Chevronable {
         createMap();
 
         // Needs to find all children of this class
-        Set<RepeatingEventsChild> children = this.getStorageMaster().
+        Set<RepeatingEvent> children = this.getStorageMaster().
                 getAllRepeatingChildrenByParent(this.getHashID());
 
         // Arranges them in right order
-        for (RepeatingEventsChild child: children) {
+        for (RepeatingEvent child: children) {
             this.addChild(child);
         }
     }
@@ -80,7 +81,7 @@ public class RepeatingEventMaster extends Chevronable {
     }
 
     // Called when need to add an event child
-    public void addChild(RepeatingEventsChild child) {
+    public void addChild(RepeatingEvent child) {
             switch (child.getDayOfWeek()) {
                 case monday:
                     events.get(DayOfWeek.monday).add(child);
@@ -100,7 +101,7 @@ public class RepeatingEventMaster extends Chevronable {
     }
 
     // Called when need to remove event child
-    public void removeChild(RepeatingEventsChild child) {
+    public void removeChild(RepeatingEvent child) {
         switch (child.getDayOfWeek()) {
             case monday:
                 events.get(DayOfWeek.monday).remove(child);

@@ -11,7 +11,7 @@ import java.util.Random;
  *values and their respective getters and setters.
  * TODO: How will children of classess handle delete of their parents? This needs to be cascade delete
  */
-
+@Deprecated
 public abstract class DataMasterClass {
 
     // Variables list;

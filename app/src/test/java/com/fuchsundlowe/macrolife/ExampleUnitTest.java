@@ -34,14 +34,10 @@ public class ExampleUnitTest {
 
     @Test
     public void checkDatabase()  {
-        Calendar mk1 = Calendar.getInstance();
-        mk1.set(Calendar.DAY_OF_WEEK, 1);
-
-        String stop = "Anything will do";
-
+        int m = 20;
+        int b = 7;
+        int c = (m/b)*b;
+        System.out.print(c);
     }
-    @After
-    public void closeData() {
 
-    }
 }

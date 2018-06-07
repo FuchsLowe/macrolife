@@ -11,6 +11,7 @@ import java.util.Set;
  * This is sub goal of Complex goal master.
  * TODO: Eventually will need the implememtation of location as a refference in system.
  */
+@Deprecated
 @Entity(primaryKeys = {"hashID"})
 public class SubGoalMaster extends Chevronable {
 
@@ -29,7 +30,7 @@ public class SubGoalMaster extends Chevronable {
     }
 
 
-    // Finds parent if any and returns it as Object. Can be SubMaster or ComplexGoalMaster
+    // Finds parent if any and returns it as Object. Can be SubMaster or ComplexGoal
     public Object getParentGoal() {
         if (getParentID() == getParentSubGoal()) {
             return getStorageMaster().getComplexGoalBy(this.getParentID());

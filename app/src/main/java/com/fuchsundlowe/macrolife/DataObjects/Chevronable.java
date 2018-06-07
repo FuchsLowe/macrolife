@@ -7,10 +7,10 @@ import java.util.Calendar;
 /*
  * A dataClass that provides extra functionality for representing in graphical space data objects
  */
+@Deprecated
+public abstract class Chevronable extends DataMasterClass {
 
-public abstract class Chevronable extends DataMasterClass{
-
-    private int parentID; // Is reference to a ComplexGoalMaster, a must
+    private int parentID; // Is reference to a ComplexGoal, a must
     private int parentSubGoal; // Is reference to a another subGoal that lies up in chain or
     // even master goal... If returns nill then it is not subjetcted to any pattern
 

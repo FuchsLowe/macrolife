@@ -4,13 +4,13 @@ import android.arch.lifecycle.LifecycleOwner;
 import android.arch.lifecycle.LiveData;
 import android.arch.lifecycle.Observer;
 
-import com.fuchsundlowe.macrolife.DataObjects.ComplexGoalMaster;
+import com.fuchsundlowe.macrolife.DataObjects.ComplexGoal;
 import com.fuchsundlowe.macrolife.DataObjects.ListMaster;
 import com.fuchsundlowe.macrolife.DataObjects.ListObject;
 import com.fuchsundlowe.macrolife.DataObjects.OrdinaryEventMaster;
 import com.fuchsundlowe.macrolife.DataObjects.PopUpData;
+import com.fuchsundlowe.macrolife.DataObjects.RepeatingEvent;
 import com.fuchsundlowe.macrolife.DataObjects.RepeatingEventMaster;
-import com.fuchsundlowe.macrolife.DataObjects.RepeatingEventsChild;
 import com.fuchsundlowe.macrolife.DataObjects.SubGoalMaster;
 
 import java.util.Calendar;
@@ -20,15 +20,15 @@ import java.util.Set;
 /**
  * Created by macbook on 1/26/18.
  */
-
+@Deprecated
 public interface DataProviderProtocol {
 
-    void deleteObject(ComplexGoalMaster object);
-    Set<ComplexGoalMaster> getComplexGoalsByDay(Calendar day);
-    void updateObject(ComplexGoalMaster object);
-    void insertObject(ComplexGoalMaster object);
-    void subscribeObserver_ComplexGoal(LifecycleOwner lifecycleOwner, Observer<List<ComplexGoalMaster>> observer);
-    ComplexGoalMaster getComplexGoalBy(int masterGoalID);
+    void deleteObject(ComplexGoal object);
+    Set<ComplexGoal> getComplexGoalsByDay(Calendar day);
+    void updateObject(ComplexGoal object);
+    void insertObject(ComplexGoal object);
+    void subscribeObserver_ComplexGoal(LifecycleOwner lifecycleOwner, Observer<List<ComplexGoal>> observer);
+    ComplexGoal getComplexGoalBy(int masterGoalID);
 
     //Set<ListMaster>getAllListMasters();
     void deleteObject(ListMaster object);
@@ -64,13 +64,13 @@ public interface DataProviderProtocol {
     LiveData<List<RepeatingEventMaster>>getAllSubordinateRepeatingEventMasters(int forMasterID);
     Set<RepeatingEventMaster>getSubordinateRepearingStaticMasters(int forMasterID);
 
-    //Set<RepeatingEventsChild>getAllRepeatingEventChildren();
-    void deleteObject(RepeatingEventsChild object);
-    Set<RepeatingEventsChild>getAllRepeatingChildrenByParent(int parentId);
-    void updateObject(RepeatingEventsChild object);
-    void insertObject(RepeatingEventsChild object);
-    void subscribeObserver_RepeatingCgild(LifecycleOwner lifecycleOwner, Observer<List<RepeatingEventsChild>> observer);
-    //LiveData<List<RepeatingEventsChild>> getAllRepeatingEventChild();
+    //Set<RepeatingEvent>getAllRepeatingEventChildren();
+    void deleteObject(RepeatingEvent object);
+    Set<RepeatingEvent>getAllRepeatingChildrenByParent(int parentId);
+    void updateObject(RepeatingEvent object);
+    void insertObject(RepeatingEvent object);
+    void subscribeObserver_RepeatingCgild(LifecycleOwner lifecycleOwner, Observer<List<RepeatingEvent>> observer);
+    //LiveData<List<RepeatingEvent>> getAllRepeatingEventChild();
 
     //Set<SubGoalMaster>getAllSubGoalMasters();
     void deleteObject(SubGoalMaster object);

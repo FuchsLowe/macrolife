@@ -2,7 +2,7 @@ package com.fuchsundlowe.macrolife.DataObjects;
 
 import android.arch.persistence.room.Entity;
 import android.arch.persistence.room.Ignore;
-
+import com.fuchsundlowe.macrolife.DataObjects.TaskObject.checkableStatus;
 import com.fuchsundlowe.macrolife.EngineClasses.StorageMaster;
 import java.util.Calendar;
 import java.util.Random;
@@ -13,19 +13,21 @@ import java.util.Random;
  * A simple holder that doesn't inherit from DataMaster class
  */
 @Entity(primaryKeys = {"hashID"})
-public class RepeatingEventsChild {
+public class RepeatingEvent {
 
     // Instance variables
     private int parentID;
     private Calendar startTime;
     private Calendar endTime;
-    private DayOfWeek dayOfWeek;
+    private DayOfWeek dayOfWeek; // TODO: How should I represent this? This is found in startTime thou
     private int hashID;
+    @Ignore // TODO: Resolve this stefan! Create a converter for this type
+    private checkableStatus isTaskCompleted;
     @Ignore
     private StorageMaster storageMaster;
 
-    public RepeatingEventsChild(int parentID, Calendar startTime,
-                                Calendar endTime, DayOfWeek dayOfWeek, int hashID) {
+    public RepeatingEvent(int parentID, Calendar startTime,
+                          Calendar endTime, DayOfWeek dayOfWeek, int hashID) {
 
         this.parentID = parentID;
         this.dayOfWeek = dayOfWeek;
@@ -57,10 +59,16 @@ public class RepeatingEventsChild {
     public void setStartTime(Calendar newTime) {
         this.startTime = newTime;
     }
-
     public Calendar getEndTime() {
         return this.endTime;
     }
+    public checkableStatus getIsTaskCompleted() {
+        return isTaskCompleted;
+    }
+    public void setIsTaskCompleted(checkableStatus isTaskCompleted) {
+        this.isTaskCompleted = isTaskCompleted;
+    }
+
 
     // Returns true if it can end time comes after begin time, false otherwise.
     public boolean setEndTimeWithReturn(Calendar endTime) {

@@ -77,4 +77,5 @@
         android:text="Name"
         tools:layout_editor_absoluteX="73dp"
         tools:layout_editor_absoluteY="120dp" />
+
 </android.support.constraint.ConstraintLayout>

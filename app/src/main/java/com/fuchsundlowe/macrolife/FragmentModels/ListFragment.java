@@ -1,6 +1,5 @@
 package com.fuchsundlowe.macrolife.FragmentModels;
 
-import android.arch.lifecycle.LiveData;
 import android.arch.lifecycle.Observer;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -16,14 +15,13 @@ import android.view.inputmethod.EditorInfo;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.LinearLayout;
-import android.widget.SimpleAdapter;
 import android.widget.TextView;
 
 import com.fuchsundlowe.macrolife.Adapters.ComplexGoal_ListAdapter;
 import com.fuchsundlowe.macrolife.Adapters.ListGoal_ListAdapter;
 import com.fuchsundlowe.macrolife.Adapters.RegularTask_ListAdapter;
 import com.fuchsundlowe.macrolife.Adapters.RepeatingEvent_ListAdapter;
-import com.fuchsundlowe.macrolife.DataObjects.ComplexGoalMaster;
+import com.fuchsundlowe.macrolife.DataObjects.ComplexGoal;
 import com.fuchsundlowe.macrolife.DataObjects.Constants;
 import com.fuchsundlowe.macrolife.DataObjects.ListMaster;
 import com.fuchsundlowe.macrolife.DataObjects.OrdinaryEventMaster;
@@ -36,7 +34,6 @@ import com.fuchsundlowe.macrolife.R;
 
 import java.util.Calendar;
 import java.util.List;
-import java.util.Map;
 
 /**
  * Created by macbook on 2/22/18.
@@ -252,7 +249,7 @@ public class ListFragment extends Fragment implements DateAndTimeProtocol {
             // Complex
             case 0:
                 String taskPurpose = purpose.getText().toString();
-                ComplexGoalMaster goal = new ComplexGoalMaster(0, taskName, startDate, endDate,
+                ComplexGoal goal = new ComplexGoal(0, taskName, startDate, endDate,
                         Calendar.getInstance(), false, SourceType.local, taskPurpose);
                 dataMaster.insertObject(goal);
                 // TODO: Open a complex creator?
@@ -325,12 +322,12 @@ public class ListFragment extends Fragment implements DateAndTimeProtocol {
     private void subscribeToData(int number) {
         switch (number){
             case 0:
-                dataMaster.subscribeObserver_ComplexGoal(this, new Observer<List<ComplexGoalMaster>>() {
+                dataMaster.subscribeObserver_ComplexGoal(this, new Observer<List<ComplexGoal>>() {
                     @Override
-                    public void onChanged(@Nullable List<ComplexGoalMaster> complexGoalMasters) {
+                    public void onChanged(@Nullable List<ComplexGoal> complexGoals) {
                         if (list.getAdapter() != null) {
                             ComplexGoal_ListAdapter adapter = (ComplexGoal_ListAdapter)list.getAdapter();
-                            adapter.updateDataBase(complexGoalMasters);
+                            adapter.updateDataBase(complexGoals);
                             adapter.notifyDataSetChanged();
                         }
                     }

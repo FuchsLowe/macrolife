@@ -36,7 +36,6 @@ public class DateDisplay_DayView extends Fragment implements View.OnClickListene
     }
 
     // LifeCycle:
-
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
@@ -80,17 +79,15 @@ public class DateDisplay_DayView extends Fragment implements View.OnClickListene
         assignDates(weekWeDisplay);
 
         // Sets the Month and year in top bar ar String, locale sensitive
-        String monthYearRepresentation = weekWeDisplay.getDisplayName(Calendar.MONTH, Calendar.LONG,
-                Locale.getDefault()) + ", " + weekWeDisplay.get(Calendar.YEAR);
-        monthDisplay.setText(monthYearRepresentation);
+        defineMonthYearRepresentation();
     }
 
     // Methods:
+    //Called by outside class to fill in the data for the Fragment
     public void defineTopBar(DayViewTopFragmentCallback protocol, Calendar weekToDisplay) {
         this.callback = protocol;
         this.weekWeDisplay = weekToDisplay;
     }
-
     // This class fills in the button fields...
     private void assignDates(Calendar weekInfo) {
         // Determine the first day of the week
@@ -98,6 +95,7 @@ public class DateDisplay_DayView extends Fragment implements View.OnClickListene
 
         Calendar rolled = (Calendar) weekInfo.clone();
         rolled.set(Calendar.DAY_OF_WEEK, 1); // setting it to be Sunday
+        // This might be a problem?
         Calendar currentDay = Calendar.getInstance();
         boolean isSelectedMonth;
         boolean isSelected = false;
@@ -173,10 +171,14 @@ public class DateDisplay_DayView extends Fragment implements View.OnClickListene
                     }
                     break;
             }
-            rolled.roll(Calendar.DAY_OF_MONTH, 1);
+            rolled.add(Calendar.DAY_OF_MONTH, 1);
         }
     }
-
+    private void defineMonthYearRepresentation() {
+        String monthYearRepresentation = weekWeDisplay.getDisplayName(Calendar.MONTH, Calendar.LONG,
+                Locale.getDefault()) + ", " + weekWeDisplay.get(Calendar.YEAR);
+        monthDisplay.setText(monthYearRepresentation);
+    }
     public Calendar getWeekWeDisplay() {
         return weekWeDisplay;
     }
@@ -197,10 +199,10 @@ public class DateDisplay_DayView extends Fragment implements View.OnClickListene
     @Override
     public void onClick(View v) {
         if (v instanceof CalendarButton) {
-            Log.d("Value Asked: ", "" + ((CalendarButton) v).getTimeValue().get(Calendar.DAY_OF_MONTH));
-            describeDatesInButtons();
             changeSelector((CalendarButton) v);
-            callback.setNewSelectedDay(((CalendarButton) v).getTimeValue());
+            weekWeDisplay = ((CalendarButton) v).getTimeValue();
+            defineMonthYearRepresentation();
+            callback.setNewSelectedDay(((CalendarButton) v).getTimeValue(), false);
         }
     }
     // Changes the selector indicator on the button
@@ -235,16 +237,4 @@ public class DateDisplay_DayView extends Fragment implements View.OnClickListene
 
     }
 
-    // Testing:
-    String describeDatesInButtons() {
-        Log.e("CentralTime: ", " " + getDate());
-        Log.d("XXXX: ", " " + pos1.getTimeValue().get(Calendar.DAY_OF_MONTH));
-        Log.d("XXXX: ", " " + pos2.getTimeValue().get(Calendar.DAY_OF_MONTH));
-        Log.d("XXXX: ", " " + pos3.getTimeValue().get(Calendar.DAY_OF_MONTH));
-        Log.d("XXXX: ", " " + pos4.getTimeValue().get(Calendar.DAY_OF_MONTH));
-        Log.d("XXXX: ", " " + pos5.getTimeValue().get(Calendar.DAY_OF_MONTH));
-        Log.d("XXXX: ", " " + pos6.getTimeValue().get(Calendar.DAY_OF_MONTH));
-        Log.d("XXXX: ", " " + pos7.getTimeValue().get(Calendar.DAY_OF_MONTH));
-        return null;
-    }
 }

@@ -8,7 +8,7 @@ import java.util.Date;
  * Created by macbook on 1/31/18.
  * Does conversions for Room from boxed objects to primitive values and other way around.
  */
-
+@Deprecated
 public class TypeConverters {
 
     @TypeConverter

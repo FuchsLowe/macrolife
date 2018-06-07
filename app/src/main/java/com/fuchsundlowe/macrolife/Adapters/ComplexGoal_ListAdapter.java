@@ -10,7 +10,7 @@ import android.view.ViewGroup;
 import android.widget.TextView;
 
 import com.fuchsundlowe.macrolife.ComplexTaskActivity;
-import com.fuchsundlowe.macrolife.DataObjects.ComplexGoalMaster;
+import com.fuchsundlowe.macrolife.DataObjects.ComplexGoal;
 import com.fuchsundlowe.macrolife.DataObjects.Constants;
 import com.fuchsundlowe.macrolife.R;
 
@@ -26,11 +26,11 @@ public class ComplexGoal_ListAdapter extends RecyclerView.Adapter<ComplexGoal_Li
         mContext = context;
     }
 
-    public void updateDataBase(List<ComplexGoalMaster> newData){
+    public void updateDataBase(List<ComplexGoal> newData){
         dataList = newData;
     }
 
-    private List<ComplexGoalMaster> dataList;
+    private List<ComplexGoal> dataList;
     private static Context mContext;
     @NonNull
     @Override
@@ -51,7 +51,7 @@ public class ComplexGoal_ListAdapter extends RecyclerView.Adapter<ComplexGoal_Li
 
     @Override
     public int getItemCount() {
-        List<ComplexGoalMaster> list = dataList;
+        List<ComplexGoal> list = dataList;
         if (list != null) {
             return list.size();
         } else {

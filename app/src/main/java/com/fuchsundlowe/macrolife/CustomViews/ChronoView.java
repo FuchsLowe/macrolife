@@ -5,49 +5,54 @@ package com.fuchsundlowe.macrolife.CustomViews;
  */
 
 import android.content.Context;
+import android.content.Intent;
+import android.content.SharedPreferences;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
+import android.support.v4.content.LocalBroadcastManager;
 import android.view.View;
+import android.view.ViewGroup;
+import com.fuchsundlowe.macrolife.DataObjects.Constants;
+import java.util.Calendar;
+import java.util.Timer;
+import java.util.TimerTask;
 
 
-/**
- * Created by macbook on 2/13/18.
- * This is Chrono-View
- */
-
-public class ChronoView extends View {
+public class ChronoView extends ViewGroup {
 
     // StandardValues
     private int LINE_COLOR = Color.BLACK;
     private int SCALE_FACTOR = 10; // Defines how many hours we will show at screen at one time...
     private int RIGHT_PADDING = 5;
     private int LEFT_PADDING = 10;
+    private float LEFT_OFFSET = 24;
     private boolean SHOW_HOURS = false;
     private int LINE_WIDTH = 1;
     private int ROW_IN_DP = 36;
     private boolean ROW_BY_SCREEN = true; // If we should render by screen scale or by abs dp
     private int TEXT_SIZE = 22;
+    private int TIMER_UPDATE_INTERVAL = 10000; // 10 seconds
 
     // Variables to be calculated
     private Paint lineMarker;
     private Paint textMarker;
     private Context context;
-    private int lineSpacing;
+    private int timeUnitSize;
     private int calculatedLineWidth;
     private int calculatedTextSize;
-    private int workableHeight;
-
-
+    private SharedPreferences preferences;
+    private Calendar dayDisplayed;
+    private Timer timerLoop;
+    private View tempTimeDisplayer;
 
 
     // Public constructor that makes initialization of values as well at the same time
-    public ChronoView(Context context, int workableHeight) {
+    public ChronoView(Context context, Calendar dayDisplaying) {
         super(context);
 
         this.context = context;
-
-        this.workableHeight = workableHeight;
+        this.dayDisplayed = dayDisplaying;
 
         calculatedLineWidth = dpToPixConverter(LINE_WIDTH);
         calculatedTextSize = dpToPixConverter(TEXT_SIZE);
@@ -62,47 +67,36 @@ public class ChronoView extends View {
         textMarker.setColor(LINE_COLOR);
         textMarker.setTextSize(calculatedTextSize);
 
-        lineSpacing = dpToPixConverter(108);
-
         this.setWillNotDraw(false);
-    }
 
+        preferences = getContext().getSharedPreferences(Constants.SHARED_PREFERENCES_KEY,
+                Context.MODE_PRIVATE);
+        SHOW_HOURS = preferences.getBoolean(Constants.TIME_REPRESENTATION, false);
+
+        timeUnitSize = dpToPixConverter(preferences.getInt(Constants.HOUR_IN_PIXELS,108));
+
+        tempTimeDisplayer = new View(getContext());
+        tempTimeDisplayer.setBackgroundColor(Color.RED);
+        tempTimeDisplayer.setVisibility(GONE);
+        timerLoop(true);
+    }
 
     // Methods:
-
-
-
-    // This method updates preferences that have been established in SharedPreferences
-    public void updatePreferences() {
-
-    }
-
     private int dpToPixConverter(float dp) {
         float scale = context.getResources().getDisplayMetrics().density;
         return (int) (dp * scale * 0.5f);
     }
-
     // If passed null defaults to settings, else implements either or
-    private String[] getTimeRepresentation(Boolean showAM_PM) {
-        if (showAM_PM !=null) {
-            if (showAM_PM) {
-                return getAmerican();
-            } else {
-                return getHourly();
-            }
+    private String[] getTimeRepresentation(){
+        if (SHOW_HOURS) {
+            return getHourly();
         } else {
-            if (SHOW_HOURS) {
-                return getHourly();
-            } else {
-                return getAmerican();
-            }
+            return getAmerican();
         }
     }
-
     // Returns string[] of hours like 1:00, 13:00 etc
     private String[] getHourly() {
         String[] toReturn = new String[24];
-
         for (int i = 0; i<24; i++) {
             if (i == 0) {
                 toReturn[i] = "00:00";
@@ -112,7 +106,6 @@ public class ChronoView extends View {
         }
         return toReturn;
     }
-
     // Returns string[] of time in PM/AM representation starting from 12AM
     private String[] getAmerican() {
         String[] toReturn = new String[24];
@@ -124,11 +117,8 @@ public class ChronoView extends View {
         for (int b = 1; b<12;b++) {
             toReturn[12+b] = b+"PM";
         }
-
-
         return toReturn;
     }
-
     private int calculateRowHeight(boolean byScreenScale, int screenHeight) {
         if (byScreenScale) {
             return screenHeight / SCALE_FACTOR;
@@ -142,46 +132,114 @@ public class ChronoView extends View {
         for (String text: textVals) {
             max = Math.max(max, textMarker.measureText(text));
         }
+        LEFT_OFFSET = max;
         return max;
+    }
+    //
+    public void timerLoop(boolean enabled) { // Who should manage the loop? Idealy it would be Someone
+        // who has lifecyce of DayView in it...
+        Calendar currentDay = Calendar.getInstance();
+        if (currentDay.get(Calendar.YEAR) == dayDisplayed.get(Calendar.YEAR) &&
+                currentDay.get(Calendar.DAY_OF_YEAR) == dayDisplayed.get(Calendar.DAY_OF_YEAR)) {
+
+            tempTimeDisplayer.setVisibility(VISIBLE);
+            if (timerLoop == null) {
+                timerLoop = new Timer();
+            }
+            if (enabled) {
+                TimerTask timerTask = new TimerTask() {
+                    @Override
+                    public void run() {
+                        // Whatever we will do with it?
+                        if (tempTimeDisplayer != null) {
+                            tempTimeDisplayer.setY(getPixelLocationOf(Calendar.getInstance(),
+                                    true));
+                        }
+                    }
+                };
+                timerLoop.scheduleAtFixedRate(timerTask, 0, TIMER_UPDATE_INTERVAL);
+            } else {
+                timerLoop.cancel();
+            }
+        }
     }
 
     // The Lifecycle events:
-
     @Override
     public void draw(Canvas canvas) {
         super.draw(canvas);
         setWillNotDraw(false);
 
-
         // Can draw on this canvas here because its gonna be static
-        String[] time = getTimeRepresentation(true);
+        String[] time = getTimeRepresentation();
         float lineOffset = maxTextSize(time);
         // Drawing:
         for (int i = 0; i<24; i++) {
-            int y = i*lineSpacing;
+            int y = i* timeUnitSize;
             int x = 10; // To be calculated by the maxWidth of text
             canvas.drawText(time[i], x, y, textMarker);
-            canvas.drawLine(x + lineOffset + dpToPixConverter(5) , y, canvas.getWidth(), y,lineMarker);
+            canvas.drawLine(x + lineOffset + dpToPixConverter(5) , y, canvas.getWidth(), y, lineMarker);
             canvas.save();
         }
     }
 
     @Override
+    protected void onAttachedToWindow() {
+        super.onAttachedToWindow();
+        this.addView(tempTimeDisplayer);
+    }
+
+    // Layout Technology
+    @Override
     protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
         int width = 0;
         int height = 0;
 
-        height = lineSpacing * 24; // Because day has 24 hours
+        height = timeUnitSize * 24; // Because day has 24 hours
         width = widthMeasureSpec - (RIGHT_PADDING + LEFT_PADDING);
 
         setMeasuredDimension(width, height);
     }
-
-
     @Override
-    public void invalidate() {
-        updatePreferences();
-        super.invalidate();
+    protected void onLayout(boolean changed, int l, int t, int r, int b) {
+        int start, end, countOfChildViews;
+        countOfChildViews = this.getChildCount();
+        for (int i = 0; i < countOfChildViews; i++) {
+            View viewObject = this.getChildAt(i);
+            if (viewObject instanceof Task_DayView) {
+                Calendar startTime = ((Task_DayView) viewObject).getTaskStartTime();
+                Calendar endTime = ((Task_DayView) viewObject).getTaskEndTime();
+
+                if (startTime.get(Calendar.DAY_OF_YEAR) == dayDisplayed.get(Calendar.DAY_OF_YEAR)) {
+                    start = getPixelLocationOf(startTime, false);
+                } else { // means that task started before today
+                    start = 0;
+                }
+                if (endTime.get(Calendar.DAY_OF_YEAR) == dayDisplayed.get(Calendar.DAY_OF_YEAR)) {
+                    end = getPixelLocationOf(endTime, false);
+                } else { // Means that task doesn't end on this day
+                    end = 24 * timeUnitSize;
+                }
+                ((Task_DayView) viewObject).myLayout((int) LEFT_OFFSET, start, this.getWidth(), end);
+            } else {
+                //Assuming its only the TimeDisplayer
+                int top = getPixelLocationOf(Calendar.getInstance(),true);
+                tempTimeDisplayer.layout(20,top, this.getWidth() - 20, top + 15);
+            }
+        }
 
     }
+    // Returns the location of specific time in current ChronoLayout...
+    private int getPixelLocationOf(Calendar time, boolean precisionInMinute) {
+        if (precisionInMinute) {
+            float minutePerPixel = timeUnitSize / 60;
+            int calendarTime = time.get(Calendar.HOUR_OF_DAY) * 60 + time.get(Calendar.MINUTE);
+            return (int) (minutePerPixel * calendarTime);
+        } else {
+            int calendarTime = time.get(Calendar.HOUR_OF_DAY) * timeUnitSize +
+                    ((time.get(Calendar.MINUTE) / 15) * (timeUnitSize /4));
+            return calendarTime;
+        }
+    }
+
 }

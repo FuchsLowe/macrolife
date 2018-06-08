@@ -1,15 +1,15 @@
 package com.fuchsundlowe.macrolife.DataObjects;
 
-import android.content.Intent;
-
-import com.fuchsundlowe.macrolife.DayView;
-import com.fuchsundlowe.macrolife.MasterScreen;
-
+import android.arch.persistence.room.Entity;
+import android.arch.persistence.room.ForeignKey;
+import android.arch.persistence.room.PrimaryKey;
 import java.util.Calendar;
 
 // A fundamental Data Type for this App Local storage
+@Entity(foreignKeys = @ForeignKey(entity = ComplexGoal.class, parentColumns = "hashID",
+        childColumns = "parentGoal", onDelete = ForeignKey.SET_NULL, onUpdate = ForeignKey.CASCADE))
 public class TaskObject {
-
+    @PrimaryKey(autoGenerate = true)
     private int hashID;
     private int parentGoal; // if this goal is a part of ComplexGoal, this would be ID of that master
     private int subGoalMaster; // reference to a optional next in hierarchy goal
@@ -18,7 +18,7 @@ public class TaskObject {
     private Calendar taskStartTime;
     private Calendar taskEndTime;
     private Calendar lastTimeModified;
-    private checkableStatus isTaskCompleted;
+    private CheckableStatus isTaskCompleted;
     private String note;
     private boolean isList;
     private boolean isRecurring;
@@ -27,7 +27,7 @@ public class TaskObject {
     // Constructor:
     public TaskObject(int hashID, int parentGoal, int subGoalMaster, String taskName,
                       Calendar taskCreatedTimeStamp, Calendar taskStartTime, Calendar taskEndTime,
-                      Calendar lastTimeModified, checkableStatus isTaskCompleted, String note,
+                      Calendar lastTimeModified, CheckableStatus isTaskCompleted, String note,
                       boolean isList, boolean isRecurring, int mX, int mY) {
 
         this.hashID = hashID;
@@ -103,10 +103,10 @@ public class TaskObject {
         this.lastTimeModified = lastTimeModified;
     }
 
-    public checkableStatus getIsTaskCompleted() {
+    public CheckableStatus getIsTaskCompleted() {
         return isTaskCompleted;
     }
-    public void setIsTaskCompleted(checkableStatus isTaskCompleted) {
+    public void setIsTaskCompleted(CheckableStatus isTaskCompleted) {
         this.isTaskCompleted = isTaskCompleted;
     }
 
@@ -147,7 +147,7 @@ public class TaskObject {
 
 
     // Enum that defines the types of checkable statuses that exist
-    public enum checkableStatus {
+    public enum CheckableStatus {
         notCheckable, incomplete, completed;
     }
 }

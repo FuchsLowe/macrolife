@@ -9,8 +9,11 @@ import com.fuchsundlowe.macrolife.DataObjects.TaskObject;
 
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.List;
 
 public interface DataProviderNewProtocol {
     LiveData<ArrayList<TaskObject>> getTasksFor(Calendar day);
     ComplexGoal findComplexGoal(int byID);
+    // tasks either starts, ends or lasts through this day
+    LiveData<ArrayList<TaskObject>> getTaskThatIntersects(Calendar day);
 }

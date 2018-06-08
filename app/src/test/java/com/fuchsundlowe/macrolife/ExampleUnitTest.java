@@ -34,10 +34,15 @@ public class ExampleUnitTest {
 
     @Test
     public void checkDatabase()  {
-        int m = 20;
-        int b = 7;
-        int c = (m/b)*b;
-        System.out.print(c);
+        Calendar mk1= Calendar.getInstance();
+        ChnageDate(mk1);
+        System.out.print(mk1.getTimeInMillis());
+
+    }
+
+    void ChnageDate(Calendar d) {
+        d.set(Calendar.DAY_OF_YEAR, 162);
+        System.out.print(d.getTimeInMillis());
     }
 
 }

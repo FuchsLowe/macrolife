@@ -1,44 +1,41 @@
 package com.fuchsundlowe.macrolife.DataObjects;
 
 import android.arch.persistence.room.Entity;
-import android.arch.persistence.room.Ignore;
-import com.fuchsundlowe.macrolife.DataObjects.TaskObject.checkableStatus;
-import com.fuchsundlowe.macrolife.EngineClasses.StorageMaster;
+import android.arch.persistence.room.ForeignKey;
+import android.arch.persistence.room.PrimaryKey;
+
+import com.fuchsundlowe.macrolife.DataObjects.TaskObject.CheckableStatus;
+
 import java.util.Calendar;
-import java.util.Random;
 
 
 /**
  * Created by macbook on 1/30/18.
  * A simple holder that doesn't inherit from DataMaster class
  */
-@Entity(primaryKeys = {"hashID"})
+@Entity(foreignKeys = @ForeignKey(entity = TaskObject.class, parentColumns = "hashID",
+        childColumns = "parentID", onDelete = ForeignKey.CASCADE, onUpdate = ForeignKey.CASCADE))
 public class RepeatingEvent {
 
     // Instance variables
     private int parentID;
     private Calendar startTime;
     private Calendar endTime;
+    private Calendar lastTimeModified;
     private DayOfWeek dayOfWeek; // TODO: How should I represent this? This is found in startTime thou
+    @PrimaryKey(autoGenerate = true)
     private int hashID;
-    @Ignore // TODO: Resolve this stefan! Create a converter for this type
-    private checkableStatus isTaskCompleted;
-    @Ignore
-    private StorageMaster storageMaster;
+    private CheckableStatus isTaskCompleted;
 
     public RepeatingEvent(int parentID, Calendar startTime,
-                          Calendar endTime, DayOfWeek dayOfWeek, int hashID) {
+                          Calendar endTime, DayOfWeek dayOfWeek, int hashID, Calendar lastTimeModified) {
 
         this.parentID = parentID;
         this.dayOfWeek = dayOfWeek;
         this.startTime = startTime;
         this.endTime = endTime;
-        this.storageMaster = StorageMaster.optionalStorageMaster();
-        if (hashID == 0) {
-            this.hashID = this.createNextID();
-        } else {
-            this.hashID = hashID;
-        }
+        this.lastTimeModified = lastTimeModified;
+
     }
 
 
@@ -46,7 +43,9 @@ public class RepeatingEvent {
     public void setHashID(int hashID) {
         this.hashID = hashID;
     }
-
+    public int getHashID() {
+        return this.hashID;
+    }
     public int getParentID() {
         return this.parentID;
     }
@@ -62,13 +61,12 @@ public class RepeatingEvent {
     public Calendar getEndTime() {
         return this.endTime;
     }
-    public checkableStatus getIsTaskCompleted() {
+    public CheckableStatus getIsTaskCompleted() {
         return isTaskCompleted;
     }
-    public void setIsTaskCompleted(checkableStatus isTaskCompleted) {
+    public void setIsTaskCompleted(CheckableStatus isTaskCompleted) {
         this.isTaskCompleted = isTaskCompleted;
     }
-
 
     // Returns true if it can end time comes after begin time, false otherwise.
     public boolean setEndTimeWithReturn(Calendar endTime) {
@@ -84,7 +82,6 @@ public class RepeatingEvent {
     public void setEndTime(Calendar endTime) {
         this.endTime = endTime;
     }
-
     public DayOfWeek getDayOfWeek() {
         return this.dayOfWeek;
     }
@@ -92,42 +89,10 @@ public class RepeatingEvent {
         this.dayOfWeek = day;
     }
 
-    private StorageMaster getStorageMaster() {
-        return this.storageMaster;
+    public Calendar getLastTimeModified() {
+        return lastTimeModified;
     }
-
-    public int getHashID() {
-        return this.hashID;
-    }
-
-    private int createNextID() {
-        Random random = new Random();
-        int newHash;
-        do {
-            newHash = random.nextInt(Integer.MAX_VALUE - 1);
-        } while (storageMaster.checkIfIDisAssigned(newHash));
-        return newHash;
-    }
-
-    //Should check if parent has him, if not add him
-    public void updateMe() {
-        if (this.getStorageMaster().checkIfIDisAssigned(this.getHashID())) {
-            this.getStorageMaster().updateObject(this);
-        } else {
-            this.getStorageMaster().insertObject(this);
-        }
-
-        RepeatingEventMaster parent = this.getStorageMaster().getMasterByInt(this.getParentID());
-        if (parent != null) {
-            parent.addChild(this);
-        }
-    }
-
-    // SHoudl be removed from parent and storage...
-    public void deleteMe() {
-        RepeatingEventMaster parent = this.getStorageMaster().getMasterByInt(this.getParentID());
-        if (parent != null) {
-            parent.removeChild(this);
-        }
+    public void setLastTimeModified(Calendar lastTimeModified) {
+        this.lastTimeModified = lastTimeModified;
     }
 }

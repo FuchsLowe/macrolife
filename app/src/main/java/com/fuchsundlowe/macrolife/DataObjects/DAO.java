@@ -98,10 +98,5 @@ public interface DAO {
     public LiveData<List<SubGoalMaster>> getAllSubGoalMaster();
     @Query("SELECT * FROM SubGoalMaster WHERE parentID = :ofMaster")
     LiveData<List<SubGoalMaster>> findAllChildren(int ofMaster);
-    // TestQuerry:
 
-    @Query("SELECT ComplexGoal.hashID AS hashID, ComplexGoal.taskName as name " +
-    "FROM ComplexGoal " + "WHERE taskCompleted = 0"
-    )
-    LiveData<List<PopUpData>> loadPopUpValues();
 }

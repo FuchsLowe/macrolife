@@ -8,7 +8,6 @@ import java.util.Date;
  * Created by macbook on 1/31/18.
  * Does conversions for Room from boxed objects to primitive values and other way around.
  */
-@Deprecated
 public class TypeConverters {
 
     @TypeConverter
@@ -90,6 +89,27 @@ public class TypeConverters {
             case friday: return 5;
             case saturday: return 6;
             default: return 7;
+        }
+    }
+
+    @TypeConverter
+    public static int fromCheckableStatusToInt(TaskObject.CheckableStatus status) {
+        switch (status){
+            case incomplete: return 1;
+            case completed: return 2;
+            default: return 0;
+        }
+    }
+    @TypeConverter
+    public static TaskObject.CheckableStatus fromIntToCheckableStatus(int value) {
+        switch (value) {
+            case 1:
+                return TaskObject.CheckableStatus.incomplete;
+            case 2:
+                return TaskObject.CheckableStatus.completed;
+            default:
+                    return TaskObject.CheckableStatus.notCheckable;
+
         }
     }
 }

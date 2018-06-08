@@ -18,6 +18,7 @@ import android.widget.ScrollView;
 
 import com.fuchsundlowe.macrolife.CustomViews.ChronoView;
 import com.fuchsundlowe.macrolife.DataObjects.Constants;
+import com.fuchsundlowe.macrolife.Interfaces.DataProviderNewProtocol;
 import com.fuchsundlowe.macrolife.R;
 
 import java.util.Calendar;
@@ -31,6 +32,7 @@ public class DayDisplay_DayView extends Fragment {
     private Calendar dayWeDisplay;
     private SharedPreferences preferences;
     private BroadcastReceiver broadcastReceiver;
+    private DataProviderNewProtocol dataMaster;
 
     //Lifecycle Methods:
     @Nullable

@@ -1,5 +1,6 @@
 package com.fuchsundlowe.macrolife.FragmentModels;
 
+import android.arch.lifecycle.Observer;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -18,9 +19,13 @@ import android.widget.ScrollView;
 
 import com.fuchsundlowe.macrolife.CustomViews.ChronoView;
 import com.fuchsundlowe.macrolife.DataObjects.Constants;
+import com.fuchsundlowe.macrolife.DataObjects.RepeatingEvent;
+import com.fuchsundlowe.macrolife.DataObjects.TaskObject;
+import com.fuchsundlowe.macrolife.EngineClasses.LocalStorage;
 import com.fuchsundlowe.macrolife.Interfaces.DataProviderNewProtocol;
 import com.fuchsundlowe.macrolife.R;
 
+import java.util.ArrayList;
 import java.util.Calendar;
 
 public class DayDisplay_DayView extends Fragment {
@@ -47,12 +52,28 @@ public class DayDisplay_DayView extends Fragment {
 
         preferences = getContext().getSharedPreferences(Constants.SHARED_PREFERENCES_KEY, Context.MODE_PRIVATE);
 
+        dataMaster = LocalStorage.getInstance(getContext());
+
         defineLocalBroadcast();
         return baseView;
     }
     private void defineChronoView(Context context) {
         chronoView = new ChronoView(context, dayWeDisplay);
         chronoViewHolder.addView(chronoView);
+        // Subscribe to live data:
+        dataMaster.getEventsThatIntersect(dayWeDisplay).observe(this, new Observer<ArrayList<RepeatingEvent>>() {
+            @Override
+            public void onChanged(@Nullable ArrayList<RepeatingEvent> repeatingEvents) {
+                chronoView.setData(null, repeatingEvents);
+            }
+        });
+        dataMaster.getTaskThatIntersects(dayWeDisplay).observe(this, new Observer<ArrayList<TaskObject>>() {
+            @Override
+            public void onChanged(@Nullable ArrayList<TaskObject> taskObjects) {
+                chronoView.setData(taskObjects, null);
+            }
+        });
+
         Calendar currentTime = Calendar.getInstance();
         scrollTo(currentTime.get(Calendar.HOUR_OF_DAY));
     }
@@ -77,12 +98,25 @@ public class DayDisplay_DayView extends Fragment {
         broadcastReceiver = new BroadcastReceiver() {
             @Override
             public void onReceive(Context context, Intent intent) {
-                int taskHashID = intent.getIntExtra(Constants.INTENT_FILTER_FIELD_HASH_ID, 0);
-                // Todo: query a database and find the task, then send the task to Bottom bar
+                if (intent.getAction() == Constants.INTENT_FILTER_GLOBAL_EDIT) {
+                    // we grab the ID"s and we find the task and then we send it to bottom bar
+                    int taskId = intent.getIntExtra(Constants.INTENT_FILTER_FIELD_HASH_ID, 0);
+
+                } else if (intent.getAction() == Constants.INTENT_FILTER_NEW_TASK) {
+                    // create a new task with given loations
+                    Calendar taskStartTime = Calendar.getInstance();
+                    taskStartTime.setTimeInMillis(
+                            intent.getIntExtra(Constants.INTENT_FILTER_FIELD_START_TIME, 0)
+                    );
+
+                }
             }
         };
+        IntentFilter intentFilter = new IntentFilter();
+        intentFilter.addAction(Constants.INTENT_FILTER_GLOBAL_EDIT);
+        intentFilter.addAction(Constants.INTENT_FILTER_NEW_TASK);
         LocalBroadcastManager.getInstance(getContext()).registerReceiver(broadcastReceiver,
-                new IntentFilter(Constants.INTENT_FILTER_GLOBAL_EDIT));
+                intentFilter);
     }
 
 }

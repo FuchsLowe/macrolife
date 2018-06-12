@@ -22,7 +22,6 @@ public class Grid_DayViewAdapter extends BaseAdapter {
     private DataProviderProtocol data;
     public Grid_DayViewAdapter(Context context) {
         mContext = context;
-        data = StorageMaster.getInstance(context);
     }
 
     @Override

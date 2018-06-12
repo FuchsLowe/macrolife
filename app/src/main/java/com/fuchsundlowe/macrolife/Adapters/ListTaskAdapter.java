@@ -47,7 +47,6 @@ public class ListTaskAdapter extends RecyclerView.Adapter<ListTaskAdapter.BaseAd
         }
     }
     private void implementLiveData() {
-        dataMaster = StorageMaster.optionalStorageMaster(); // Init's the dataMaster
         dataMaster.getListObjectsByParent(this.parentID).observeForever(new Observer<List<ListObject>>() {
             @Override
             public void onChanged(@Nullable List<ListObject> listObjects) {

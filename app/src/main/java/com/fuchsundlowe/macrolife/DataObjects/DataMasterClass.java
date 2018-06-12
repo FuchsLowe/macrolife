@@ -37,7 +37,6 @@ public abstract class DataMasterClass {
         this.taskCreatedTimeStamp = taskCreatedTimeStamp;
         this.taskCompleted = taskCompleted;
         this.taskOriginalSource = taskOriginalSource;
-        this.storageMaster = StorageMaster.optionalStorageMaster();
 
         if (hashID == 0 ){
             if (storageMaster != null) {

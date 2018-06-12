@@ -112,4 +112,21 @@ public class TypeConverters {
 
         }
     }
+
+    @TypeConverter
+    public static int fromTimeDefinedToInt(TaskObject.TimeDefined timeStatus) {
+        switch (timeStatus) {
+            case onlyDate: return 1;
+            case dateAndTime: return 2;
+            default: return 0;
+        }
+    }
+    @TypeConverter
+    public static TaskObject.TimeDefined fromIntToTimeDefined(int value) {
+        switch (value) {
+            case 1: return TaskObject.TimeDefined.onlyDate;
+            case 2: return TaskObject.TimeDefined.dateAndTime;
+            default: return TaskObject.TimeDefined.noTime;
+        }
+    }
 }

@@ -24,7 +24,6 @@ import java.util.Set;
 @Deprecated
 public class StorageMaster implements DataProviderProtocol {
     // Database Class:
-    private DataProvider dataBase;
     private DAO dataAccessObject;
     private static StorageMaster self = null;
     // Public constructors...
@@ -278,6 +277,17 @@ public class StorageMaster implements DataProviderProtocol {
     public LiveData<List<SubGoalMaster>> findAllChildren(int ofMaster) {
         return dataAccessObject.findAllChildren(ofMaster);
     }
+
+    @Override
+    public void closeDatabase() {
+
+    }
+
+    @Override
+    public LiveData<List<PopUpData>> loadPopUpValues() {
+        return null;
+    }
+
     public boolean amIStored(OrdinaryEventMaster object) {
         int myID = object.getHashID();
         for (OrdinaryEventMaster value: getAllOrdinaryEventMasters().getValue()) {
@@ -644,9 +654,6 @@ public class StorageMaster implements DataProviderProtocol {
         */
     }
     // TODO: When do we close database?
-    public void closeDatabase() {
-        dataBase.close();
-    }
     @Override
     protected void finalize() throws Throwable {
         super.finalize();
@@ -668,8 +675,5 @@ public class StorageMaster implements DataProviderProtocol {
         //allSubGoalMasters = dataAccessObject.getAllSubGoalMaster();
         allRepeatingEventMasters = dataAccessObject.getAllRepeatingEventMaster();
     }
-    @Override
-    public LiveData<List<PopUpData>> loadPopUpValues() {
-        return dataAccessObject.loadPopUpValues();
-    }
+
 }

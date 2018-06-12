@@ -1,5 +1,6 @@
 package com.fuchsundlowe.macrolife.CustomViews;
 
+import android.arch.persistence.room.PrimaryKey;
 import android.content.ClipData;
 import android.content.ClipDescription;
 import android.content.Context;
@@ -30,7 +31,6 @@ import java.util.Calendar;
 // A custom view Class that creates a taskView intended for usage in DayView's Chrono-View
 
 public class Task_DayView extends FrameLayout {
-
     private TextView taskName, masterTaskName;
     private LinearLayout modsHolder;
     private CheckBox box;
@@ -44,6 +44,7 @@ public class Task_DayView extends FrameLayout {
     private GestureDetectorCompat longPressDetector;
     private float storedX, storedY;
     private LocalBroadcastManager manager;
+    private ClickLocation clickLocation;
 
     public Task_DayView(Context context, @Nullable AttributeSet attrs) {
         super(context, attrs);
@@ -54,6 +55,8 @@ public class Task_DayView extends FrameLayout {
         timeUnitSize = (preferences.getInt(Constants.HOUR_IN_PIXELS, 108) / 4 );
 
         longPressDetector = new GestureDetectorCompat(context, new LongPressDetector());
+
+        clickLocation = ClickLocation.none;
     }
 
     // Lifecycle:
@@ -122,18 +125,18 @@ public class Task_DayView extends FrameLayout {
                 case MotionEvent.ACTION_DOWN:
                     storedX = event.getX();
                     storedY = event.getY();
+                    detectClickLocation(event);
+                    //signalGlobalEdit(true);
                     break;
                 case MotionEvent.ACTION_MOVE:
                     float currentX = event.getX();
                     float currentY = event.getY();
-                    switch (detectClickLocation(event)) {
+                    switch (clickLocation) {
                         case top:
                             myLayout(getLeft(), (int) (getTop() + currentY - storedY), getRight(), getBottom());
                             break;
                         case center: // This requires Drag and drop operation
-                            initiateDragAndDrop();
-                            sendGlobalEditBroadcast();
-                            signalGlobalEdit(false);
+                            // is this done by the drag and drop operation?
                             break;
                         case bottom:
                             myLayout(getLeft(), getTop(), getRight(), (int)(getBottom() + currentY - storedY));
@@ -144,6 +147,7 @@ public class Task_DayView extends FrameLayout {
 
                 case MotionEvent.ACTION_UP:
                     // Needs to save the new time...
+                    clickLocation = ClickLocation.none;
                     snapLayoutAndSaveNewTime();
                     break;
             }
@@ -161,18 +165,25 @@ public class Task_DayView extends FrameLayout {
     }
     public void signalGlobalEdit(boolean isEditing) {
         this.globalEdit = isEditing;
-        // Code that supports editing or discourages it
+        if (isEditing) {
+            sendGlobalEditBroadcast();
+            initiateDragAndDrop();
+        }
     }
     private ClickLocation detectClickLocation(MotionEvent event) {
+        ClickLocation returnValue;
+
         int detectionRadius = dpToPixConverter(25);
         float fingerYCoordinate = event.getY();
         if (fingerYCoordinate <= detectionRadius) {
-            return ClickLocation.top;
+            returnValue =  ClickLocation.top;
         } else if (fingerYCoordinate >= getHeight() - detectionRadius) {
-            return ClickLocation.bottom;
+            returnValue =  ClickLocation.bottom;
         } else {
-            return ClickLocation.center;
+            returnValue = ClickLocation.center;
         }
+        clickLocation = returnValue;
+        return returnValue;
     }
 
     // Data definition of self
@@ -219,6 +230,8 @@ public class Task_DayView extends FrameLayout {
 
         // TODO: About mods, how will I retrieve and present them?
 
+        // TODO: Is this good enough?
+        this.requestLayout();
     }
 
     //Methods:
@@ -235,6 +248,23 @@ public class Task_DayView extends FrameLayout {
         } else {
             return repeatingEvent.getEndTime();
         }
+    }
+    public void setNewTaskTimes(@Nullable Calendar startTime, @Nullable Calendar endTime) {
+        if (startTime != null) {
+            if (repeatingEvent != null) {
+                repeatingEvent.setStartTime(startTime);
+            } else {
+                task.setTaskStartTime(startTime);
+            }
+        }
+        if (endTime != null) {
+            if (repeatingEvent != null) {
+                repeatingEvent.setEndTimeWithReturn(endTime);
+            } else {
+                task.setTaskEndTime(endTime);
+            }
+        }
+        // TODO: How should this change in time be enforced into GUI?
     }
     private int dpToPixConverter(float dp) {
         float scale = getResources().getDisplayMetrics().density;
@@ -253,16 +283,25 @@ public class Task_DayView extends FrameLayout {
             this.startDrag(data, defaultShadowBuilder, repeatingEvent, 0);
         }
     }
+
     private void sendGlobalEditBroadcast() {
         manager = LocalBroadcastManager.getInstance(getContext());
         Intent intent = new Intent(Constants.INTENT_FILTER_GLOBAL_EDIT);
         intent.putExtra(Constants.INTENT_FILTER_FIELD_HASH_ID, task.getHashID());
         manager.sendBroadcast(intent);
     }
+    // Retrives RepeatingEvent ID if there is one, if not returns TaskObject ID
+    public int getActiveHashID() {
+        if (repeatingEvent == null) {
+            return task.getHashID();
+        } else {
+            return repeatingEvent.getHashID();
+        }
+    }
 
     // Local Enum:
     private enum ClickLocation{
-        top, center, bottom;
+        top, center, bottom, none;
     }
 
 }

@@ -31,12 +31,9 @@ public class TestActivity extends AppCompatActivity {
         setContentView(R.layout.activity_test);
         name = findViewById(R.id.enetrName);
         descriptor = findViewById(R.id.Descriptor);
-        data = StorageMaster.getInstance(this);
-        registerObserver();
 
     }
 
-    DataProviderProtocol data;
     EditText name;
     EditText descriptor;
 
@@ -46,7 +43,7 @@ public class TestActivity extends AppCompatActivity {
             public void run() {
                 final OrdinaryEventMaster em = new OrdinaryEventMaster(0, name.getText().toString(),null,
                         null, Calendar.getInstance(), false, SourceType.local);
-                data.insertObject(em);
+
                 descriptor.post(new Runnable() {
                     @Override
                     public void run() {
@@ -64,29 +61,7 @@ public class TestActivity extends AppCompatActivity {
 
     }
 
-    private void registerObserver() {
-        data.subscribeObserver_OrdinaryEvent(this, new Observer<List<OrdinaryEventMaster>>() {
-            @Override
-            public void onChanged(@Nullable List<OrdinaryEventMaster> ordinaryEventMasters) {
-                for (OrdinaryEventMaster data: ordinaryEventMasters) {
-                    descriptor.append("New Entry: " + data.getTaskName() +"\nID: " + data.getHashID());
-                }
-            }
-        });
-    }
 
-    private void observerForListObjects() {
-        data.subscribeObserver_ListObject(this, new Observer<List<ListObject>>() {
-            @Override
-            public void onChanged(@Nullable List<ListObject> listObjects) {
-                String toText = "";
-                for (ListObject object: listObjects) {
-                    toText += object.getHashID() + " with name: " + object.getTaskName() + "\n";
-                }
-                descriptor.setText(toText);
-            }
-        });
-    }
 
     public void toScroll(View view) {
         Intent toScroll = new Intent(this, TestActivity2.class);

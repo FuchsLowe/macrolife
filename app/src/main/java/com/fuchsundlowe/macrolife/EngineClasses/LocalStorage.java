@@ -12,6 +12,7 @@ import com.fuchsundlowe.macrolife.DataObjects.Constants;
 import com.fuchsundlowe.macrolife.DataObjects.ListObject;
 import com.fuchsundlowe.macrolife.DataObjects.NewDAO;
 import com.fuchsundlowe.macrolife.DataObjects.RepeatingEvent;
+import com.fuchsundlowe.macrolife.DataObjects.RoomDataBaseObject;
 import com.fuchsundlowe.macrolife.DataObjects.TaskObject;
 import com.fuchsundlowe.macrolife.Interfaces.DataProviderNewProtocol;
 import java.util.ArrayList;
@@ -20,7 +21,7 @@ import java.util.Calendar;
 public class LocalStorage implements DataProviderNewProtocol {
 
     private static LocalStorage self;
-    private RoomDatabaseObject dataBase;
+    private RoomDataBaseObject dataBase;
 
     // Constructor implementation:
     public static  @Nullable LocalStorage getInstance(@Nullable Context context) {
@@ -33,7 +34,7 @@ public class LocalStorage implements DataProviderNewProtocol {
     }
     private LocalStorage(Context context) {
         // Deals with database initialization ofc
-        dataBase = Room.databaseBuilder(context, RoomDatabaseObject.class,
+        dataBase = Room.databaseBuilder(context, RoomDataBaseObject.class,
                 Constants.DATA_BASE_NAME).build();
     }
 
@@ -46,27 +47,39 @@ public class LocalStorage implements DataProviderNewProtocol {
     public ComplexGoal findComplexGoal(int byID) {
         return null;
     }
-    public LiveData<ArrayList<TaskObject>> getTaskThatIntersects(Calendar day) {
-        // Get the long values of start and end of day...
-        day.set(Calendar.HOUR_OF_DAY,0);
-        day.set(Calendar.MINUTE,0);
-        day.set(Calendar.SECOND,0);
-        day.set(Calendar.MILLISECOND,0);
-        long startTimeStamp = day.getTimeInMillis();
-
-        day.set(Calendar.HOUR_OF_DAY, 23);
-        day.set(Calendar.MINUTE, 59);
-        long endTimeStamp = day.getTimeInMillis();
+    @Override
+    public TaskObject findTaskObjectBy(int ID) {
+        // TODO: To implement search from static database
         return null;
     }
+    public LiveData<ArrayList<TaskObject>> getTaskThatIntersects(Calendar day) {
+        // Get the long values of start and end of day...
+        long[] results = returnStartAndEndTimesForDay(day);
 
-    // Database Implementation:
-    @Database(entities = {ComplexGoal.class, TaskObject.class, ListObject.class, RepeatingEvent.class},
-    version = 1, exportSchema = false)
-    @TypeConverters({com.fuchsundlowe.macrolife.DataObjects.TypeConverters.class})
-    private abstract class RoomDatabaseObject extends RoomDatabase {
-        public abstract NewDAO newDAO();
+        return dataBase.newDAO().getTaskThatIntersects(results[0], results[1]);
+    }
+    public LiveData<ArrayList<RepeatingEvent>> getEventsThatIntersect(Calendar day) {
+        // Get the long values of start and end of day...
+        long[] results = returnStartAndEndTimesForDay(day);
+
+        return dataBase.newDAO().getEventThatIntersects(results[0], results[1]);
     }
 
+    // Method calls:
+    // first value is start time and second value is end time
+   private long[] returnStartAndEndTimesForDay(Calendar day) {
+       Calendar dayToWorkWith = (Calendar) day.clone();
 
+       dayToWorkWith.set(Calendar.HOUR_OF_DAY,0);
+       dayToWorkWith.set(Calendar.MINUTE,0);
+       dayToWorkWith.set(Calendar.SECOND,0);
+       dayToWorkWith.set(Calendar.MILLISECOND,0);
+       long startTimeStamp = day.getTimeInMillis();
+
+       dayToWorkWith.set(Calendar.HOUR_OF_DAY, 23);
+       dayToWorkWith.set(Calendar.MINUTE, 59);
+       long endTimeStamp = day.getTimeInMillis();
+
+       return new long[]{startTimeStamp, endTimeStamp};
+   }
 }

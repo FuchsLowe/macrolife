@@ -2,7 +2,11 @@ package com.fuchsundlowe.macrolife.DataObjects;
 
 import android.arch.persistence.room.Entity;
 import android.arch.persistence.room.ForeignKey;
+import android.arch.persistence.room.Ignore;
 import android.arch.persistence.room.PrimaryKey;
+
+import java.sql.Time;
+import java.util.ArrayList;
 import java.util.Calendar;
 
 // A fundamental Data Type for this App Local storage
@@ -10,25 +14,27 @@ import java.util.Calendar;
         childColumns = "parentGoal", onDelete = ForeignKey.SET_NULL, onUpdate = ForeignKey.CASCADE))
 public class TaskObject {
     @PrimaryKey(autoGenerate = true)
-    private int hashID;
+    private int hashID; // Passing 0 will make system auto-generate a key when data is formed...
     private int parentGoal; // if this goal is a part of ComplexGoal, this would be ID of that master
     private int subGoalMaster; // reference to a optional next in hierarchy goal
     private String taskName;
-    private Calendar taskCreatedTimeStamp;
+    private Calendar taskCreatedTimeStamp; // set once, never changes
     private Calendar taskStartTime;
     private Calendar taskEndTime;
     private Calendar lastTimeModified;
     private CheckableStatus isTaskCompleted;
+    private TimeDefined timeDefined;
     private String note;
-    private boolean isList;
-    private boolean isRecurring;
-    private int mX, mY; // for location on the screen
+    private String mods;
+    private int mX, mY; // for location on the screen of Complex Activity
+    @Ignore
+    private ArrayList<Mods> allMods;
 
     // Constructor:
     public TaskObject(int hashID, int parentGoal, int subGoalMaster, String taskName,
                       Calendar taskCreatedTimeStamp, Calendar taskStartTime, Calendar taskEndTime,
                       Calendar lastTimeModified, CheckableStatus isTaskCompleted, String note,
-                      boolean isList, boolean isRecurring, int mX, int mY) {
+                      int mX, int mY, String mods, TimeDefined timeDefined) {
 
         this.hashID = hashID;
         this.parentGoal = parentGoal;
@@ -40,12 +46,53 @@ public class TaskObject {
         this.lastTimeModified = lastTimeModified;
         this.isTaskCompleted = isTaskCompleted;
         this.note = note;
-        this.isList = isList;
-        this.isRecurring = isRecurring;
         this.mX = mX;
         this.mY = mY;
+        this.mods = mods;
+        this.timeDefined = timeDefined;
+
+        defineMods();
     }
 
+    // Methods:
+    private void defineMods() {
+        String[] modsSplit = this.mods.split("\n");
+        for (String mod: modsSplit) {
+            switch (mod) {
+                case "note":
+                    addMod(Mods.note);
+                    break;
+                case "repeating":
+                    addMod(Mods.repeating);
+                    break;
+                case "list":
+                    addMod(Mods.list);
+                    break;
+                default:
+                    break;
+            }
+        }
+    }
+    public void addMod(Mods modToAdd) {
+        if (!allMods.contains(modToAdd)) {
+            allMods.add(modToAdd);
+            // TODO:Should this save the data?
+            if (!mods.contains(modToAdd.name())) {
+                mods += "\n" + modToAdd.name();
+            }
+        }
+    }
+    public void removeAMod(Mods modToRemove) {
+        allMods.remove(modToRemove);
+        mods.replace("\n" + modToRemove.name(),"");
+        // TODO: Should this save data?
+    }
+    public Mods[] getAllMods() {
+        return (Mods[]) this.allMods.toArray();
+    }
+    public boolean isTaskRepeating() {
+        return allMods.contains(Mods.repeating);
+    }
     // Generic Getters and Setters:
     public int getHashID() {
         return hashID;
@@ -92,8 +139,14 @@ public class TaskObject {
     public Calendar getTaskEndTime() {
         return taskEndTime;
     }
-    public void setTaskEndTime(Calendar taskEndTime) {
-        this.taskEndTime = taskEndTime;
+    public boolean setTaskEndTime(Calendar taskEndTime) {
+        Calendar startTime = this.getTaskStartTime();
+        if (taskEndTime.after(startTime)) {
+            this.taskEndTime = taskEndTime;
+            return true;
+        } else {
+            return false;
+        }
     }
 
     public Calendar getLastTimeModified() {
@@ -110,25 +163,14 @@ public class TaskObject {
         this.isTaskCompleted = isTaskCompleted;
     }
 
+    public String getMods() {return this.mods;}
+    public void setMods(String mods) { this.mods = mods;}
+
     public String getNote() {
         return note;
     }
     public void setNote(String note) {
         this.note = note;
-    }
-
-    public boolean isList() {
-        return isList;
-    }
-    public void setList(boolean list) {
-        isList = list;
-    }
-
-    public boolean isRecurring() {
-        return isRecurring;
-    }
-    public void setRecurring(boolean recurring) {
-        isRecurring = recurring;
     }
 
     public int getMX() {
@@ -145,9 +187,22 @@ public class TaskObject {
         this.mY = mY;
     }
 
+    public TimeDefined getTimeDefined() {
+        return timeDefined;
+    }
+    public void setTimeDefined(TimeDefined timeDefined) {
+        this.timeDefined = timeDefined;
+    }
 
     // Enum that defines the types of checkable statuses that exist
     public enum CheckableStatus {
         notCheckable, incomplete, completed;
+    }
+    public enum TimeDefined {
+        noTime, onlyDate, dateAndTime
+    }
+    // Lists all mods that task can have
+    public enum Mods {
+        note, repeating, list,
     }
 }

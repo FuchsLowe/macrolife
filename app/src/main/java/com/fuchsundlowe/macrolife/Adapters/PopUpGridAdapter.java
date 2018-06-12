@@ -26,7 +26,6 @@ public class PopUpGridAdapter extends BaseAdapter {
     private List<PopUpData> dataHolder;
     public PopUpGridAdapter(Context mContext) {
         this.mContext = mContext;
-        data = StorageMaster.getInstance(mContext);
         loadData();
     }
 

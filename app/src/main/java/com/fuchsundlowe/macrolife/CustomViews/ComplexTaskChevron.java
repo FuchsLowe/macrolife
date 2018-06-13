@@ -25,7 +25,7 @@ import com.fuchsundlowe.macrolife.R;
 
 import java.util.ArrayList;
 import java.util.List;
-
+@Deprecated
 public class ComplexTaskChevron extends View  implements ScaleInterface {
 
     private Chevronable data;

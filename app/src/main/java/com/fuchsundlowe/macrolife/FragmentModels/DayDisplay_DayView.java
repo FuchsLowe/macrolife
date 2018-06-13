@@ -60,6 +60,7 @@ public class DayDisplay_DayView extends Fragment {
     private void defineChronoView(Context context) {
         chronoView = new ChronoView(context, dayWeDisplay);
         chronoViewHolder.addView(chronoView);
+
         // Subscribe to live data:
         dataMaster.getEventsThatIntersect(dayWeDisplay).observe(this, new Observer<ArrayList<RepeatingEvent>>() {
             @Override

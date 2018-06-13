@@ -303,8 +303,7 @@ public class ChronoView extends ViewGroup {
             case MotionEvent.ACTION_CANCEL:
                 break;
             case MotionEvent.ACTION_UP:
-                // Possily signal global edit done... to mark that user is done editing
-
+                // TODO: Possibly signal global edit done... to mark that user is done editing!
                 break;
         }
         return true;

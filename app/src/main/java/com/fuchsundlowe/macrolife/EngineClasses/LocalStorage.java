@@ -17,6 +17,7 @@ import com.fuchsundlowe.macrolife.DataObjects.TaskObject;
 import com.fuchsundlowe.macrolife.Interfaces.DataProviderNewProtocol;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.List;
 
 public class LocalStorage implements DataProviderNewProtocol {
 
@@ -58,7 +59,7 @@ public class LocalStorage implements DataProviderNewProtocol {
 
         return dataBase.newDAO().getTaskThatIntersects(results[0], results[1]);
     }
-    public LiveData<ArrayList<RepeatingEvent>> getEventsThatIntersect(Calendar day) {
+    public LiveData<List<RepeatingEvent>> getEventsThatIntersect(Calendar day) {
         // Get the long values of start and end of day...
         long[] results = returnStartAndEndTimesForDay(day);
 

@@ -20,7 +20,7 @@ import java.util.Calendar;
  * Can transition from one view to other
  *
  */
-
+@Deprecated
 public class PopUpCreator {
     // Types it can create
     public static final int COMPLEX_TASK_ACTIVITY = 0;

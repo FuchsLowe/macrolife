@@ -17,6 +17,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 
+import com.fuchsundlowe.macrolife.CustomViews.EditingView_BottomBar;
 import com.fuchsundlowe.macrolife.CustomViews.Task_DayView;
 import com.fuchsundlowe.macrolife.R;
 import com.fuchsundlowe.macrolife.SupportClasses.ColorFilterGenerator;
@@ -33,28 +34,13 @@ public class TestActivity3 extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_test3);
-        a = findViewById(R.id.id_a);
-        a.setBackgroundColor(Color.GRAY);
-        b = findViewById(R.id.id_b);
-        b.setBackgroundColor(Color.TRANSPARENT);
-        defineTimerTest();
-    }
 
-    void defineTimerTest() {
-        Timer timer = new Timer();
-        timer.scheduleAtFixedRate(timerTask,0, 1000);
     }
-    TimerTask timerTask = new TimerTask() {
-        @Override
-        public void run() {
-            Log.d("Timer Fired", "TIME: " + Calendar.getInstance().getTimeInMillis());
-        }
-    };
-
 
     public void sklopka(View view) {
-        a.getBackground().setColorFilter(ColorFilterGenerator.adjustHue(110));
-        a.requestLayout();
+      ViewGroup ab = findViewById(R.id.alpha_bear);
+      EditingView_BottomBar nn = new EditingView_BottomBar(this);
+      ab.addView(nn);
     }
 
 }

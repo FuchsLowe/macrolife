@@ -509,8 +509,8 @@ public class StorageMaster implements DataProviderProtocol {
 
     // onCreation:
     private StorageMaster(Context appContext) {
-        this.dataBase = Room.databaseBuilder(appContext, DataProvider.class, "StandardDB").build();
-        this.dataAccessObject = dataBase.daoObject();
+       //this.dataBase = Room.databaseBuilder(appContext, DataProvider.class, "StandardDB").build();
+        //this.dataAccessObject = dataBase.daoObject();
         initializeLiveData();
     }
     // General purpose methods:

@@ -27,6 +27,7 @@ import com.fuchsundlowe.macrolife.R;
 
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.List;
 
 public class DayDisplay_DayView extends Fragment {
 
@@ -47,8 +48,6 @@ public class DayDisplay_DayView extends Fragment {
         baseView = (ViewGroup) inflater.inflate(R.layout.day_view_central_bar, container, false);
         this.reminderView = baseView.findViewById(R.id.reminders_view);
         this.chronoViewHolder = baseView.findViewById(R.id.chronoView);
-        // Init the Views
-        defineChronoView(getContext());
 
         preferences = getContext().getSharedPreferences(Constants.SHARED_PREFERENCES_KEY, Context.MODE_PRIVATE);
 
@@ -62,15 +61,15 @@ public class DayDisplay_DayView extends Fragment {
         chronoViewHolder.addView(chronoView);
 
         // Subscribe to live data:
-        dataMaster.getEventsThatIntersect(dayWeDisplay).observe(this, new Observer<ArrayList<RepeatingEvent>>() {
+        dataMaster.getEventsThatIntersect(dayWeDisplay).observe(this, new Observer<List<RepeatingEvent>>() {
             @Override
-            public void onChanged(@Nullable ArrayList<RepeatingEvent> repeatingEvents) {
+            public void onChanged(@Nullable List<RepeatingEvent> repeatingEvents) {
                 chronoView.setData(null, repeatingEvents);
             }
         });
-        dataMaster.getTaskThatIntersects(dayWeDisplay).observe(this, new Observer<ArrayList<TaskObject>>() {
+        dataMaster.getTaskThatIntersects(dayWeDisplay).observe(this, new Observer<List<TaskObject>>() {
             @Override
-            public void onChanged(@Nullable ArrayList<TaskObject> taskObjects) {
+            public void onChanged(@Nullable List<TaskObject> taskObjects) {
                 chronoView.setData(taskObjects, null);
             }
         });
@@ -80,6 +79,7 @@ public class DayDisplay_DayView extends Fragment {
     }
     public void init(Calendar toDisplay) {
         this.dayWeDisplay = toDisplay;
+        defineChronoView(getContext());
     }
 
     // Methods:

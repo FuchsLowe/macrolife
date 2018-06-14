@@ -31,8 +31,10 @@ import com.fuchsundlowe.macrolife.DataObjects.Constants;
 import com.fuchsundlowe.macrolife.DataObjects.RepeatingEventMaster;
 import com.fuchsundlowe.macrolife.DataObjects.SourceType;
 import com.fuchsundlowe.macrolife.DataObjects.SubGoalMaster;
+import com.fuchsundlowe.macrolife.EngineClasses.LocalStorage;
 import com.fuchsundlowe.macrolife.EngineClasses.StorageMaster;
 import com.fuchsundlowe.macrolife.Interfaces.ComplexTaskInterface;
+import com.fuchsundlowe.macrolife.Interfaces.DataProviderNewProtocol;
 import com.fuchsundlowe.macrolife.Interfaces.TailViewProtocol;
 import com.fuchsundlowe.macrolife.Interfaces.DataProviderProtocol;
 import com.fuchsundlowe.macrolife.Interfaces.PopUpProtocol;
@@ -53,7 +55,7 @@ public class ComplexTaskActivity extends AppCompatActivity implements ComplexTas
     private int INCREASE_PAPER_BY = 50;
 
     private List<Chevronable> allChildren;
-    private DataProviderProtocol dataProvider;
+    private DataProviderNewProtocol dataProvider;
     private List<ComplexTaskChevron> wrappedChildrenInChevrons;
     private List<TailView> allTails;
 
@@ -83,7 +85,7 @@ public class ComplexTaskActivity extends AppCompatActivity implements ComplexTas
         hit = new Rect();
         scaleFactor = 1.0f; // Defines the default scale factor to start with
         masterID = getIntent().getIntExtra(Constants.LIST_VIEW_MASTER_ID, -1);
-        dataProvider = StorageMaster.getInstance(this);
+        dataProvider = LocalStorage.getInstance(getContext());
         masterNameDisplayed.setText(dataProvider.getComplexGoalBy(masterID).getTaskName());
         mScaleDetector = new ScaleGestureDetector(this, new Scaler());
         mGestureDetector = new GestureDetectorCompat(this, new LongPressDetector());
@@ -128,6 +130,7 @@ public class ComplexTaskActivity extends AppCompatActivity implements ComplexTas
 
     // Database:
     private void getDynamicDataUpdates() {
+        /*  This database system needs to be revisited
         allChildren = new ArrayList<>();
         dataProvider.findAllChildren(masterID).observe(this, new Observer<List<SubGoalMaster>>() {
             @Override
@@ -154,14 +157,17 @@ public class ComplexTaskActivity extends AppCompatActivity implements ComplexTas
                 setAllTails();
             }
         });
+        */
     }
     // Will fetch data onlyOnce
     @Deprecated
     private void getStaticDataUpdate() {
+       /*
         allChildren = new ArrayList<>();
         allChildren.addAll(dataProvider.getAllSubGoalsByMasterId(masterID));
         allChildren.addAll(dataProvider.getSubordinateRepearingStaticMasters(masterID));
         updateData();
+        */
     }
     @Deprecated
     private void updateData() {

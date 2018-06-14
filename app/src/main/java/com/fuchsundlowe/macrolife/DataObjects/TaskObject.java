@@ -203,6 +203,6 @@ public class TaskObject {
     }
     // Lists all mods that task can have
     public enum Mods {
-        note, repeating, list,
+        note, repeating, list, checkable, dateAndTime, delete;
     }
 }

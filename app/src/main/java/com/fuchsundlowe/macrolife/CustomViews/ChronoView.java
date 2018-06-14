@@ -30,6 +30,7 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -101,6 +102,8 @@ public class ChronoView extends ViewGroup {
         registerDragAndDropListeners();
 
         longPressDetector = new GestureDetectorCompat(context, new LongPressDetector());
+
+
     }
 
     // Methods:
@@ -396,8 +399,8 @@ public class ChronoView extends ViewGroup {
     }
 
     // Data Manipulation:
-    public void setData(@Nullable ArrayList<TaskObject> tasks,
-                        @Nullable ArrayList<RepeatingEvent> repeatingEvents) {
+    public void setData(@Nullable List<TaskObject> tasks,
+                        @Nullable List<RepeatingEvent> repeatingEvents) {
         if (dataProvider == null) {
             dataProvider = LocalStorage.getInstance(getContext());
         }

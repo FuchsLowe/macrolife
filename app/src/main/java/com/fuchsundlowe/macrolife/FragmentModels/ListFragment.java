@@ -27,6 +27,7 @@ import com.fuchsundlowe.macrolife.DataObjects.ListMaster;
 import com.fuchsundlowe.macrolife.DataObjects.OrdinaryEventMaster;
 import com.fuchsundlowe.macrolife.DataObjects.RepeatingEventMaster;
 import com.fuchsundlowe.macrolife.DataObjects.SourceType;
+import com.fuchsundlowe.macrolife.EngineClasses.LocalStorage;
 import com.fuchsundlowe.macrolife.EngineClasses.StorageMaster;
 import com.fuchsundlowe.macrolife.Interfaces.DataProviderProtocol;
 import com.fuchsundlowe.macrolife.Interfaces.DateAndTimeProtocol;
@@ -249,8 +250,9 @@ public class ListFragment extends Fragment implements DateAndTimeProtocol {
             // Complex
             case 0:
                 String taskPurpose = purpose.getText().toString();
-                ComplexGoal goal = new ComplexGoal(0, taskName, startDate, endDate,
-                        Calendar.getInstance(), false, SourceType.local, taskPurpose);
+                ComplexGoal goal = new ComplexGoal(0, taskName, Calendar.getInstance(),
+                        Calendar.getInstance(), false, SourceType.local, null);
+
                 dataMaster.insertObject(goal);
                 // TODO: Open a complex creator?
                 break;

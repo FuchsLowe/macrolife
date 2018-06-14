@@ -41,7 +41,7 @@ public class LocalStorage implements DataProviderNewProtocol {
 
     // Database Calls:
     @Override
-    public LiveData<ArrayList<TaskObject>> getTasksFor(Calendar day) {
+    public LiveData<List<TaskObject>> getTasksFor(Calendar day) {
         return null;
     }
     @Override // Static return value
@@ -53,18 +53,26 @@ public class LocalStorage implements DataProviderNewProtocol {
         // TODO: To implement search from static database
         return null;
     }
-    public LiveData<ArrayList<TaskObject>> getTaskThatIntersects(Calendar day) {
+    public LiveData<List<TaskObject>> getTaskThatIntersects(Calendar day) {
         // Get the long values of start and end of day...
         long[] results = returnStartAndEndTimesForDay(day);
 
         return dataBase.newDAO().getTaskThatIntersects(results[0], results[1]);
     }
+
+    @Override
     public LiveData<List<RepeatingEvent>> getEventsThatIntersect(Calendar day) {
         // Get the long values of start and end of day...
         long[] results = returnStartAndEndTimesForDay(day);
 
         return dataBase.newDAO().getEventThatIntersects(results[0], results[1]);
     }
+
+    @Override
+    public ComplexGoal getComplexGoalBy(int masterID) {
+        return null; // TODO: To implemnet!
+    }
+
 
     // Method calls:
     // first value is start time and second value is end time

@@ -69,9 +69,7 @@ public class ListTask extends AppCompatActivity {
         });
     }
     private void createNewSubTask() {
-        ListObject newTask = new ListObject(newTaskText.getText().toString(), false,
-                masterID,0);
-        data.insertObject(newTask);
+
     }
     public void onDone(View view){
         this.finish();

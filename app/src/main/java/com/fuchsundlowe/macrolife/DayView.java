@@ -1,35 +1,35 @@
 package com.fuchsundlowe.macrolife;
 
 import android.os.Bundle;
-import android.os.Debug;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentStatePagerAdapter;
+import android.support.v4.app.FragmentTransaction;
 import android.support.v4.view.PagerAdapter;
 import android.support.v4.view.ViewPager;
-import android.util.Log;
 import android.view.ViewGroup;
+import com.fuchsundlowe.macrolife.CustomViews.EditTaskBottomBar;
 import com.fuchsundlowe.macrolife.DataObjects.Constants;
-import com.fuchsundlowe.macrolife.EngineClasses.StorageMaster;
+import com.fuchsundlowe.macrolife.DataObjects.TaskObject;
+import com.fuchsundlowe.macrolife.EngineClasses.LocalStorage;
 import com.fuchsundlowe.macrolife.FragmentModels.DateDisplay_DayView;
 import com.fuchsundlowe.macrolife.FragmentModels.DayDisplay_DayView;
+import com.fuchsundlowe.macrolife.Interfaces.BottomBarCommunicationProtocol;
 import com.fuchsundlowe.macrolife.Interfaces.DataProviderNewProtocol;
-import com.fuchsundlowe.macrolife.Interfaces.DataProviderProtocol;
 import com.fuchsundlowe.macrolife.Interfaces.DayViewTopFragmentCallback;
 import java.text.SimpleDateFormat;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.Timer;
-import java.util.TimerTask;
+
 
 /**
  * This class provides day view fragment for app. Main features expected here are:
  *  Chronological view of the daily duties.
  *  Requests information to fill in this specific day based on day atribute.
  */
-public class DayView extends FragmentActivity implements DayViewTopFragmentCallback {
+public class DayView extends FragmentActivity implements DayViewTopFragmentCallback, BottomBarCommunicationProtocol {
 
     private DataProviderNewProtocol dataMaster;
     private Calendar currentDisplayedDay;
@@ -40,6 +40,7 @@ public class DayView extends FragmentActivity implements DayViewTopFragmentCallb
     private DayView self;
     private int currentDayPosition, currentDatePosition;
     private ArrayList<DateDisplay_DayView> topBarFragments;
+    private FragmentManager fragmentManager;
 
     // Life-cycle events:
     @Override
@@ -62,7 +63,9 @@ public class DayView extends FragmentActivity implements DayViewTopFragmentCallb
 
         setContentView(R.layout.day_layout);
         self = this;
-        // TODO: Define Storage Master
+
+        dataMaster = LocalStorage.getInstance(this);
+
         central = findViewById(R.id.DayView_Central);
 
         dateDisplay = findViewById(R.id.DateDisplay);
@@ -78,6 +81,8 @@ public class DayView extends FragmentActivity implements DayViewTopFragmentCallb
         definePageTransformerCallbacks();
 
         bottom = findViewById(R.id.DayView_Bottom);
+        fragmentManager = getSupportFragmentManager();
+        provideRecommendationFetcher();
 
     }
 
@@ -129,6 +134,12 @@ public class DayView extends FragmentActivity implements DayViewTopFragmentCallb
         }
 
         return difference;
+    }
+
+    // BottomBar communication protocol:
+    public void reportDeleteTask(TaskObject object) {
+        dataMaster.deleteTask(object);
+        provideRecommendationFetcher();
     }
 
     // Page Transformers
@@ -208,6 +219,20 @@ public class DayView extends FragmentActivity implements DayViewTopFragmentCallb
             }
         });
     }
+
+    // BottomBar:
+    private void provideRecommendationFetcher() {
+        // TODO: Define for recomendation fetcer
+    }
+    private void provideEditTask(TaskObject taskBeingEdited) {
+        FragmentTransaction transaction= fragmentManager.beginTransaction();
+        EditTaskBottomBar editTask = new EditTaskBottomBar();
+        editTask.setState(EditTaskBottomBar.EditTaskState.editTask, taskBeingEdited, this);
+        transaction.replace(bottom.getId(), editTask);
+        transaction.commit();
+    }
+
+
 
     // Temporary methods and stuff:
     ArrayList<Calendar> calendarDatesHolder = new ArrayList<>(40);

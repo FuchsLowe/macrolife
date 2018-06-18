@@ -1,6 +1,7 @@
 package com.fuchsundlowe.macrolife.Interfaces;
 
 import android.support.annotation.Nullable;
+import android.view.View;
 
 import com.fuchsundlowe.macrolife.DataObjects.RepeatingEvent;
 import com.fuchsundlowe.macrolife.DataObjects.TaskObject;
@@ -8,4 +9,6 @@ import com.fuchsundlowe.macrolife.DataObjects.TaskObject;
 public interface EditTaskProtocol {
     void saveTask(TaskObject task, @Nullable RepeatingEvent event);
     void clickOnMod(TaskObject.Mods mod);
+    void modDone();
+    View getBaseView();
 }

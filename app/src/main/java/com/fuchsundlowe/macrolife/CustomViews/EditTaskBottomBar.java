@@ -1,34 +1,41 @@
 package com.fuchsundlowe.macrolife.CustomViews;
 
+import android.graphics.Point;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentManager;
+import android.view.Gravity;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.inputmethod.EditorInfo;
+import android.widget.Button;
 import android.widget.FrameLayout;
 import android.widget.LinearLayout;
+import android.widget.PopupWindow;
 import android.widget.TextView;
 
-import com.fuchsundlowe.macrolife.DataObjects.Chevronable;
 import com.fuchsundlowe.macrolife.DataObjects.RepeatingEvent;
 import com.fuchsundlowe.macrolife.DataObjects.TaskObject;
 import com.fuchsundlowe.macrolife.EngineClasses.LocalStorage;
+import com.fuchsundlowe.macrolife.Interfaces.BottomBarCommunicationProtocol;
 import com.fuchsundlowe.macrolife.Interfaces.DataProviderNewProtocol;
+import com.fuchsundlowe.macrolife.Interfaces.DayViewTopFragmentCallback;
 import com.fuchsundlowe.macrolife.Interfaces.EditTaskProtocol;
 import com.fuchsundlowe.macrolife.R;
 
 import java.util.Calendar;
 import java.util.HashMap;
 
-
+// This class manages the Bottom Bar in edit task or creating a new task...
 public class EditTaskBottomBar extends Fragment implements EditTaskProtocol {
 
     //Variables and instances:
     private DataProviderNewProtocol dataProvider;
+    private BottomBarCommunicationProtocol parentProtocol;
     private ViewGroup baseView;
     private FrameLayout dynamicArea;
     private LinearLayout modAreaOne, modAreaTwo;
@@ -36,10 +43,12 @@ public class EditTaskBottomBar extends Fragment implements EditTaskProtocol {
     private int MIN_PADDING_BETWEEN_BUTTONS = 10;
     private HashMap<TaskObject.Mods, ModButton> modButtons;
     private TaskObject taskObject;
+    private LayoutInflater inflater;
 
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+        this.inflater = inflater;
         baseView = (ViewGroup) inflater.inflate(R.layout.edit_task_bottom_bar, container, false);
         dynamicArea = baseView.findViewById(R.id.dynamicArea_editTask);
         modAreaOne = baseView.findViewById(R.id.modAreaOne_editTAsk);
@@ -58,7 +67,9 @@ public class EditTaskBottomBar extends Fragment implements EditTaskProtocol {
      * operation of creating desired View state is failure or success...
      * Must receive the taskManipulatd if setState == editTask, else returns false
      */
-    public boolean setState(final EditTaskState setState, @Nullable TaskObject taskManipulated) {
+    public boolean setState(final EditTaskState setState, @Nullable TaskObject taskManipulated,
+                            final BottomBarCommunicationProtocol parentProtocol) {
+        this.parentProtocol = parentProtocol;
         switch (setState) {
             case createTask:
                 baseView.removeAllViews();
@@ -73,7 +84,7 @@ public class EditTaskBottomBar extends Fragment implements EditTaskProtocol {
                                 // TODO: return this to whoever needs it...
                                 TaskObject newTaskCreated = createNewTask(v.getText().toString());
                                 // TODO: If this is not possible, return new object to Actviity and resend it here.
-                                setState(EditTaskState.editTask, newTaskCreated);
+                                setState(EditTaskState.editTask, newTaskCreated, parentProtocol);
                             }
                             return true;
                         }
@@ -113,18 +124,12 @@ public class EditTaskBottomBar extends Fragment implements EditTaskProtocol {
 
         //===!!!MAKE SURE NUMBER OF MODS IN FIRST AND SECOND ROW == TOTAL NUMBER OF MODS!!!===//
 
-        int maxCalculatedButtonSize = (modAreaOne.getWidth() -
-                ((NUMBER_OF_MODS_FIRST_ROW + 1) * MIN_PADDING_BETWEEN_BUTTONS)) / NUMBER_OF_MODS_FIRST_ROW;
-        int buttonSize = Math.max(MAX_BUTTON_SIZE, maxCalculatedButtonSize);
-
         if (modButtons == null) {
             modButtons = new HashMap<>(NUMBER_OF_MODS_FIRST_ROW + NUMBER_OF_MODS_SECOND_ROW);
         }
 
-        int paddingAreaOne = (modAreaOne.getWidth() - (buttonSize * NUMBER_OF_MODS_FIRST_ROW)) /
-                (NUMBER_OF_MODS_FIRST_ROW + 1);
-        int paddingAreaTwo = (modAreaTwo.getWidth() - (buttonSize * NUMBER_OF_MODS_SECOND_ROW)) /
-                (NUMBER_OF_MODS_SECOND_ROW + 1);
+        Point paddingAreaOne = calculatePaddingAndButtonHeight(NUMBER_OF_MODS_FIRST_ROW);
+        Point paddingAreaTwo = calculatePaddingAndButtonHeight(NUMBER_OF_MODS_SECOND_ROW);
 
         for (int i = 1; i <= NUMBER_OF_MODS_FIRST_ROW; i++) {
             ModButton mod;
@@ -146,10 +151,10 @@ public class EditTaskBottomBar extends Fragment implements EditTaskProtocol {
                     modButtons.put(TaskObject.Mods.delete, mod);
                     break;
             }
-            mod.setPadding(paddingAreaOne, 0,0,0);
+            mod.setPadding(paddingAreaOne.x, 0,0,0);
             ViewGroup.LayoutParams layoutParams = mod.getLayoutParams();
-            layoutParams.height = buttonSize;
-            layoutParams.width = buttonSize;
+            layoutParams.height = paddingAreaOne.y;
+            layoutParams.width = paddingAreaOne.y;
             mod.setLayoutParams(layoutParams);
         }
 
@@ -165,10 +170,10 @@ public class EditTaskBottomBar extends Fragment implements EditTaskProtocol {
                     modButtons.put(TaskObject.Mods.checkable, mod);
                     break;
             }
-            mod.setPadding(paddingAreaTwo, 0,0,0);
+            mod.setPadding(paddingAreaTwo.x, 0,0,0);
             ViewGroup.LayoutParams layoutParams = mod.getLayoutParams();
-            layoutParams.height = buttonSize;
-            layoutParams.width = buttonSize;
+            layoutParams.height = paddingAreaTwo.y;
+            layoutParams.width = paddingAreaTwo.y;
             mod.setLayoutParams(layoutParams);
         }
     }
@@ -182,11 +187,57 @@ public class EditTaskBottomBar extends Fragment implements EditTaskProtocol {
         float scale = getContext().getResources().getDisplayMetrics().density;
         return (int) (dp * scale * 0.5f);
     }
+    private void deleteWarning() {
+        View warningBox = inflater.inflate(R.layout.delete_warrning, null, false);
+        // TODO: Make sure this values make sense. Do you need to calculate them by self?
+
+        TextView tittle = warningBox.findViewById(R.id.tittle_deleteWarning);
+        tittle.setText(R.string.Toast_Tittle_WARNING);
+        TextView subtitle = warningBox.findViewById(R.id.subtitle_deleteWarning);
+        subtitle.setText(R.string.Toast_Subtitle);
+
+        final PopupWindow popupWindow = new PopupWindow(warningBox, warningBox.getWidth(), warningBox.getHeight());
+        popupWindow.setFocusable(true);        // TODO: Define animation
+        popupWindow.showAtLocation(baseView, Gravity.CENTER,0,0);
+
+        Button deleteButton = warningBox.findViewById(R.id.deleteButton_deleteWarning);
+        deleteButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+              // We report back to DayView to complete the deletion Progress and decide what to do
+                // whith this view
+                popupWindow.dismiss();
+                parentProtocol.reportDeleteTask(taskObject);
+            }
+        });
+        Button cancelButton = warningBox.findViewById(R.id.cancelButton_deleteWarning);
+        cancelButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                // Dismiss the whole Charade
+                popupWindow.dismiss();
+            }
+        });
+    }
+    private Point calculatePaddingAndButtonHeight(int numberOfButtonsInRow) {
+        // This function calculates padding between buttons in row only considering one padding parameter
+        // that is the padding of the left side
+        // Fist value is padding, second is button Size
+
+        int maxCalculatedButtonSize = (modAreaOne.getWidth() -
+                ((numberOfButtonsInRow + 1) * MIN_PADDING_BETWEEN_BUTTONS)) / numberOfButtonsInRow;
+        int buttonSize = Math.max(MAX_BUTTON_SIZE, maxCalculatedButtonSize);
+
+        Point toReturn = new Point((modAreaOne.getWidth() - (buttonSize * numberOfButtonsInRow)) /
+                (numberOfButtonsInRow + 1) ,buttonSize);
+
+        return toReturn;
+    }
 
     //EditTaskProtocol implementation:
     @Override
     public void saveTask(TaskObject task, @Nullable RepeatingEvent event) {
-        // TODO: Implementation depends on the system...
+        // TODO: Implementation depends on the system... and revert to standard face if needed?
     }
     @Override
     public void clickOnMod(TaskObject.Mods mod) {
@@ -200,13 +251,18 @@ public class EditTaskBottomBar extends Fragment implements EditTaskProtocol {
                  * Collapses modAreaTwo
                  * replaces the items with its desired buttons
                  */
+
                 break;
             case note:
                 /*
                  * Replaces flexible Area with big TextEditor
-                 * Colapses modAreaOne
-                 * replaces the items with its desired buttons
+                 * Collapses modAreaOne
                  */
+                dynamicArea.removeAllViews();
+                NotePad note = new NotePad(getContext(), taskObject,this);
+                dynamicArea.addView(note);
+                modAreaOne.setVisibility(View.GONE);
+                modAreaTwo.setVisibility(View.GONE);
                 break;
             case list:
                 /* TODO: Can this be used accross the platform? To reuse this functionality?
@@ -214,6 +270,11 @@ public class EditTaskBottomBar extends Fragment implements EditTaskProtocol {
                  * Collapese modAreaTwo
                  * replaces the items with its desired buttons
                  */
+                dynamicArea.removeAllViews();
+                dynamicArea.addView(new ListView_CompleteMod(getContext(), taskObject, this));
+
+                modAreaOne.setVisibility(View.GONE);
+                modAreaTwo.setVisibility(View.GONE);
                 break;
             case checkable:
                 /*
@@ -231,11 +292,7 @@ public class EditTaskBottomBar extends Fragment implements EditTaskProtocol {
                 }
                 break;
             case delete:
-                /*
-                 * Repalces the flexible area with Warning label
-                 * Collapses modAreaTwo
-                 * repalces the items with Cancel and Delete Buttons
-                 */
+                deleteWarning();
                 break;
             case dateAndTime:
                 /*
@@ -246,6 +303,16 @@ public class EditTaskBottomBar extends Fragment implements EditTaskProtocol {
                 break;
         }
     }
+    @Override
+    public void modDone() { // What we do when we have done working with a mod
+        setState(EditTaskState.editTask, taskObject, parentProtocol);
+    }
+    @Override
+    public View getBaseView(){
+        return this.baseView;
+    }
+
+
 
     // Place for Enums:
     public enum EditTaskState {

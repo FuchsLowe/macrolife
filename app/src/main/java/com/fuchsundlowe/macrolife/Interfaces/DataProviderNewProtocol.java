@@ -5,6 +5,7 @@ package com.fuchsundlowe.macrolife.Interfaces;
 import android.arch.lifecycle.LiveData;
 
 import com.fuchsundlowe.macrolife.DataObjects.ComplexGoal;
+import com.fuchsundlowe.macrolife.DataObjects.ListObject;
 import com.fuchsundlowe.macrolife.DataObjects.RepeatingEvent;
 import com.fuchsundlowe.macrolife.DataObjects.TaskObject;
 
@@ -20,4 +21,8 @@ public interface DataProviderNewProtocol {
     LiveData<List<TaskObject>> getTaskThatIntersects(Calendar day);
     LiveData<List<RepeatingEvent>> getEventsThatIntersect(Calendar day);
     ComplexGoal getComplexGoalBy(int masterID);
+    void deleteTask(TaskObject objectToDelete);
+    void saveListObject(ListObject objectToSave);
+    void deleteListObject(ListObject objectToDelete);
+    ArrayList<ListObject> findListFor(int taskObjectID);
 }

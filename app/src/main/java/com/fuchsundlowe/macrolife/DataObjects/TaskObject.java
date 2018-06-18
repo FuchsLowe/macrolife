@@ -29,6 +29,7 @@ public class TaskObject {
     private int mX, mY; // for location on the screen of Complex Activity
     @Ignore
     private ArrayList<Mods> allMods;
+    private ArrayList<Mods> acceptableMods;
 
     // Constructor:
     public TaskObject(int hashID, int parentGoal, int subGoalMaster, String taskName,
@@ -50,6 +51,11 @@ public class TaskObject {
         this.mY = mY;
         this.mods = mods;
         this.timeDefined = timeDefined;
+
+        acceptableMods = new ArrayList<>();
+        acceptableMods.add(Mods.note);
+        acceptableMods.add(Mods.repeating);
+        acceptableMods.add(Mods.list);
 
         defineMods();
     }
@@ -74,11 +80,13 @@ public class TaskObject {
         }
     }
     public void addMod(Mods modToAdd) {
-        if (!allMods.contains(modToAdd)) {
-            allMods.add(modToAdd);
-            // TODO:Should this save the data?
-            if (!mods.contains(modToAdd.name())) {
-                mods += "\n" + modToAdd.name();
+        if (acceptableMods.contains(modToAdd)) {
+            if (!allMods.contains(modToAdd)) {
+                allMods.add(modToAdd);
+                // TODO:Should this save the data?
+                if (!mods.contains(modToAdd.name())) {
+                    mods += "\n" + modToAdd.name();
+                }
             }
         }
     }

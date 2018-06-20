@@ -37,6 +37,7 @@ public class LocalStorage implements DataProviderNewProtocol {
         // Deals with database initialization ofc
         dataBase = Room.databaseBuilder(context, RoomDataBaseObject.class,
                 Constants.DATA_BASE_NAME).build();
+
     }
 
     // Database Calls:
@@ -59,7 +60,6 @@ public class LocalStorage implements DataProviderNewProtocol {
 
         return dataBase.newDAO().getTaskThatIntersects(results[0], results[1]);
     }
-
     @Override
     public LiveData<List<RepeatingEvent>> getEventsThatIntersect(Calendar day) {
         // Get the long values of start and end of day...
@@ -67,10 +67,37 @@ public class LocalStorage implements DataProviderNewProtocol {
 
         return dataBase.newDAO().getEventThatIntersects(results[0], results[1]);
     }
-
+    @Override
+    public ArrayList<RepeatingEvent> getEventsBy(int masterID, TaskObject.Mods mod) {
+        return null;
+    }
     @Override
     public ComplexGoal getComplexGoalBy(int masterID) {
         return null; // TODO: To implemnet!
+    }
+    @Override
+    public void deleteTask(TaskObject objectToDelete) {
+
+    }
+    @Override
+    public void saveListObject(ListObject objectToSave) {
+
+    }
+    @Override
+    public void deleteListObject(ListObject objectToDelete) {
+
+    }
+    @Override
+    public ArrayList<ListObject> findListFor(int taskObjectID) {
+        return null;
+    }
+    @Override
+    public void deleteRepeatingEvent(RepeatingEvent eventToDelete) {
+
+    }
+    @Override
+    public void saveRepeatingEvent(RepeatingEvent event) {
+
     }
 
 

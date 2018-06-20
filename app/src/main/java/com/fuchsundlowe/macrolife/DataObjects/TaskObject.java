@@ -4,6 +4,7 @@ import android.arch.persistence.room.Entity;
 import android.arch.persistence.room.ForeignKey;
 import android.arch.persistence.room.Ignore;
 import android.arch.persistence.room.PrimaryKey;
+import android.support.annotation.Nullable;
 
 import java.sql.Time;
 import java.util.ArrayList;
@@ -29,6 +30,7 @@ public class TaskObject {
     private int mX, mY; // for location on the screen of Complex Activity
     @Ignore
     private ArrayList<Mods> allMods;
+    @Ignore
     private ArrayList<Mods> acceptableMods;
 
     // Constructor:
@@ -56,6 +58,7 @@ public class TaskObject {
         acceptableMods.add(Mods.note);
         acceptableMods.add(Mods.repeating);
         acceptableMods.add(Mods.list);
+        acceptableMods.add(Mods.repeatingMultiValues);
 
         defineMods();
     }
@@ -70,6 +73,9 @@ public class TaskObject {
                     break;
                 case "repeating":
                     addMod(Mods.repeating);
+                    break;
+                case "repeatingMultiValues":
+                    addMod(Mods.repeatingMultiValues);
                     break;
                 case "list":
                     addMod(Mods.list);
@@ -98,8 +104,14 @@ public class TaskObject {
     public Mods[] getAllMods() {
         return (Mods[]) this.allMods.toArray();
     }
-    public boolean isTaskRepeating() {
-        return allMods.contains(Mods.repeating);
+    @Nullable
+    public Mods getRepeatingMod() {
+        if (allMods.contains(Mods.repeating)) {
+            return Mods.repeating;
+        } else if (allMods.contains(Mods.repeatingMultiValues)){
+            return Mods.repeatingMultiValues;
+        }
+        return null;
     }
     // Generic Getters and Setters:
     public int getHashID() {
@@ -211,6 +223,6 @@ public class TaskObject {
     }
     // Lists all mods that task can have
     public enum Mods {
-        note, repeating, list, checkable, dateAndTime, delete;
+        note, repeating, repeatingMultiValues, list, checkable, dateAndTime, delete;
     }
 }

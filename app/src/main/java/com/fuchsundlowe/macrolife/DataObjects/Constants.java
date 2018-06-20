@@ -1,5 +1,7 @@
 package com.fuchsundlowe.macrolife.DataObjects;
 
+import com.fuchsundlowe.macrolife.R;
+
 /**
  * Created by macbook on 1/29/18.
  */
@@ -19,5 +21,11 @@ public class Constants {
     public static String INTENT_FILTER_NEW_TASK = "This is new task";
     public static String INTENT_FILTER_FIELD_HASH_ID = "Get me the hash ID";
     public static String INTENT_FILTER_FIELD_START_TIME = "Time of start in Long";
+    public static DayOfWeek[] AMERICAN_WEEK_DAYS = {DayOfWeek.sunday, DayOfWeek.monday,
+            DayOfWeek.tuesday, DayOfWeek.wednesday, DayOfWeek.thursday, DayOfWeek.friday,
+    DayOfWeek.saturday};
+    public static DayOfWeek[] EUROPEAN_WEEK_DAYS = {DayOfWeek.monday,
+            DayOfWeek.tuesday, DayOfWeek.wednesday, DayOfWeek.thursday, DayOfWeek.friday,
+            DayOfWeek.saturday, DayOfWeek.sunday};
 
 }

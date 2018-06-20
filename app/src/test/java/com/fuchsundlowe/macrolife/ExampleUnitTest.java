@@ -35,14 +35,13 @@ public class ExampleUnitTest {
     @Test
     public void checkDatabase()  {
         Calendar mk1= Calendar.getInstance();
-        ChnageDate(mk1);
-        System.out.print(mk1.getTimeInMillis());
+        mk1.set(Calendar.MINUTE, 48);
+        System.out.print(mk1.toString());
+        mk1.add(Calendar.MINUTE, 15);
+        System.out.print(mk1.toString());
 
     }
 
-    void ChnageDate(Calendar d) {
-        d.set(Calendar.DAY_OF_YEAR, 162);
-        System.out.print(d.getTimeInMillis());
-    }
+
 
 }

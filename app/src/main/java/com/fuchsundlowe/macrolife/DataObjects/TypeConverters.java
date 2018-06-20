@@ -75,7 +75,8 @@ public class TypeConverters {
             case 4: return DayOfWeek.thursday;
             case 5: return DayOfWeek.friday;
             case 6: return DayOfWeek.saturday;
-            default: return DayOfWeek.sunday;
+            case 7: return DayOfWeek.sunday;
+            default: return DayOfWeek.universal;
         }
     }
 
@@ -88,7 +89,8 @@ public class TypeConverters {
             case thursday: return 4;
             case friday: return 5;
             case saturday: return 6;
-            default: return 7;
+            case sunday: return 7;
+            default: return 0;
         }
     }
 

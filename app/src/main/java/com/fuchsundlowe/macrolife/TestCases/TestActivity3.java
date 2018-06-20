@@ -22,6 +22,7 @@ import android.widget.ImageView;
 
 import com.fuchsundlowe.macrolife.CustomViews.EditingView_BottomBar;
 import com.fuchsundlowe.macrolife.CustomViews.NotePad;
+import com.fuchsundlowe.macrolife.CustomViews.RepeatingEventEditor;
 import com.fuchsundlowe.macrolife.CustomViews.Task_DayView;
 import com.fuchsundlowe.macrolife.R;
 import com.fuchsundlowe.macrolife.SupportClasses.ColorFilterGenerator;
@@ -39,8 +40,8 @@ public class TestActivity3 extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_test3);
         lay = findViewById(R.id.masterFrame);
-        lay.addView(new NotePad(this));
-
+        RepeatingEventEditor editor = new RepeatingEventEditor(this);
+        lay.addView(editor);
     }
 
 

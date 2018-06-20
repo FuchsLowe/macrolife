@@ -103,7 +103,6 @@ public class ChronoView extends ViewGroup {
 
         longPressDetector = new GestureDetectorCompat(context, new LongPressDetector());
 
-
     }
 
     // Methods:
@@ -111,7 +110,6 @@ public class ChronoView extends ViewGroup {
         float scale = context.getResources().getDisplayMetrics().density;
         return (int) (dp * scale * 0.5f);
     }
-    // If passed null defaults to settings, else implements either or
     private String[] getTimeRepresentation(){
         if (SHOW_HOURS) {
             return getHourly();

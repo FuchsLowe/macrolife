@@ -38,7 +38,6 @@ public class RepeatingEvent {
 
     }
 
-
     // Methods:
     public void setHashID(int hashID) {
         this.hashID = hashID;

@@ -313,7 +313,6 @@ public class EditTaskBottomBar extends Fragment implements EditTaskProtocol {
     }
 
 
-
     // Place for Enums:
     public enum EditTaskState {
         createTask, editTask

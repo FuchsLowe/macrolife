@@ -20,9 +20,12 @@ public interface DataProviderNewProtocol {
     // tasks either starts, ends or lasts through this day
     LiveData<List<TaskObject>> getTaskThatIntersects(Calendar day);
     LiveData<List<RepeatingEvent>> getEventsThatIntersect(Calendar day);
+    ArrayList<RepeatingEvent>  getEventsBy(int masterID, TaskObject.Mods mod);
     ComplexGoal getComplexGoalBy(int masterID);
     void deleteTask(TaskObject objectToDelete);
     void saveListObject(ListObject objectToSave);
     void deleteListObject(ListObject objectToDelete);
     ArrayList<ListObject> findListFor(int taskObjectID);
+    void deleteRepeatingEvent(RepeatingEvent eventToDelete);
+    void saveRepeatingEvent(RepeatingEvent event);
 }

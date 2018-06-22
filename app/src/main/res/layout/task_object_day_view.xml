@@ -26,7 +26,7 @@
                 app:layout_constraintTop_toTopOf="parent" />
 
             <TextView
-                android:id="@+id/taskName"
+                android:id="@+id/taskName_RecomendationTask"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="8dp"
@@ -42,8 +42,8 @@
                 android:layout_marginTop="8dp"
                 android:text="TextView"
                 android:visibility="gone"
-                app:layout_constraintStart_toStartOf="@+id/taskName"
-                app:layout_constraintTop_toBottomOf="@+id/taskName" />
+                app:layout_constraintStart_toStartOf="@+id/taskName_RecomendationTask"
+                app:layout_constraintTop_toBottomOf="@+id/taskName_RecomendationTask" />
 
             <LinearLayout
                 android:id="@+id/modsHodler"
@@ -54,7 +54,7 @@
                 android:layout_marginTop="8dp"
                 android:orientation="vertical"
                 app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintStart_toEndOf="@+id/taskName"
+                app:layout_constraintStart_toEndOf="@+id/taskName_RecomendationTask"
                 app:layout_constraintTop_toTopOf="parent"></LinearLayout>
         </android.support.constraint.ConstraintLayout>
     </android.support.v7.widget.CardView>

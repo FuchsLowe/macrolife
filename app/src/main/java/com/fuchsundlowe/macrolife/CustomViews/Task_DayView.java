@@ -1,6 +1,5 @@
 package com.fuchsundlowe.macrolife.CustomViews;
 
-import android.arch.persistence.room.PrimaryKey;
 import android.content.ClipData;
 import android.content.ClipDescription;
 import android.content.Context;
@@ -13,7 +12,6 @@ import android.util.AttributeSet;
 import android.view.GestureDetector;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
-import android.webkit.MimeTypeMap;
 import android.widget.CheckBox;
 import android.widget.FrameLayout;
 import android.widget.LinearLayout;
@@ -63,7 +61,7 @@ public class Task_DayView extends FrameLayout {
     @Override
     protected void onFinishInflate() {
         super.onFinishInflate();
-        taskName = findViewById(R.id.taskName);
+        taskName = findViewById(R.id.taskName_RecomendationTask);
         masterTaskName = findViewById(R.id.masterTaskName);
         modsHolder = findViewById(R.id.modsHodler);
         box = findViewById(R.id.checkBox);

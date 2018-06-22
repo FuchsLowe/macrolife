@@ -9,6 +9,8 @@ import android.support.v4.app.FragmentTransaction;
 import android.support.v4.view.PagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.view.ViewGroup;
+
+import com.fuchsundlowe.macrolife.BottomBar.RecommendationBar;
 import com.fuchsundlowe.macrolife.CustomViews.EditTaskBottomBar;
 import com.fuchsundlowe.macrolife.DataObjects.Constants;
 import com.fuchsundlowe.macrolife.DataObjects.TaskObject;
@@ -222,7 +224,10 @@ public class DayView extends FragmentActivity implements DayViewTopFragmentCallb
 
     // BottomBar:
     private void provideRecommendationFetcher() {
-        // TODO: Define for recomendation fetcer
+        FragmentTransaction transaction = fragmentManager.beginTransaction();
+        RecommendationBar recommendationBar = new RecommendationBar();
+        transaction.replace(bottom.getId(), recommendationBar);
+        transaction.commit();
     }
     private void provideEditTask(TaskObject taskBeingEdited) {
         FragmentTransaction transaction= fragmentManager.beginTransaction();
@@ -231,7 +236,6 @@ public class DayView extends FragmentActivity implements DayViewTopFragmentCallb
         transaction.replace(bottom.getId(), editTask);
         transaction.commit();
     }
-
 
 
     // Temporary methods and stuff:

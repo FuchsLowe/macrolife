@@ -60,6 +60,7 @@ public class TaskObject {
         acceptableMods.add(Mods.list);
         acceptableMods.add(Mods.repeatingMultiValues);
 
+        allMods = new ArrayList<>(4);
         defineMods();
     }
 
@@ -92,6 +93,12 @@ public class TaskObject {
                 // TODO:Should this save the data?
                 if (!mods.contains(modToAdd.name())) {
                     mods += "\n" + modToAdd.name();
+                }
+                // This implementation prevents us from having both mods because they are mutually exclusive
+                if (modToAdd == Mods.repeating) {
+                    removeAMod(Mods.repeatingMultiValues);
+                } else if (modToAdd == Mods.repeatingMultiValues) {
+                    removeAMod(Mods.repeating);
                 }
             }
         }

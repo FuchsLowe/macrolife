@@ -28,4 +28,5 @@ public interface DataProviderNewProtocol {
     ArrayList<ListObject> findListFor(int taskObjectID);
     void deleteRepeatingEvent(RepeatingEvent eventToDelete);
     void saveRepeatingEvent(RepeatingEvent event);
+    ArrayList<TaskObject>getDataForRecommendationBar();
 }

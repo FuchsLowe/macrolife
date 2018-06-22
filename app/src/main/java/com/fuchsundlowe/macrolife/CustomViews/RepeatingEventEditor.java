@@ -2,6 +2,7 @@ package com.fuchsundlowe.macrolife.CustomViews;
 
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.graphics.Point;
 import android.support.constraint.ConstraintLayout;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -15,6 +16,7 @@ import com.fuchsundlowe.macrolife.DataObjects.DayOfWeek;
 import com.fuchsundlowe.macrolife.DataObjects.TaskObject;
 import com.fuchsundlowe.macrolife.EngineClasses.LocalStorage;
 import com.fuchsundlowe.macrolife.Interfaces.DataProviderNewProtocol;
+import com.fuchsundlowe.macrolife.Interfaces.EditTaskProtocol;
 import com.fuchsundlowe.macrolife.R;
 import java.util.Calendar;
 
@@ -34,10 +36,14 @@ public class RepeatingEventEditor extends ConstraintLayout {
     private Button[] weekButtons;
     private SharedPreferences preferences;
     private OnClickListener buttonClickListener;
+    private int MIN_PADDING_BETWEEN_BUTTONS = 10;
+    private int MAX_BUTTON_SIZE = 40;
+    private EditTaskProtocol protocol;
 
 
-    public RepeatingEventEditor(Context context) {
+    public RepeatingEventEditor(Context context, EditTaskProtocol protocol) {
         super(context);
+        this.protocol = protocol;
 
         inflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
 
@@ -54,6 +60,9 @@ public class RepeatingEventEditor extends ConstraintLayout {
         leftSideHolder = baseView.findViewById(R.id.leftSideHolder_RepeatEditor);
 
         localStorage = LocalStorage.getInstance(context);
+
+        MIN_PADDING_BETWEEN_BUTTONS = dpToPixConverter(MIN_PADDING_BETWEEN_BUTTONS);
+        MAX_BUTTON_SIZE = dpToPixConverter(MAX_BUTTON_SIZE);
 
         defineButtonClickListener();
         defineBottomButtons();
@@ -115,7 +124,53 @@ public class RepeatingEventEditor extends ConstraintLayout {
         }
     }
     private void defineBottomButtons() {
+        int NUMBER_OF_BUTTONS_IN_ROW = 3; // KEEP THIS UPDATED!!!
+        Point buttonValues = calculatePaddingAndButtonHeight(NUMBER_OF_BUTTONS_IN_ROW);
+        for (int i = 1; i<=NUMBER_OF_BUTTONS_IN_ROW; i++) {
+            ModButton mod;
+            switch (i) {
+                case 1:
+                    mod = new ModButton(getContext(), ModButton.SpecialtyButton.delete, buttonClickListener);
+                    break;
+                case 2:
+                    if (editedObject.getRepeatingMod() != null &&
+                            editedObject.getRepeatingMod() == TaskObject.Mods.repeatingMultiValues) {
+                        mod = new ModButton(getContext(), ModButton.SpecialtyButton.complex, buttonClickListener);
+                    } else {
+                        // produce single value
+                        mod = new ModButton(getContext(), ModButton.SpecialtyButton.universal, buttonClickListener);
+                    }
+                    break;
+                default:
+                    mod = new ModButton(getContext(), ModButton.SpecialtyButton.save, buttonClickListener);
+                    break;
+            }
+            mod.setPadding(buttonValues.x, 0,0,0);
+            ViewGroup.LayoutParams parm =mod.getLayoutParams();
+            parm.width = buttonValues.y;
+            parm.height = buttonValues.y;
+            mod.setLayoutParams(parm);
+            bottomBarHolder.addView(mod);
+        }
 
+    }
+    private Point calculatePaddingAndButtonHeight(int numberOfButtonsInRow) {
+        // This function calculates padding between buttons in row only considering one padding parameter
+        // that is the padding of the left side
+        // Fist value is padding, second is button Size
+
+        int maxCalculatedButtonSize = (bottomBarHolder.getWidth() -
+                ((numberOfButtonsInRow + 1) * MIN_PADDING_BETWEEN_BUTTONS)) / numberOfButtonsInRow;
+        int buttonSize = Math.max(MAX_BUTTON_SIZE, maxCalculatedButtonSize);
+
+        Point toReturn = new Point((bottomBarHolder.getWidth() - (buttonSize * numberOfButtonsInRow)) /
+                (numberOfButtonsInRow + 1) ,buttonSize);
+
+        return toReturn;
+    }
+    private int dpToPixConverter(float dp) {
+        float scale = getContext().getResources().getDisplayMetrics().density;
+        return (int) (dp * scale * 0.5f);
     }
     private void defineButtonClickListener() {
         buttonClickListener = new OnClickListener() {
@@ -123,6 +178,30 @@ public class RepeatingEventEditor extends ConstraintLayout {
             public void onClick(View v) {
                 if (v instanceof SideButton_RepeatEditor) {
                     dayView.populateViewWithTasks(editedObject, ((SideButton_RepeatEditor) v).dayOfWeek);
+                } else if (v instanceof ModButton) {
+                    switch (((ModButton) v).reportButtonType()) {
+                        case delete:
+                            editedObject.removeAMod(TaskObject.Mods.repeating);
+                            editedObject.removeAMod(TaskObject.Mods.repeatingMultiValues);
+                            // TODO: Remove the Repeating events asociated or no? How to save?
+                            protocol.modDone();
+                            break;
+                        case save:
+                            // save self and collapse to edit
+                            // TODO: WHo should be in charge of saving?
+                            protocol.modDone();
+                            break;
+                        case complex:
+                            ((ModButton) v).toggleButton();
+                            editedObject.addMod(TaskObject.Mods.repeating);
+                            defineMe(editedObject);
+                            break;
+                        case universal:
+                            ((ModButton) v).toggleButton();
+                            editedObject.addMod(TaskObject.Mods.repeatingMultiValues);
+                            defineMe(editedObject);
+                            break;
+                    }
                 }
             }
         };

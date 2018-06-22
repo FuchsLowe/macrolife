@@ -14,6 +14,7 @@ public class ModButton extends android.support.v7.widget.AppCompatImageButton {
 
     private TaskObject.Mods definedMod;
     private EditTaskProtocol protocol;
+    private SpecialtyButton buttonType;
 
     public ModButton(Context context, TaskObject.Mods mod, final EditTaskProtocol protocol) {
         super(context);
@@ -43,12 +44,27 @@ public class ModButton extends android.support.v7.widget.AppCompatImageButton {
             }
         });
     }
-
     public void setModActive(boolean isActive) {
         // Define how you will set the mod to be active color...
     }
+    // For Specialty button implementation
+    public ModButton(Context context, SpecialtyButton buttonType, OnClickListener listener) {
+        super(context);
+        this.buttonType = buttonType;
+        setOnClickListener(listener);
+    }
+    public void toggleButton() {
+        // TODO: Switch the image
+        switch (buttonType) {
 
-
-
+        }
+    }
+    public SpecialtyButton reportButtonType() {
+        return this.buttonType;
+    }
+    public enum SpecialtyButton {
+        delete, save, universal, complex,
+        startValues, endValues, date, time, clear
+    }
 
 }

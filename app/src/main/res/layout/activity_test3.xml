@@ -7,18 +7,16 @@
     android:layout_height="match_parent"
     tools:context="com.fuchsundlowe.macrolife.TestCases.TestActivity3">
 
-    <FrameLayout
-        android:id="@+id/masterFrame"
-        android:layout_width="344dp"
-        android:layout_height="551dp"
+    <Button
+        android:id="@+id/button5"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
         android:layout_marginBottom="8dp"
         android:layout_marginEnd="8dp"
         android:layout_marginStart="8dp"
-        android:layout_marginTop="8dp"
+        android:onClick="onCLick"
+        android:text="Button"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent">
-
-    </FrameLayout>
+        app:layout_constraintStart_toStartOf="parent" />
 </android.support.constraint.ConstraintLayout>

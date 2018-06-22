@@ -1,9 +1,11 @@
 package com.fuchsundlowe.macrolife.CustomViews;
 
+import android.content.Context;
 import android.graphics.Point;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.v4.app.DialogFragment;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.view.Gravity;
@@ -21,6 +23,7 @@ import android.widget.TextView;
 import com.fuchsundlowe.macrolife.DataObjects.RepeatingEvent;
 import com.fuchsundlowe.macrolife.DataObjects.TaskObject;
 import com.fuchsundlowe.macrolife.EngineClasses.LocalStorage;
+import com.fuchsundlowe.macrolife.FragmentModels.DatePickerFragment;
 import com.fuchsundlowe.macrolife.Interfaces.BottomBarCommunicationProtocol;
 import com.fuchsundlowe.macrolife.Interfaces.DataProviderNewProtocol;
 import com.fuchsundlowe.macrolife.Interfaces.DayViewTopFragmentCallback;
@@ -44,11 +47,17 @@ public class EditTaskBottomBar extends Fragment implements EditTaskProtocol {
     private HashMap<TaskObject.Mods, ModButton> modButtons;
     private TaskObject taskObject;
     private LayoutInflater inflater;
+    private ModButton.SpecialtyButton modSelected = null; // Should be either start or end
+    private Context context;
+    private EditTaskBottomBar self;
 
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         this.inflater = inflater;
+        context = getContext();
+        self = this;
+
         baseView = (ViewGroup) inflater.inflate(R.layout.edit_task_bottom_bar, container, false);
         dynamicArea = baseView.findViewById(R.id.dynamicArea_editTask);
         modAreaOne = baseView.findViewById(R.id.modAreaOne_editTAsk);
@@ -228,58 +237,43 @@ public class EditTaskBottomBar extends Fragment implements EditTaskProtocol {
                 ((numberOfButtonsInRow + 1) * MIN_PADDING_BETWEEN_BUTTONS)) / numberOfButtonsInRow;
         int buttonSize = Math.max(MAX_BUTTON_SIZE, maxCalculatedButtonSize);
 
-        Point toReturn = new Point((modAreaOne.getWidth() - (buttonSize * numberOfButtonsInRow)) /
+        return new Point((modAreaOne.getWidth() - (buttonSize * numberOfButtonsInRow)) /
                 (numberOfButtonsInRow + 1) ,buttonSize);
-
-        return toReturn;
     }
 
     //EditTaskProtocol implementation:
     @Override
     public void saveTask(TaskObject task, @Nullable RepeatingEvent event) {
-        // TODO: Implementation depends on the system... and revert to standard face if needed?
+        // TODO: Implement!
     }
     @Override
-    public void clickOnMod(TaskObject.Mods mod) {
+    public void clickOnMod(final TaskObject.Mods mod) {
         /* We Respond on mod click
          * If its one of the mods the task can have we
          */
         switch (mod) {
             case repeating:
-                /*
-                 * Replaces flexibleArea with Repeating Master
-                 * Collapses modAreaTwo
-                 * replaces the items with its desired buttons
-                 */
-
+                dynamicArea.removeAllViews();
+                RepeatingEventEditor editor = new RepeatingEventEditor(getContext(), this);
+                dynamicArea.addView(editor);
+                editor.defineMe(taskObject);
+                modAreaOne.setVisibility(View.GONE);
+                modAreaTwo.setVisibility(View.GONE);
                 break;
             case note:
-                /*
-                 * Replaces flexible Area with big TextEditor
-                 * Collapses modAreaOne
-                 */
                 dynamicArea.removeAllViews();
-                NotePad note = new NotePad(getContext(), taskObject,this);
+                NotePad note = new NotePad(this.context, taskObject,this);
                 dynamicArea.addView(note);
                 modAreaOne.setVisibility(View.GONE);
                 modAreaTwo.setVisibility(View.GONE);
                 break;
             case list:
-                /* TODO: Can this be used accross the platform? To reuse this functionality?
-                 * Replaces flexibleArea with List view
-                 * Collapese modAreaTwo
-                 * replaces the items with its desired buttons
-                 */
                 dynamicArea.removeAllViews();
-                dynamicArea.addView(new ListView_CompleteMod(getContext(), taskObject, this));
-
+                dynamicArea.addView(new ListView_CompleteMod(this.context, taskObject, this));
                 modAreaOne.setVisibility(View.GONE);
                 modAreaTwo.setVisibility(View.GONE);
                 break;
             case checkable:
-                /*
-                 * Toggles the checkBox Status and reports the new change to taskObject
-                 */
                 View editingView = dynamicArea.getChildAt(0);
                 if (editingView instanceof EditingView_BottomBar) {
                     boolean isCheckable = ((EditingView_BottomBar) editingView).toggleCheckBoxExistance();
@@ -295,14 +289,82 @@ public class EditTaskBottomBar extends Fragment implements EditTaskProtocol {
                 deleteWarning();
                 break;
             case dateAndTime:
-                /*
-                 * Replaces the flexible area with date and time chooser
-                 * collapses modAreaTwo
-                 * replaces the items with its buttons
-                 */
+                dynamicArea.setVisibility(View.GONE);
+                modAreaOne.removeAllViews();
+                modAreaOne.setVisibility(View.GONE);
+                modAreaTwo.removeAllViews();
+                View.OnClickListener localClickListener = new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        if (v instanceof ModButton) {
+                            switch (((ModButton) v).reportButtonType()) {
+                                case startValues:
+                                    modAreaOne.setVisibility(View.VISIBLE);
+                                    modSelected = ModButton.SpecialtyButton.startValues;
+                                    break;
+                                case endValues:
+                                    modAreaTwo.setVisibility(View.VISIBLE);
+                                    modSelected = ModButton.SpecialtyButton.endValues;
+                                    break;
+                                case clear:
+                                    // Detect which value to delete
+                                    taskObject.setTimeDefined(TaskObject.TimeDefined.onlyDate);
+                                    break;
+                                case delete:
+                                    // Should there be warning?
+                                    taskObject.setTimeDefined(TaskObject.TimeDefined.noTime);
+                                    break;
+                                case time:
+                                    TimePickerFragment timeFragment = new TimePickerFragment();
+                                    if (modSelected == ModButton.SpecialtyButton.startValues) {
+                                        timeFragment.defineMe(taskObject, self, true);
+                                    } else if (modSelected == ModButton.SpecialtyButton.endValues) {
+                                        timeFragment.defineMe(taskObject, self, false);
+                                    }
+                                    timeFragment.show(requireFragmentManager(), "TimeFragment");
+                                    break;
+                                case date:
+                                    com.fuchsundlowe.macrolife.CustomViews.DatePickerFragment dateFragment =
+                                            new com.fuchsundlowe.macrolife.CustomViews.DatePickerFragment();
+                                    if (modSelected == ModButton.SpecialtyButton.startValues) {
+                                        dateFragment.defineMe(taskObject, self,true);
+                                    } else if (modSelected == ModButton.SpecialtyButton.endValues) {
+                                        dateFragment.defineMe(taskObject, self, false);
+                                    }
+                                    dateFragment.show(requireFragmentManager(), "DateFragment");
+                                    break;
+                                case save:
+                                    saveTask(taskObject, null);
+                                    modDone();
+                                    break;
+                            }
+                        }
+                    }
+                };
+                ModButton.SpecialtyButton[] firstRowButtons = {ModButton.SpecialtyButton.date,
+                        ModButton.SpecialtyButton.time, ModButton.SpecialtyButton.clear};
+                Point valuesFirstRow = calculatePaddingAndButtonHeight(firstRowButtons.length);
+                for (ModButton.SpecialtyButton value: firstRowButtons) {
+                    ModButton button = new ModButton(getContext(), value, localClickListener);
+                    button.setPadding(valuesFirstRow.x, 0, 0, 0);
+                    button.getLayoutParams().height = valuesFirstRow.y;
+                    button.getLayoutParams().width = valuesFirstRow.y;
+                    modAreaOne.addView(button);
+                }
+                ModButton.SpecialtyButton[] secondRow = {ModButton.SpecialtyButton.startValues,
+                ModButton.SpecialtyButton.endValues, ModButton.SpecialtyButton.delete, ModButton.SpecialtyButton.clear};
+                Point valuesSecondRow = calculatePaddingAndButtonHeight(secondRow.length);
+                for (ModButton.SpecialtyButton value: secondRow) {
+                    ModButton button = new ModButton(getContext(), value, localClickListener);
+                    button.setPadding(valuesSecondRow.x,0,0,0);
+                    button.getLayoutParams().width = valuesSecondRow.y;
+                    button.getLayoutParams().height = valuesSecondRow.y;
+                    modAreaTwo.addView(button);
+                }
                 break;
         }
     }
+
     @Override
     public void modDone() { // What we do when we have done working with a mod
         setState(EditTaskState.editTask, taskObject, parentProtocol);
@@ -311,7 +373,6 @@ public class EditTaskBottomBar extends Fragment implements EditTaskProtocol {
     public View getBaseView(){
         return this.baseView;
     }
-
 
     // Place for Enums:
     public enum EditTaskState {

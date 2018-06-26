@@ -5,5 +5,5 @@ import com.fuchsundlowe.macrolife.DataObjects.TaskObject;
 import java.util.Calendar;
 
 public interface DayViewTopFragmentCallback {
-    void setNewSelectedDay(Calendar newSelectedDay, boolean shouldChangeWeek);
+    void setNewSelectedDay(Calendar newSelectedDay);
 }

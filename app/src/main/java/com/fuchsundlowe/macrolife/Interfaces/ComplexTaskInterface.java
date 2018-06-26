@@ -1,9 +1,8 @@
 package com.fuchsundlowe.macrolife.Interfaces;
 
 import android.content.Context;
-import android.view.ViewGroup;
 
-import com.fuchsundlowe.macrolife.CustomViews.ComplexTaskChevron;
+import com.fuchsundlowe.macrolife.DepreciatedClasses.ComplexTaskChevron;
 
 /**
  * Created by macbook on 3/26/18.

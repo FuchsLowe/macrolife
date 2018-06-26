@@ -9,6 +9,7 @@ import android.support.annotation.Nullable;
 import java.sql.Time;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.List;
 
 // A fundamental Data Type for this App Local storage
 @Entity(foreignKeys = @ForeignKey(entity = ComplexGoal.class, parentColumns = "hashID",
@@ -108,8 +109,8 @@ public class TaskObject {
         mods.replace("\n" + modToRemove.name(),"");
         // TODO: Should this save data?
     }
-    public Mods[] getAllMods() {
-        return (Mods[]) this.allMods.toArray();
+    public List<Mods> getAllMods() {
+        return this.allMods;
     }
     @Nullable
     public Mods getRepeatingMod() {

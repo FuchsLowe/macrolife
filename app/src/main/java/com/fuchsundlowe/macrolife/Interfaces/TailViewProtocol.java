@@ -4,8 +4,6 @@ import android.content.Context;
 import android.view.View;
 import android.view.ViewGroup;
 
-import com.fuchsundlowe.macrolife.CustomViews.BubbleView;
-
 /**
  * Created by macbook on 4/4/18.
  */

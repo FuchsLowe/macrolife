@@ -11,12 +11,11 @@ import android.view.View;
 import android.view.inputmethod.EditorInfo;
 import android.widget.*;
 
-import com.fuchsundlowe.macrolife.Adapters.ListTaskAdapter;
+import com.fuchsundlowe.macrolife.DepreciatedClasses.ListTaskAdapter;
 import com.fuchsundlowe.macrolife.DataObjects.Constants;
-import com.fuchsundlowe.macrolife.DataObjects.ListMaster;
-import com.fuchsundlowe.macrolife.DataObjects.ListObject;
-import com.fuchsundlowe.macrolife.EngineClasses.StorageMaster;
-import com.fuchsundlowe.macrolife.Interfaces.DataProviderProtocol;
+import com.fuchsundlowe.macrolife.DepreciatedClasses.ListMaster;
+import com.fuchsundlowe.macrolife.DepreciatedClasses.StorageMaster;
+import com.fuchsundlowe.macrolife.DepreciatedClasses.DataProviderProtocol;
 
 public class ListTask extends AppCompatActivity {
 

@@ -1,27 +1,17 @@
 package com.fuchsundlowe.macrolife.TestCases;
 
-import android.arch.lifecycle.Observer;
 import android.content.Intent;
-import android.graphics.Canvas;
-import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.EditText;
-import android.widget.ImageView;
-import android.widget.LinearLayout;
 
-import com.fuchsundlowe.macrolife.ComplexTaskActivity;
-import com.fuchsundlowe.macrolife.CustomViews.ComplexTaskChevron;
-import com.fuchsundlowe.macrolife.DataObjects.ListObject;
-import com.fuchsundlowe.macrolife.DataObjects.OrdinaryEventMaster;
+import com.fuchsundlowe.macrolife.ComplexGoal.ComplexTaskActivity;
+import com.fuchsundlowe.macrolife.DepreciatedClasses.OrdinaryEventMaster;
 import com.fuchsundlowe.macrolife.DataObjects.SourceType;
-import com.fuchsundlowe.macrolife.EngineClasses.StorageMaster;
-import com.fuchsundlowe.macrolife.Interfaces.DataProviderProtocol;
 import com.fuchsundlowe.macrolife.R;
 
 import java.util.Calendar;
-import java.util.List;
 
 public class TestActivity extends AppCompatActivity {
 

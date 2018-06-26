@@ -1,6 +1,7 @@
 package com.fuchsundlowe.macrolife.BottomBar;
 
 import android.content.Context;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.GridLayoutManager;
@@ -31,7 +32,6 @@ public class RecommendationBar extends Fragment {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         dataProvider = LocalStorage.getInstance(null);
-
     }
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -53,15 +53,11 @@ public class RecommendationBar extends Fragment {
             recyclerView.setAdapter(adapter);
         }
         baseView = view;
-
+        baseView.setBackgroundColor(Color.RED);
+        defineDragAndDropListeners();
         return view;
     }
 
-    @Override
-    public void onAttach(Context context) {
-        super.onAttach(context);
-        defineDragAndDropListeners();
-    }
     @Override
     public void onDetach() {
         super.onDetach();

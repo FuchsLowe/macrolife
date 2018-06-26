@@ -4,22 +4,24 @@ import android.content.Intent;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
-import android.widget.Scroller;
 
-import com.fuchsundlowe.macrolife.SupportClasses.HScroll;
-import com.fuchsundlowe.macrolife.TestCases.Test4;
-import com.fuchsundlowe.macrolife.TestCases.Test5;
+import com.fuchsundlowe.macrolife.ComplexGoal.ComplexTaskActivity;
+import com.fuchsundlowe.macrolife.DayView.DayView;
+import com.fuchsundlowe.macrolife.DepreciatedClasses.ListView;
+import com.fuchsundlowe.macrolife.EngineClasses.LocalStorage;
+import com.fuchsundlowe.macrolife.Interfaces.DataProviderNewProtocol;
 import com.fuchsundlowe.macrolife.TestCases.TestActivity;
-import com.fuchsundlowe.macrolife.TestCases.TestActivity2;
 import com.fuchsundlowe.macrolife.TestCases.TestActivity3;
-import com.fuchsundlowe.macrolife.TestCases.TestActivity4;
 
 
 public class MasterScreen extends AppCompatActivity {
 
+    private DataProviderNewProtocol dataBaseMaster;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        dataBaseMaster = LocalStorage.getInstance(this);
         setContentView(R.layout.activity_master_screen);
         //test2();
         //test3();
@@ -45,5 +47,13 @@ public class MasterScreen extends AppCompatActivity {
     void test3() {
         Intent toTest3 = new Intent(this, TestActivity3.class);
         startActivity(toTest3);
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        if (dataBaseMaster.isDataBaseOpen()) {
+            dataBaseMaster.closeDataBase();
+        }
     }
 }

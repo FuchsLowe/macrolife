@@ -1,28 +1,37 @@
 package com.fuchsundlowe.macrolife.EngineClasses;
 
 import android.arch.lifecycle.LiveData;
-import android.arch.persistence.room.Database;
+import android.arch.lifecycle.Observer;
 import android.arch.persistence.room.Room;
-import android.arch.persistence.room.RoomDatabase;
-import android.arch.persistence.room.TypeConverters;
 import android.content.Context;
+import android.content.res.Resources;
 import android.support.annotation.Nullable;
 import com.fuchsundlowe.macrolife.DataObjects.ComplexGoal;
 import com.fuchsundlowe.macrolife.DataObjects.Constants;
+import com.fuchsundlowe.macrolife.DataObjects.DayOfWeek;
 import com.fuchsundlowe.macrolife.DataObjects.ListObject;
-import com.fuchsundlowe.macrolife.DataObjects.NewDAO;
 import com.fuchsundlowe.macrolife.DataObjects.RepeatingEvent;
 import com.fuchsundlowe.macrolife.DataObjects.RoomDataBaseObject;
 import com.fuchsundlowe.macrolife.DataObjects.TaskObject;
 import com.fuchsundlowe.macrolife.Interfaces.DataProviderNewProtocol;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 public class LocalStorage implements DataProviderNewProtocol {
 
     private static LocalStorage self;
     private RoomDataBaseObject dataBase;
+    private List<TaskObject> taskObjectHolder;
+    private List<ListObject> listObjectHolder;
+    private List<RepeatingEvent> repeatingEventHolder;
+    private List<ComplexGoal> complexGoalHolder;
+    private Observer<List<TaskObject>> taskObjectObserver;
+    private Observer<List<ComplexGoal>> complexGoalObserver;
+    private Observer<List<ListObject>> listObjectObserver;
+    private Observer<List<RepeatingEvent>> repeatingEventObserver;
 
     // Constructor implementation:
     public static  @Nullable LocalStorage getInstance(@Nullable Context context) {
@@ -37,21 +46,31 @@ public class LocalStorage implements DataProviderNewProtocol {
         // Deals with database initialization ofc
         dataBase = Room.databaseBuilder(context, RoomDataBaseObject.class,
                 Constants.DATA_BASE_NAME).build();
-
+        defineInMemoryDatabaseCalls();
     }
 
     // Database Calls:
     @Override
     public LiveData<List<TaskObject>> getTasksFor(Calendar day) {
+        // Currently Unsuported?
         return null;
     }
     @Override // Static return value
     public ComplexGoal findComplexGoal(int byID) {
+        if (complexGoalHolder != null) {
+            for (ComplexGoal goal: complexGoalHolder) {
+                if (goal.getHashID() == byID) { return goal; }
+            }
+        }
         return null;
     }
     @Override
     public TaskObject findTaskObjectBy(int ID) {
-        // TODO: To implement search from static database
+        if (taskObjectHolder != null) {
+            for (TaskObject object : taskObjectHolder) {
+                if (object.getHashID() == ID) { return object; }
+            }
+        }
         return null;
     }
     public LiveData<List<TaskObject>> getTaskThatIntersects(Calendar day) {
@@ -68,38 +87,125 @@ public class LocalStorage implements DataProviderNewProtocol {
         return dataBase.newDAO().getEventThatIntersects(results[0], results[1]);
     }
     @Override
-    public ArrayList<RepeatingEvent> getEventsBy(int masterID, TaskObject.Mods mod) {
+    public List<RepeatingEvent> getEventsBy(int masterID, TaskObject.Mods mod) {
+        if (repeatingEventHolder != null) {
+            List<RepeatingEvent> setToSend= new ArrayList<>();
+            if (mod == TaskObject.Mods.repeating) {
+                for (RepeatingEvent event : repeatingEventHolder) {
+                    if (event.getParentID() == masterID && event.getDayOfWeek() == DayOfWeek.universal) {
+                        setToSend.add(event);
+                    }
+                }
+            } else {
+                for (RepeatingEvent event : repeatingEventHolder) {
+                    if (event.getParentID() == masterID && event.getDayOfWeek() != DayOfWeek.universal) {
+                        setToSend.add(event);
+                    }
+                }
+            }
+            return setToSend;
+        }
         return null;
     }
     @Override
     public ComplexGoal getComplexGoalBy(int masterID) {
-        return null; // TODO: To implemnet!
-    }
-    @Override
-    public void deleteTask(TaskObject objectToDelete) {
-
-    }
-    @Override
-    public void saveListObject(ListObject objectToSave) {
-
-    }
-    @Override
-    public void deleteListObject(ListObject objectToDelete) {
-
-    }
-    @Override
-    public ArrayList<ListObject> findListFor(int taskObjectID) {
+        if (complexGoalHolder != null) {
+            for (ComplexGoal goal : complexGoalHolder) {
+                if (goal.getHashID() == masterID) {
+                    return goal;
+                }
+            }
+        }
         return null;
     }
     @Override
-    public void deleteRepeatingEvent(RepeatingEvent eventToDelete) {
-
+    public void deleteTask(final TaskObject objectToDelete) {
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                dataBase.newDAO().removeTask(objectToDelete);
+            }
+        });
+    }
+    @Override // If there is one it will update it if not it will create new
+    public void saveListObject(final ListObject objectToSave) {
+        if (listObjectHolder != null) {
+            for (final ListObject object : listObjectHolder) {
+                if (object.getHashID() == objectToSave.getHashID()) {
+                    new Thread(new Runnable() {
+                        @Override
+                        public void run() {
+                           dataBase.newDAO().saveListObject(objectToSave);
+                        }
+                    });
+                    return;
+                }
+            }
+            dataBase.newDAO().insertListObject(objectToSave);
+        }
     }
     @Override
-    public void saveRepeatingEvent(RepeatingEvent event) {
-
+    public void deleteListObject(final ListObject objectToDelete) {
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                dataBase.newDAO().removeListObject(objectToDelete);
+            }
+        });
     }
-
+    @Override
+    public List<ListObject> findListFor(int taskObjectID) {
+        if (listObjectHolder != null) {
+            List<ListObject> setToReturn = new ArrayList<>();
+            for (ListObject object : listObjectHolder) {
+                if (object.getMasterID() == taskObjectID) {
+                    setToReturn.add(object);
+                }
+            }
+            return setToReturn;
+        }
+        return null;
+    }
+    @Override
+    public void deleteRepeatingEvent(final RepeatingEvent eventToDelete) {
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                dataBase.newDAO().removeRepeatingEvent(eventToDelete);
+            }
+        });
+    }
+    @Override
+    public void saveRepeatingEvent(final RepeatingEvent event) {
+        if (repeatingEventHolder != null) {
+            for (final RepeatingEvent object : repeatingEventHolder) {
+                if (object.getHashID() == event.getHashID()) {
+                    new Thread(new Runnable() {
+                        @Override
+                        public void run() {
+                            dataBase.newDAO().saveRepeatingEvent(event);
+                        }
+                    });
+                    return;
+                }
+            }
+            dataBase.newDAO().insertRepeatingEvent(event);
+        }
+    }
+    @Override
+    public ArrayList<TaskObject> getDataForRecommendationBar() {
+        if (taskObjectHolder != null) {
+            ArrayList<TaskObject> listToReturn = new ArrayList<>();
+            for (TaskObject task : taskObjectHolder) {
+                if (task.getIsTaskCompleted() == TaskObject.CheckableStatus.notCheckable &&
+                        task.getTimeDefined() == TaskObject.TimeDefined.noTime) {
+                    listToReturn.add(task);
+                }
+            }
+            return listToReturn;
+        }
+        return null;
+    }
 
     // Method calls:
     // first value is start time and second value is end time
@@ -117,5 +223,57 @@ public class LocalStorage implements DataProviderNewProtocol {
        long endTimeStamp = day.getTimeInMillis();
 
        return new long[]{startTimeStamp, endTimeStamp};
+   }
+   private void defineInMemoryDatabaseCalls() {
+        taskObjectObserver = new Observer<List<TaskObject>>() {
+            @Override
+            public void onChanged(@Nullable List<TaskObject> taskObjects) {
+                taskObjectHolder = taskObjects;
+            }
+        };
+        dataBase.newDAO().getAllTaskObjects().observeForever(taskObjectObserver);
+
+        complexGoalObserver = new Observer<List<ComplexGoal>>() {
+            @Override
+            public void onChanged(@Nullable List<ComplexGoal> complexGoals) {
+                complexGoalHolder = complexGoals;
+            }
+        };
+        dataBase.newDAO().getAllComplexGoals().observeForever(complexGoalObserver);
+
+        listObjectObserver = new Observer<List<ListObject>>() {
+            @Override
+            public void onChanged(@Nullable List<ListObject> listObjects) {
+                listObjectHolder = listObjects;
+            }
+        };
+        dataBase.newDAO().getAllListObjects().observeForever(listObjectObserver);
+
+        repeatingEventObserver = new Observer<List<RepeatingEvent>>() {
+            @Override
+            public void onChanged(@Nullable List<RepeatingEvent> repeatingEvents) {
+                repeatingEventHolder = repeatingEvents;
+            }
+        };
+        dataBase.newDAO().getAllRepeatingEvents().observeForever(repeatingEventObserver);
+   }
+   public boolean isDataBaseOpen() {
+        return dataBase.isOpen();
+   }
+   public void closeDataBase() {
+
+        dataBase.newDAO().getAllTaskObjects().removeObserver(taskObjectObserver);
+        taskObjectObserver = null;
+
+        dataBase.newDAO().getAllComplexGoals().removeObserver(complexGoalObserver);
+        complexGoalObserver = null;
+
+        dataBase.newDAO().getAllListObjects().removeObserver(listObjectObserver);
+        listObjectObserver = null;
+
+        dataBase.newDAO().getAllRepeatingEvents().removeObserver(repeatingEventObserver);
+        repeatingEventObserver = null;
+
+        dataBase.close();
    }
 }

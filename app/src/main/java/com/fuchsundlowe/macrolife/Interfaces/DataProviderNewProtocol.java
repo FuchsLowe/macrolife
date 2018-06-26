@@ -12,6 +12,7 @@ import com.fuchsundlowe.macrolife.DataObjects.TaskObject;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
+import java.util.Set;
 
 public interface DataProviderNewProtocol {
     LiveData<List<TaskObject>> getTasksFor(Calendar day);
@@ -20,13 +21,15 @@ public interface DataProviderNewProtocol {
     // tasks either starts, ends or lasts through this day
     LiveData<List<TaskObject>> getTaskThatIntersects(Calendar day);
     LiveData<List<RepeatingEvent>> getEventsThatIntersect(Calendar day);
-    ArrayList<RepeatingEvent>  getEventsBy(int masterID, TaskObject.Mods mod);
+    List<RepeatingEvent> getEventsBy(int masterID, TaskObject.Mods mod);
     ComplexGoal getComplexGoalBy(int masterID);
     void deleteTask(TaskObject objectToDelete);
     void saveListObject(ListObject objectToSave);
     void deleteListObject(ListObject objectToDelete);
-    ArrayList<ListObject> findListFor(int taskObjectID);
+    List<ListObject> findListFor(int taskObjectID);
     void deleteRepeatingEvent(RepeatingEvent eventToDelete);
     void saveRepeatingEvent(RepeatingEvent event);
     ArrayList<TaskObject>getDataForRecommendationBar();
+    boolean isDataBaseOpen();
+    void closeDataBase();
 }

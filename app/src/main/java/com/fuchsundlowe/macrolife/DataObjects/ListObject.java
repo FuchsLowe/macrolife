@@ -2,15 +2,9 @@ package com.fuchsundlowe.macrolife.DataObjects;
 
 import android.arch.persistence.room.Entity;
 import android.arch.persistence.room.ForeignKey;
-import android.arch.persistence.room.Ignore;
 import android.arch.persistence.room.PrimaryKey;
-import android.content.Context;
-import android.support.v4.app.TaskStackBuilder;
-
-import com.fuchsundlowe.macrolife.EngineClasses.StorageMaster;
 
 import java.util.Calendar;
-import java.util.Random;
 
 /**
  * Created by macbook on 1/29/18.

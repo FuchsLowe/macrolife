@@ -27,16 +27,16 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".DayView" />
+        <activity android:name=".DayView.DayView" />
         <activity
-            android:name=".ListView"
+            android:name=".DepreciatedClasses.ListView"
             android:windowSoftInputMode="stateHidden" />
         <activity android:name=".TestCases.TestActivity" />
         <activity android:name=".ListTask" />
         <activity android:name=".TestCases.TestActivity2" />
         <activity android:name=".TestCases.TestActivity3" />
         <activity
-            android:name=".ComplexTaskActivity"
+            android:name=".ComplexGoal.ComplexTaskActivity"
             android:windowSoftInputMode="adjustResize" />
         <activity android:name=".TestCases.Test4" />
         <activity android:name=".TestCases.TestActivity4" />

@@ -4,11 +4,14 @@ package com.fuchsundlowe.macrolife.TestCases;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
+import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
+import android.widget.LinearLayout;
 
+import com.fuchsundlowe.macrolife.BottomBar.EditTaskBottomBar;
 import com.fuchsundlowe.macrolife.BottomBar.EditingView_BottomBar;
 import com.fuchsundlowe.macrolife.DataObjects.RepeatingEvent;
 import com.fuchsundlowe.macrolife.DataObjects.TaskObject;
@@ -19,7 +22,7 @@ import java.util.Calendar;
 
 public class TestActivity3 extends AppCompatActivity implements EditTaskProtocol {
 
-    FrameLayout lay;
+    LinearLayout lay;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -29,18 +32,11 @@ public class TestActivity3 extends AppCompatActivity implements EditTaskProtocol
     }
 
     public void onCLick(View view) {
-        EditingView_BottomBar bar = new EditingView_BottomBar(this);
-        bar.setBackgroundColor(Color.RED);
-        lay.addView(bar);
+        one();
+    }
 
-        Calendar now = Calendar.getInstance();
-        TaskObject task = new TaskObject(0,0,0,"Subotai",
-                now, null, null, now, TaskObject.CheckableStatus.incomplete,
-                "", 0, 0, "", TaskObject.TimeDefined.dateAndTime);
-        bar.insertData(task, null, this);
-        ViewGroup.LayoutParams params = bar.getLayoutParams();
-        params.height = 120;
-        bar.requestLayout();
+    void one() {
+        View to =  View.inflate(this, R.layout.edit_task, lay);
     }
 
     // EDit Task Protocol

@@ -3,33 +3,30 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="wrap_content"
-    >
+    android:layout_height="wrap_content">
 
     <CheckBox
-        android:id="@+id/edit_task_checkBox"
+        android:id="@+id/_testBox"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="8dp"
         android:layout_marginStart="8dp"
-        android:layout_marginTop="8dp"
-        app:layout_constraintBottom_toBottomOf="@+id/edit_task_taskName"
+        app:layout_constraintBottom_toBottomOf="@+id/_testTaskName"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="@+id/edit_task_taskName" />
+        app:layout_constraintTop_toTopOf="@+id/_testTaskName" />
 
     <EditText
-        android:id="@+id/edit_task_taskName"
+        android:id="@+id/_testTaskName"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginBottom="8dp"
         android:layout_marginEnd="8dp"
         android:layout_marginStart="8dp"
         android:layout_marginTop="8dp"
-        android:imeOptions="actionDone"
-        android:text="TextView"
+        android:ems="10"
+        android:hint="Type in Task Name"
+        android:inputType="textPersonName"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.0"
-        app:layout_constraintStart_toEndOf="@+id/edit_task_checkBox"
+        app:layout_constraintStart_toEndOf="@+id/_testBox"
         app:layout_constraintTop_toTopOf="parent" />
 </android.support.constraint.ConstraintLayout>

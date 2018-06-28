@@ -104,7 +104,7 @@ public class DayDisplay_DayView extends Fragment {
                     // create a new task with given loations
                     Calendar taskStartTime = Calendar.getInstance();
                     taskStartTime.setTimeInMillis(
-                            intent.getIntExtra(Constants.INTENT_FILTER_FIELD_START_TIME, 0)
+                            intent.getLongExtra(Constants.INTENT_FILTER_FIELD_START_TIME, 0)
                     );
 
                 }

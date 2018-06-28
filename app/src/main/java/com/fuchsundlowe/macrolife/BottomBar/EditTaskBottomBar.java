@@ -6,7 +6,9 @@ import android.graphics.Point;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.constraint.ConstraintLayout;
 import android.support.v4.app.Fragment;
+import android.util.Log;
 import android.view.Gravity;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
@@ -14,6 +16,8 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.inputmethod.EditorInfo;
 import android.widget.Button;
+import android.widget.CheckBox;
+import android.widget.EditText;
 import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 import android.widget.PopupWindow;
@@ -26,6 +30,7 @@ import com.fuchsundlowe.macrolife.Interfaces.BottomBarCommunicationProtocol;
 import com.fuchsundlowe.macrolife.Interfaces.DataProviderNewProtocol;
 import com.fuchsundlowe.macrolife.Interfaces.EditTaskProtocol;
 import com.fuchsundlowe.macrolife.R;
+import com.fuchsundlowe.macrolife.TestCases.TestOfAlpha;
 
 import java.util.Calendar;
 import java.util.HashMap;
@@ -38,7 +43,7 @@ public class EditTaskBottomBar extends Fragment implements EditTaskProtocol {
     private DataProviderNewProtocol dataProvider;
     private BottomBarCommunicationProtocol parentProtocol;
     private ViewGroup baseView;
-    private FrameLayout dynamicArea;
+    private LinearLayout dynamicArea;
     private LinearLayout modAreaOne, modAreaTwo;
     private int MAX_BUTTON_SIZE = 40;
     private int MIN_PADDING_BETWEEN_BUTTONS = 10;
@@ -49,6 +54,7 @@ public class EditTaskBottomBar extends Fragment implements EditTaskProtocol {
     private Context context;
     private EditTaskBottomBar self;
     private EditTaskState state;
+    private EditingView_BottomBar editView;
 
     @Nullable
     @Override
@@ -58,15 +64,7 @@ public class EditTaskBottomBar extends Fragment implements EditTaskProtocol {
         self = this;
 
         baseView = (ViewGroup) inflater.inflate(R.layout.edit_task_bottom_bar, container, false);
-        dynamicArea = baseView.findViewById(R.id.dynamicArea_editTask);
-        modAreaOne = baseView.findViewById(R.id.modAreaOne_editTAsk);
-        modAreaTwo = baseView.findViewById(R.id.modAreaTwo_editTask);
-        // TODO: TEST Phase
-        baseView.setBackgroundColor(Color.GRAY);
-        dynamicArea.setBackgroundColor(Color.GREEN);
-        modAreaOne.setBackgroundColor(Color.CYAN);
-        modAreaTwo.setBackgroundColor(Color.YELLOW);
-        // End test
+
         dataProvider = LocalStorage.getInstance(getContext());
 
         MAX_BUTTON_SIZE = dpToPixConverter(MAX_BUTTON_SIZE);
@@ -75,10 +73,30 @@ public class EditTaskBottomBar extends Fragment implements EditTaskProtocol {
         return baseView;
     }
 
+    void defineStuff() {
+
+        dynamicArea = baseView.findViewById(R.id.dynamicArea_editTask);
+        modAreaOne = baseView.findViewById(R.id.modAreaOne_editTAsk);
+        modAreaTwo = baseView.findViewById(R.id.modAreaTwo_editTask);
+
+        // TODO: TEST Phase
+        baseView.setBackgroundColor(Color.GRAY);
+        dynamicArea.setBackgroundColor(Color.GREEN);
+        modAreaOne.setBackgroundColor(Color.CYAN);
+        modAreaTwo.setBackgroundColor(Color.YELLOW);
+        // End test
+    }
+
     @Override
     public void onStart() {
         super.onStart();
+        defineStuff();
         setState(state, taskObject, parentProtocol);
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
     }
 
     //Methods:
@@ -121,7 +139,7 @@ public class EditTaskBottomBar extends Fragment implements EditTaskProtocol {
                 });
                 modAreaOne.setVisibility(View.GONE);
                 modAreaTwo.setVisibility(View.GONE);
-                baseView.requestLayout();
+                dynamicArea.requestLayout();
                 return true;
             case editTask:
                 if (taskManipulated != null) {
@@ -129,16 +147,22 @@ public class EditTaskBottomBar extends Fragment implements EditTaskProtocol {
                     dynamicArea.removeAllViews();
                     dynamicArea.setVisibility(View.VISIBLE);
                     EditingView_BottomBar editView = new EditingView_BottomBar(getContext());
+                    Log.d("BASE VIEW WIDH: ", baseView.getWidth() + "");
                     dynamicArea.addView(editView);
                     editView.insertData(taskManipulated, null, this);
+                    editView.layout(0,0, dynamicArea.getWidth(), 80);
                     defineModButtons();
                     List<TaskObject.Mods> modsToImplement = taskManipulated.getAllMods();
                     for (TaskObject.Mods mod : modsToImplement) {
                         modButtons.get(mod).setModActive(true);
                     }
-                    baseView.requestLayout();
+                    dynamicArea.requestLayout();
                     return true;
                 } else {return false;}
+            case test1:
+                TestOfAlpha m = new TestOfAlpha(getContext());
+                dynamicArea.addView(m);
+                break;
         }
         return false;
     }
@@ -296,9 +320,8 @@ public class EditTaskBottomBar extends Fragment implements EditTaskProtocol {
                 modAreaTwo.setVisibility(View.GONE);
                 break;
             case checkable:
-                View editingView = dynamicArea.getChildAt(0);
-                if (editingView instanceof EditingView_BottomBar) {
-                    boolean isCheckable = ((EditingView_BottomBar) editingView).toggleCheckBoxExistance();
+                if (editView != null) {
+                    boolean isCheckable = editView.toggleCheckBoxExistance();
                     if (isCheckable) {
                         taskObject.setIsTaskCompleted(TaskObject.CheckableStatus.incomplete);
                     } else {
@@ -396,8 +419,9 @@ public class EditTaskBottomBar extends Fragment implements EditTaskProtocol {
         return this.baseView;
     }
 
+
     // Place for Enums:
     public enum EditTaskState {
-        createTask, editTask
+        createTask, editTask, test1
     }
 }

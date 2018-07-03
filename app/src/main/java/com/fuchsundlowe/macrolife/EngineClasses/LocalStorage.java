@@ -125,7 +125,7 @@ public class LocalStorage implements DataProviderNewProtocol {
             public void run() {
                 dataBase.newDAO().removeTask(objectToDelete);
             }
-        });
+        }).start();
     }
     @Override // If there is one it will update it if not it will create new
     public void saveListObject(final ListObject objectToSave) {
@@ -137,11 +137,16 @@ public class LocalStorage implements DataProviderNewProtocol {
                         public void run() {
                            dataBase.newDAO().saveListObject(objectToSave);
                         }
-                    });
+                    }).start();
                     return;
                 }
             }
-            dataBase.newDAO().insertListObject(objectToSave);
+            new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    dataBase.newDAO().insertListObject(objectToSave);
+                }
+            }).start();
         }
     }
     @Override
@@ -151,7 +156,7 @@ public class LocalStorage implements DataProviderNewProtocol {
             public void run() {
                 dataBase.newDAO().removeListObject(objectToDelete);
             }
-        });
+        }).start();
     }
     @Override
     public List<ListObject> findListFor(int taskObjectID) {
@@ -173,7 +178,7 @@ public class LocalStorage implements DataProviderNewProtocol {
             public void run() {
                 dataBase.newDAO().removeRepeatingEvent(eventToDelete);
             }
-        });
+        }).start();
     }
     @Override
     public void saveRepeatingEvent(final RepeatingEvent event) {
@@ -185,11 +190,16 @@ public class LocalStorage implements DataProviderNewProtocol {
                         public void run() {
                             dataBase.newDAO().saveRepeatingEvent(event);
                         }
-                    });
+                    }).start();
                     return;
                 }
             }
-            dataBase.newDAO().insertRepeatingEvent(event);
+            new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    dataBase.newDAO().insertRepeatingEvent(event);
+                }
+            }).start();
         }
     }
     @Override
@@ -206,7 +216,28 @@ public class LocalStorage implements DataProviderNewProtocol {
         }
         return null;
     }
-
+    @Override
+    public void saveTaskObject(final TaskObject task) {
+        if (taskObjectHolder != null) {
+            for (TaskObject taskObject : taskObjectHolder) {
+                if (taskObject.getHashID() == task.getHashID()) {
+                    new Thread(new Runnable() {
+                        @Override
+                        public void run() {
+                            dataBase.newDAO().saveTask(task);
+                        }
+                    }).start();
+                    return;
+                }
+            }
+            new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    dataBase.newDAO().insertTask(task);
+                }
+            }).start();
+        }
+    }
     // Method calls:
     // first value is start time and second value is end time
    private long[] returnStartAndEndTimesForDay(Calendar day) {
@@ -216,11 +247,12 @@ public class LocalStorage implements DataProviderNewProtocol {
        dayToWorkWith.set(Calendar.MINUTE,0);
        dayToWorkWith.set(Calendar.SECOND,0);
        dayToWorkWith.set(Calendar.MILLISECOND,0);
-       long startTimeStamp = day.getTimeInMillis();
+       long startTimeStamp = dayToWorkWith.getTimeInMillis();
 
        dayToWorkWith.set(Calendar.HOUR_OF_DAY, 23);
        dayToWorkWith.set(Calendar.MINUTE, 59);
-       long endTimeStamp = day.getTimeInMillis();
+       dayToWorkWith.set(Calendar.SECOND, 59);
+       long endTimeStamp = dayToWorkWith.getTimeInMillis();
 
        return new long[]{startTimeStamp, endTimeStamp};
    }

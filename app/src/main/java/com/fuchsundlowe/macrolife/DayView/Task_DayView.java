@@ -5,6 +5,7 @@ import android.content.ClipDescription;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.graphics.Color;
 import android.support.annotation.Nullable;
 import android.support.v4.content.LocalBroadcastManager;
 import android.support.v4.view.GestureDetectorCompat;
@@ -65,6 +66,9 @@ public class Task_DayView extends FrameLayout {
         masterTaskName = findViewById(R.id.masterTaskName);
         modsHolder = findViewById(R.id.modsHodler);
         box = findViewById(R.id.checkBox);
+        this.setBackgroundColor(Color.CYAN);
+        this.setAlpha(0.5f);
+        initiateData();
     }
     @Override
     public boolean shouldDelayChildPressedState() {
@@ -188,13 +192,15 @@ public class Task_DayView extends FrameLayout {
     public void insertData(TaskObject data, @Nullable RepeatingEvent repeatingEvent) {
         this.task = data;
         this.repeatingEvent = repeatingEvent;
-        if (data.getParentGoal() > 0) { // make sure there is one
-            ComplexGoal result = storageMaster.findComplexGoal(data.getParentGoal());
+    }
+    private void initiateData() {
+        if (task.getParentGoal() > 0) { // make sure there is one
+            ComplexGoal result = storageMaster.findComplexGoal(task.getParentGoal());
             if (result != null) {
                 masterTaskName.setText(result.getTaskName());
             }
         }
-        taskName.setText(data.getTaskName());
+        taskName.setText(task.getTaskName());
 
         if (repeatingEvent != null) {
             switch (repeatingEvent.getIsTaskCompleted()) {
@@ -211,7 +217,7 @@ public class Task_DayView extends FrameLayout {
                     break;
             }
         } else {
-            switch (data.getIsTaskCompleted()) {
+            switch (task.getIsTaskCompleted()) {
                 case notCheckable:
                     box.setVisibility(GONE);
                     break;
@@ -280,6 +286,9 @@ public class Task_DayView extends FrameLayout {
             ClipData data = new ClipData(Constants.REPEATING_EVENT, MIME_Type, dataItem);
             this.startDrag(data, defaultShadowBuilder, repeatingEvent, 0);
         }
+    }
+    public boolean isRepeatingEvent() {
+        if (repeatingEvent != null) { return true;} else {return false;}
     }
 
     private void sendGlobalEditBroadcast() {

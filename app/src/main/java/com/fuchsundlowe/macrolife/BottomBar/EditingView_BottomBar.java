@@ -8,6 +8,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.inputmethod.EditorInfo;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.FrameLayout;
@@ -54,20 +55,24 @@ public class EditingView_BottomBar extends FrameLayout {
         });
 
         taskName = baseView.findViewById(R.id.edit_task_taskName);
+        taskName.setSingleLine();
+        taskName.setImeOptions(EditorInfo.IME_ACTION_DONE);
         taskName.setOnEditorActionListener(new TextView.OnEditorActionListener() {
             @Override
             public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
                 if (actionId == EditorInfo.IME_ACTION_DONE) {
                     if (v.getText().length() > 0) {
                         taskObject.setTaskName(v.getText().toString());
+                        softKeyboard(false);
                         reportDataEdited();
                     }
                 }
                 return false;
             }
         });
-
     }
+
+
     // Methods:
     public void insertData(TaskObject taskObject, @Nullable RepeatingEvent event, EditTaskProtocol protocol) {
         this.protocolProvider = protocol;
@@ -97,7 +102,19 @@ public class EditingView_BottomBar extends FrameLayout {
             return true;
         }
     }
+    // This method manages appearance and disappearance of the soft keyboard
+    public void softKeyboard(boolean appearance) {
+        InputMethodManager imm = (InputMethodManager)
+                getContext().getSystemService(Context.INPUT_METHOD_SERVICE);
+        if (appearance) {
+            taskName.requestFocus();
+            imm.showSoftInput(taskName, 0);
+        } else {
+            taskName.clearFocus();
+            imm.hideSoftInputFromInputMethod(taskName.getWindowToken(),0);
 
+        }
+    }
     private void reportDataEdited() {
         protocolProvider.saveTask(taskObject, event);
     }

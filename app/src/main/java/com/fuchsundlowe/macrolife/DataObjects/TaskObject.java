@@ -12,8 +12,7 @@ import java.util.Calendar;
 import java.util.List;
 
 // A fundamental Data Type for this App Local storage
-@Entity(foreignKeys = @ForeignKey(entity = ComplexGoal.class, parentColumns = "hashID",
-        childColumns = "parentGoal", onDelete = ForeignKey.SET_NULL, onUpdate = ForeignKey.CASCADE))
+@Entity
 public class TaskObject {
     @PrimaryKey(autoGenerate = true)
     private int hashID; // Passing 0 will make system auto-generate a key when data is formed...

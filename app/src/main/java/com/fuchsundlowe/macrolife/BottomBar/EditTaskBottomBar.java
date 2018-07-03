@@ -4,6 +4,8 @@ import android.content.Context;
 import android.graphics.Color;
 import android.graphics.Point;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.constraint.ConstraintLayout;
@@ -15,12 +17,14 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.inputmethod.EditorInfo;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 import android.widget.PopupWindow;
+import android.widget.Space;
 import android.widget.TextView;
 
 import com.fuchsundlowe.macrolife.DataObjects.RepeatingEvent;
@@ -35,6 +39,10 @@ import com.fuchsundlowe.macrolife.TestCases.TestOfAlpha;
 import java.util.Calendar;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Timer;
+import java.util.TimerTask;
+
+import static com.fuchsundlowe.macrolife.BottomBar.EditTaskBottomBar.EditTaskState.editTask;
 
 // This class manages the Bottom Bar in edit task or creating a new task...
 public class EditTaskBottomBar extends Fragment implements EditTaskProtocol {
@@ -45,7 +53,7 @@ public class EditTaskBottomBar extends Fragment implements EditTaskProtocol {
     private ViewGroup baseView;
     private LinearLayout dynamicArea;
     private LinearLayout modAreaOne, modAreaTwo;
-    private int MAX_BUTTON_SIZE = 40;
+    private int MAX_BUTTON_SIZE = 80;
     private int MIN_PADDING_BETWEEN_BUTTONS = 10;
     private HashMap<TaskObject.Mods, ModButton> modButtons;
     private TaskObject taskObject;
@@ -55,7 +63,9 @@ public class EditTaskBottomBar extends Fragment implements EditTaskProtocol {
     private EditTaskBottomBar self;
     private EditTaskState state;
     private EditingView_BottomBar editView;
+    private int sizeOfParent;
 
+    // Lifecycle:
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
@@ -70,11 +80,6 @@ public class EditTaskBottomBar extends Fragment implements EditTaskProtocol {
         MAX_BUTTON_SIZE = dpToPixConverter(MAX_BUTTON_SIZE);
         MIN_PADDING_BETWEEN_BUTTONS = dpToPixConverter(MIN_PADDING_BETWEEN_BUTTONS);
 
-        return baseView;
-    }
-
-    void defineStuff() {
-
         dynamicArea = baseView.findViewById(R.id.dynamicArea_editTask);
         modAreaOne = baseView.findViewById(R.id.modAreaOne_editTAsk);
         modAreaTwo = baseView.findViewById(R.id.modAreaTwo_editTask);
@@ -85,36 +90,31 @@ public class EditTaskBottomBar extends Fragment implements EditTaskProtocol {
         modAreaOne.setBackgroundColor(Color.CYAN);
         modAreaTwo.setBackgroundColor(Color.YELLOW);
         // End test
-    }
 
+        return baseView;
+    }
     @Override
     public void onStart() {
         super.onStart();
-        defineStuff();
-        setState(state, taskObject, parentProtocol);
+        setState(state);
     }
-
     @Override
     public void onResume() {
         super.onResume();
     }
 
-    //Methods:
-    /* Based on data it receives it will sprung into action its looks. Return value indicates that
-     * operation of creating desired View state is failure or success...
-     * Must receive the taskManipulatd if setState == editTask, else returns false
-     */
+    // Editing of object appearance:
     public void defineMe(final EditTaskState setState, @Nullable TaskObject taskManipulated,
-                         final BottomBarCommunicationProtocol parentProtocol) {
+                         final BottomBarCommunicationProtocol parentProtocol, int sizeToWorkWith) {
         this.state = setState;
         this.taskObject = taskManipulated;
         this.parentProtocol = parentProtocol;
-
+        this.sizeOfParent = sizeToWorkWith;
     }
-    private boolean setState(final EditTaskState setState, @Nullable TaskObject taskManipulated,
-                            final BottomBarCommunicationProtocol parentProtocol) {
-        this.parentProtocol = parentProtocol;
-        switch (setState) {
+    protected void setState(EditTaskState newState) {
+        this.state = newState;
+
+        switch (newState) {
             case createTask:
                 baseView.removeAllViews();
                 // define TextView and wait
@@ -129,7 +129,7 @@ public class EditTaskBottomBar extends Fragment implements EditTaskProtocol {
                                 // TODO: return this to whoever needs it...
                                 TaskObject newTaskCreated = createNewTask(v.getText().toString());
                                 // TODO: If this is not possible, return new object to Actviity and resend it here.
-                                setState(EditTaskState.editTask, newTaskCreated, parentProtocol);
+                                setState(editTask);
                             }
                             baseView.requestLayout();
                             return true;
@@ -140,39 +140,32 @@ public class EditTaskBottomBar extends Fragment implements EditTaskProtocol {
                 modAreaOne.setVisibility(View.GONE);
                 modAreaTwo.setVisibility(View.GONE);
                 dynamicArea.requestLayout();
-                return true;
+                return;
             case editTask:
-                if (taskManipulated != null) {
-                    taskObject = taskManipulated;
+                if (taskObject != null) {
                     dynamicArea.removeAllViews();
                     dynamicArea.setVisibility(View.VISIBLE);
                     EditingView_BottomBar editView = new EditingView_BottomBar(getContext());
-                    Log.d("BASE VIEW WIDH: ", baseView.getWidth() + "");
                     dynamicArea.addView(editView);
-                    editView.insertData(taskManipulated, null, this);
-                    editView.layout(0,0, dynamicArea.getWidth(), 80);
+                    editView.insertData(taskObject, null, this);
                     defineModButtons();
-                    List<TaskObject.Mods> modsToImplement = taskManipulated.getAllMods();
+                    List<TaskObject.Mods> modsToImplement = taskObject.getAllMods();
                     for (TaskObject.Mods mod : modsToImplement) {
                         modButtons.get(mod).setModActive(true);
                     }
                     dynamicArea.requestLayout();
-                    return true;
-                } else {return false;}
+                    return;
+                } else {return;}
             case test1:
                 TestOfAlpha m = new TestOfAlpha(getContext());
                 dynamicArea.addView(m);
                 break;
         }
-        return false;
     }
+
     private void defineModButtons() {
         // Should define all mods so that
         // Size; SHould have max size just in case...
-        modAreaOne.setVisibility(View.VISIBLE);
-        modAreaOne.removeAllViews();
-        modAreaTwo.setVisibility(View.VISIBLE);
-        modAreaTwo.removeAllViews();
 
         int NUMBER_OF_MODS_FIRST_ROW = 4;
         int NUMBER_OF_MODS_SECOND_ROW = 2;
@@ -183,9 +176,11 @@ public class EditTaskBottomBar extends Fragment implements EditTaskProtocol {
             modButtons = new HashMap<>(NUMBER_OF_MODS_FIRST_ROW + NUMBER_OF_MODS_SECOND_ROW);
         }
 
-        Point paddingAreaOne = calculatePaddingAndButtonHeight(NUMBER_OF_MODS_FIRST_ROW);
-        Point paddingAreaTwo = calculatePaddingAndButtonHeight(NUMBER_OF_MODS_SECOND_ROW);
-
+        int[] buttonAndPaddingResults = calculatePaddingAndButtonHeight(NUMBER_OF_MODS_FIRST_ROW,
+                NUMBER_OF_MODS_SECOND_ROW);
+        Space space = new Space(getContext());
+        space.setLayoutParams(new LinearLayout.LayoutParams(buttonAndPaddingResults[1], buttonAndPaddingResults[0]));
+        modAreaOne.addView(space);
         for (int i = 1; i <= NUMBER_OF_MODS_FIRST_ROW; i++) {
             ModButton mod;
             switch (i) {
@@ -206,13 +201,19 @@ public class EditTaskBottomBar extends Fragment implements EditTaskProtocol {
                     modButtons.put(TaskObject.Mods.delete, mod);
                     break;
             }
-            mod.setPadding(paddingAreaOne.x, 0,0,0);
-            ViewGroup.LayoutParams layoutParams = new ViewGroup.LayoutParams(paddingAreaOne.y,
-                    paddingAreaOne.y);
+            LinearLayout.LayoutParams layoutParams = new LinearLayout.LayoutParams(buttonAndPaddingResults[0], buttonAndPaddingResults[0]);
+            layoutParams.gravity = 0;
             mod.setLayoutParams(layoutParams);
             modAreaOne.addView(mod);
+            if (i < NUMBER_OF_MODS_FIRST_ROW) {
+                Space padding = new Space(getContext());
+                padding.setLayoutParams(new LinearLayout.LayoutParams(buttonAndPaddingResults[1], buttonAndPaddingResults[0]));
+                modAreaOne.addView(padding);
+            }
         }
-
+        Space lowerPart = new Space(getContext());
+        lowerPart.setLayoutParams(new LinearLayout.LayoutParams(buttonAndPaddingResults[2], buttonAndPaddingResults[0]));
+        modAreaTwo.addView(lowerPart);
         for (int i = 1; i<= NUMBER_OF_MODS_SECOND_ROW; i++) {
             ModButton mod;
             switch (i) {
@@ -225,12 +226,16 @@ public class EditTaskBottomBar extends Fragment implements EditTaskProtocol {
                     modButtons.put(TaskObject.Mods.checkable, mod);
                     break;
             }
-            mod.setPadding(paddingAreaTwo.x, 0,0,0);
-            ViewGroup.LayoutParams layoutParams = new ViewGroup.LayoutParams(paddingAreaTwo.y, paddingAreaTwo.y);
+            LinearLayout.LayoutParams layoutParams = new LinearLayout.LayoutParams(buttonAndPaddingResults[0], buttonAndPaddingResults[0]);
+            layoutParams.gravity = 0;
             mod.setLayoutParams(layoutParams);
             modAreaTwo.addView(mod);
+            if (i < NUMBER_OF_MODS_SECOND_ROW) {
+                Space padding = new Space(getContext());
+                padding.setLayoutParams(new LinearLayout.LayoutParams(buttonAndPaddingResults[2], buttonAndPaddingResults[0]));
+                modAreaTwo.addView(padding);
+            }
         }
-
     }
     private TaskObject createNewTask(String taskName) {
         TaskObject newTask = new TaskObject(0, 0, 0, taskName, Calendar.getInstance(),
@@ -274,18 +279,19 @@ public class EditTaskBottomBar extends Fragment implements EditTaskProtocol {
             }
         });
     }
-    private Point calculatePaddingAndButtonHeight(int numberOfButtonsInRow) {
-        // This function calculates padding between buttons in row only considering one padding parameter
-        // that is the padding of the left side
-        // Fist value is padding, second is button Size
-
-        int maxCalculatedButtonSize = (modAreaOne.getWidth() -
-                ((numberOfButtonsInRow + 1) * MIN_PADDING_BETWEEN_BUTTONS)) / numberOfButtonsInRow;
-        int buttonSize = Math.max(MAX_BUTTON_SIZE, maxCalculatedButtonSize);
-
-        return new Point((modAreaOne.getWidth() - (buttonSize * numberOfButtonsInRow)) /
-                (numberOfButtonsInRow + 1) ,buttonSize);
+    // Returns maxSize for buttons, padding for first row and then padding for second row
+    private int[] calculatePaddingAndButtonHeight(int buttonsInFirstFow, int buttonsInSecondRow) {
+        int maxNumberInRows = Math.max(buttonsInFirstFow, buttonsInSecondRow);
+        int maxCalculatedButtonSize = Math.min(((sizeOfParent - maxNumberInRows * MIN_PADDING_BETWEEN_BUTTONS)
+                / maxNumberInRows), MAX_BUTTON_SIZE);
+        int paddingRowOne = (sizeOfParent - (maxCalculatedButtonSize * buttonsInFirstFow)) /
+                (buttonsInFirstFow +1);
+        int paddingRowTwo = (sizeOfParent - (maxCalculatedButtonSize * buttonsInSecondRow)) /
+                (buttonsInSecondRow +1);
+        int[] toReturn =  {maxCalculatedButtonSize, paddingRowOne, paddingRowTwo};
+        return toReturn;
     }
+
 
     //EditTaskProtocol implementation:
     @Override
@@ -388,37 +394,36 @@ public class EditTaskBottomBar extends Fragment implements EditTaskProtocol {
                 };
                 ModButton.SpecialtyButton[] firstRowButtons = {ModButton.SpecialtyButton.date,
                         ModButton.SpecialtyButton.time, ModButton.SpecialtyButton.clear};
-                Point valuesFirstRow = calculatePaddingAndButtonHeight(firstRowButtons.length);
+                ModButton.SpecialtyButton[] secondRow = {ModButton.SpecialtyButton.startValues,
+                        ModButton.SpecialtyButton.endValues, ModButton.SpecialtyButton.delete, ModButton.SpecialtyButton.clear};
+                int[] paddingAndButtonValues = calculatePaddingAndButtonHeight(firstRowButtons.length, secondRow.length);
+
                 for (ModButton.SpecialtyButton value: firstRowButtons) {
                     ModButton button = new ModButton(getContext(), value, localClickListener);
-                    button.setPadding(valuesFirstRow.x, 0, 0, 0);
-                    button.getLayoutParams().height = valuesFirstRow.y;
-                    button.getLayoutParams().width = valuesFirstRow.y;
+                    button.setPadding(paddingAndButtonValues[1], 0, 0, 0);
+                    button.setLayoutParams(new ConstraintLayout.LayoutParams(paddingAndButtonValues[0],
+                            paddingAndButtonValues[0]));
                     modAreaOne.addView(button);
                 }
-                ModButton.SpecialtyButton[] secondRow = {ModButton.SpecialtyButton.startValues,
-                ModButton.SpecialtyButton.endValues, ModButton.SpecialtyButton.delete, ModButton.SpecialtyButton.clear};
-                Point valuesSecondRow = calculatePaddingAndButtonHeight(secondRow.length);
+
                 for (ModButton.SpecialtyButton value: secondRow) {
                     ModButton button = new ModButton(getContext(), value, localClickListener);
-                    button.setPadding(valuesSecondRow.x,0,0,0);
-                    button.getLayoutParams().width = valuesSecondRow.y;
-                    button.getLayoutParams().height = valuesSecondRow.y;
+                    button.setPadding(paddingAndButtonValues[2],0,0,0);
+                    button.setLayoutParams(new ConstraintLayout.LayoutParams(paddingAndButtonValues[0],
+                            paddingAndButtonValues[0]));
                     modAreaTwo.addView(button);
                 }
                 break;
         }
     }
-
     @Override
     public void modDone() { // What we do when we have done working with a mod
-        setState(EditTaskState.editTask, taskObject, parentProtocol);
+        setState(editTask);
     }
     @Override
     public View getBaseView(){
         return this.baseView;
     }
-
 
     // Place for Enums:
     public enum EditTaskState {

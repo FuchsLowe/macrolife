@@ -29,6 +29,7 @@ public interface DataProviderNewProtocol {
     List<ListObject> findListFor(int taskObjectID);
     void deleteRepeatingEvent(RepeatingEvent eventToDelete);
     void saveRepeatingEvent(RepeatingEvent event);
+    void saveTaskObject(TaskObject task);
     ArrayList<TaskObject>getDataForRecommendationBar();
     boolean isDataBaseOpen();
     void closeDataBase();

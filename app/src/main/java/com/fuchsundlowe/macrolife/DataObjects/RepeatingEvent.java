@@ -13,8 +13,7 @@ import java.util.Calendar;
  * Created by macbook on 1/30/18.
  * A simple holder that doesn't inherit from DataMaster class
  */
-@Entity(foreignKeys = @ForeignKey(entity = TaskObject.class, parentColumns = "hashID",
-        childColumns = "parentID", onDelete = ForeignKey.CASCADE, onUpdate = ForeignKey.CASCADE))
+@Entity
 public class RepeatingEvent {
 
     // Instance variables

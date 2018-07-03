@@ -20,6 +20,8 @@ import android.view.GestureDetector;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.ViewParent;
+import android.widget.ScrollView;
 
 import com.fuchsundlowe.macrolife.DataObjects.Constants;
 import com.fuchsundlowe.macrolife.DataObjects.RepeatingEvent;
@@ -367,7 +369,7 @@ public class ChronoView extends ViewGroup {
                 } else { // Means that task doesn't end on this day
                     end = 24 * timeUnitSize;
                 }
-                ((Task_DayView) viewObject).myLayout((int) LEFT_OFFSET, start, this.getWidth(), end);
+                ((Task_DayView) viewObject).layout((int) LEFT_OFFSET, start, this.getWidth(), end);
             } else {
                 //Assuming its only the TimeDisplayer
                 int top = getPixelLocationOf(Calendar.getInstance(), true);
@@ -404,14 +406,55 @@ public class ChronoView extends ViewGroup {
         return timeToReturn;
     }
 
+
     // Data Manipulation:
     public void setData(@Nullable List<TaskObject> tasks,
                         @Nullable List<RepeatingEvent> repeatingEvents) {
         if (dataProvider == null) {
             dataProvider = LocalStorage.getInstance(getContext());
         }
-        // Checks if these exist, either has a pair, or doesn't or gets removed?
+        // Replace tasks
+        // Remove all exisitng ones
+        // create new ones
+        // TODO: Temp solution, revisit this
+        if (tasks != null) {
+            // Remove all taskObjects
+            int count = this.getChildCount();
+            for (int i = 0; i < count; i++) {
+                View child = getChildAt(i);
+                if (child instanceof Task_DayView) {
+                    if (!((Task_DayView) child).isRepeatingEvent()) {
+                        this.removeView(child);
+                    }
+                }
+            }
+            for (TaskObject newTask : tasks) {
+                Task_DayView wrapper = new Task_DayView(context, null);
+                wrapper.insertData(newTask, null);
+                this.addView(wrapper);
+            }
+        }
 
+        if (repeatingEvents != null) {
+            int count = this.getChildCount();
+            for (int i = 0; i < count; i++) {
+                View child = getChildAt(i);
+                if (child instanceof Task_DayView) {
+                    if (((Task_DayView) child).isRepeatingEvent()) {
+                        this.removeView(child);
+                    }
+                }
+            }
+            for (RepeatingEvent event : repeatingEvents) {
+                TaskObject parent = dataProvider.findTaskObjectBy(event.getParentID());
+                Task_DayView wrapper = new Task_DayView(context, null);
+                wrapper.insertData(parent, event);
+                this.addView(wrapper);
+            }
+        }
+
+        /* Old implemnetation that might not work
+        // Checks if these exist, either has a pair, or doesn't or gets removed?
         // Grabs all task ID's that we have currently displayed in ChronoView
         HashSet<Task_DayView> allTasksInCurrentView = new HashSet<>();
         for (int i = 0; i < this.getChildCount(); i++) {
@@ -452,9 +495,9 @@ public class ChronoView extends ViewGroup {
         // Now we check to determine if we add or update items:
         if (repeatingEvents != null) {
             for (RepeatingEvent event : repeatingEvents) {
-                /*
-                 * If task exists, we attempt to update it, if it doesn't then we create a new one
-                 */
+
+                 // If task exists, we attempt to update it, if it doesn't then we create a new one
+
                 boolean didUpdate = false;
                 Task_DayView dayView;
                 for (Iterator<Task_DayView> it = allTasksInCurrentView.iterator(); it.hasNext(); ) {
@@ -487,6 +530,7 @@ public class ChronoView extends ViewGroup {
                 }
             }
         }
+        */
     }
     private void addNewTask(TaskObject task, @Nullable RepeatingEvent event) {
         Task_DayView dayView = new Task_DayView(getContext(), null);

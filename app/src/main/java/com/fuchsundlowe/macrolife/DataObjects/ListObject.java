@@ -13,8 +13,7 @@ import java.util.Calendar;
  * USed as subelement in grocery lists and alike.
  * TODO: To delete self on request? How will I manage this?
  */
-@Entity(foreignKeys = @ForeignKey(entity = TaskObject.class, parentColumns = "hashID",
-        childColumns = "masterID", onDelete = ForeignKey.CASCADE, onUpdate = ForeignKey.CASCADE))
+@Entity
 public class ListObject {
     // Local Variables
     private String taskName;

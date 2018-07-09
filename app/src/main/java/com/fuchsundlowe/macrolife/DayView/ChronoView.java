@@ -20,8 +20,7 @@ import android.view.GestureDetector;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.ViewParent;
-import android.widget.ScrollView;
+import android.widget.LinearLayout;
 
 import com.fuchsundlowe.macrolife.DataObjects.Constants;
 import com.fuchsundlowe.macrolife.DataObjects.RepeatingEvent;
@@ -30,8 +29,6 @@ import com.fuchsundlowe.macrolife.EngineClasses.LocalStorage;
 import com.fuchsundlowe.macrolife.Interfaces.DataProviderNewProtocol;
 
 import java.util.Calendar;
-import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -96,15 +93,13 @@ public class ChronoView extends ViewGroup {
 
         timeUnitSize = dpToPixConverter(preferences.getInt(Constants.HOUR_IN_PIXELS,108));
 
-        tempTimeDisplayer = new View(getContext());
-        tempTimeDisplayer.setBackgroundColor(Color.RED);
-        tempTimeDisplayer.setVisibility(GONE);
+        createTempTimerDisplay();
         timerLoop(true);
 
         registerDragAndDropListeners();
 
         longPressDetector = new GestureDetectorCompat(context, new LongPressDetector());
-
+        dataProvider = LocalStorage.getInstance(context);
     }
 
     // Methods:
@@ -160,6 +155,11 @@ public class ChronoView extends ViewGroup {
         LEFT_OFFSET = max;
         return max;
     }
+    private void createTempTimerDisplay() {
+        tempTimeDisplayer = new View(getContext());
+        tempTimeDisplayer.setBackgroundColor(Color.RED);
+        tempTimeDisplayer.setVisibility(GONE);
+    }
     public void timerLoop(boolean enabled) { // Who should manage the loop? Idealy it would be Someone
         // who has lifecyce of DayView in it...
         Calendar currentDay = Calendar.getInstance();
@@ -175,12 +175,13 @@ public class ChronoView extends ViewGroup {
                     @Override
                     public void run() {
                         // Whatever we will do with it?
-                        if (tempTimeDisplayer != null) {
-                            Calendar toPass = Calendar.getInstance();
-                            //toPass.set(Calendar.HOUR_OF_DAY, timeOfDay);
-                            tempTimeDisplayer.setY(getPixelLocationOf(toPass,
-                                    true));
+                        if (tempTimeDisplayer == null) {
+                           createTempTimerDisplay();
                         }
+                        Calendar toPass = Calendar.getInstance();
+                        //toPass.set(Calendar.HOUR_OF_DAY, timeOfDay);
+                        tempTimeDisplayer.setY(getPixelLocationOf(toPass,
+                                true));
                     }
                 };
                 timerLoop.scheduleAtFixedRate(timerTask, 0, TIMER_UPDATE_INTERVAL);
@@ -263,13 +264,20 @@ public class ChronoView extends ViewGroup {
             }
         });
     }
-    private void sendGlobalEditBroadcast(Calendar taskStartTime) {
+    private void sendCreateNewTaskWithLocationBroadcast(Calendar taskStartTime) {
         if (manager == null) {
             manager = LocalBroadcastManager.getInstance(getContext());
         }
         Intent intent = new Intent(Constants.INTENT_FILTER_NEW_TASK);
         intent.putExtra(Constants.INTENT_FILTER_FIELD_START_TIME, taskStartTime.getTimeInMillis());
         manager.sendBroadcast(intent);
+    }
+    private void sendRequestRecommendationFetcherBroadcast() {
+        if (manager == null) {
+            manager = LocalBroadcastManager.getInstance(getContext());
+        }
+        Intent intent = new Intent(Constants.INTENT_FILTER_RECOMENDATION);
+        manager.sendBroadcastSync(intent);
     }
 
     // The Lifecycle events:
@@ -296,14 +304,13 @@ public class ChronoView extends ViewGroup {
         this.addView(tempTimeDisplayer);
     }
 
-
     //Touch Events:
     @Override
     public boolean onTouchEvent(MotionEvent event) {
         longPressDetector.onTouchEvent(event);
         switch (event.getAction()) {
             case MotionEvent.ACTION_DOWN:
-
+                sendRequestRecommendationFetcherBroadcast();
                 break;
             case MotionEvent.ACTION_MOVE:
                 break;
@@ -318,7 +325,8 @@ public class ChronoView extends ViewGroup {
     private class LongPressDetector extends GestureDetector.SimpleOnGestureListener  {
         @Override
         public void onLongPress(MotionEvent e) {
-            sendGlobalEditBroadcast(getTimeLocationOf(e.getY()));
+            sendCreateNewTaskWithLocationBroadcast(getTimeLocationOf(e.getY()));
+
         }
     }
     @Nullable
@@ -369,7 +377,14 @@ public class ChronoView extends ViewGroup {
                 } else { // Means that task doesn't end on this day
                     end = 24 * timeUnitSize;
                 }
-                ((Task_DayView) viewObject).layout((int) LEFT_OFFSET, start, this.getWidth(), end);
+                // I need distance for 30 min in pixels
+                // Displays only minimun time of 30 min
+                int thirthyMinInPixels = timeUnitSize / 2;
+                int thirtyMinInMilliseconds = 1800000;
+                if ((endTime.getTimeInMillis() - startTime.getTimeInMillis()) < thirtyMinInMilliseconds ) {
+                    end  = start + thirthyMinInPixels;
+                }
+                ((Task_DayView) viewObject).myLayout((int) LEFT_OFFSET, start, this.getWidth(), end);
             } else {
                 //Assuming its only the TimeDisplayer
                 int top = getPixelLocationOf(Calendar.getInstance(), true);
@@ -416,40 +431,45 @@ public class ChronoView extends ViewGroup {
         // Replace tasks
         // Remove all exisitng ones
         // create new ones
-        // TODO: Temp solution, revisit this
         if (tasks != null) {
             // Remove all taskObjects
             int count = this.getChildCount();
+            View[] toRemove = new View[count];
             for (int i = 0; i < count; i++) {
-                View child = getChildAt(i);
-                if (child instanceof Task_DayView) {
-                    if (!((Task_DayView) child).isRepeatingEvent()) {
-                        this.removeView(child);
+                View toAdd = getChildAt(i);
+                if (toAdd instanceof Task_DayView) {
+                    if (!((Task_DayView) toAdd).isRepeatingEvent()) {
+                        toRemove[i] = toAdd;
                     }
                 }
             }
-            for (TaskObject newTask : tasks) {
-                Task_DayView wrapper = new Task_DayView(context, null);
-                wrapper.insertData(newTask, null);
-                this.addView(wrapper);
+            for (View view : toRemove) {
+                this.removeView(view);
             }
+
+            for (TaskObject newTask : tasks) {
+                addNewTask(newTask, null);
+            }
+
         }
 
         if (repeatingEvents != null) {
             int count = this.getChildCount();
+            View[] toRemove = new View[count];
             for (int i = 0; i < count; i++) {
-                View child = getChildAt(i);
-                if (child instanceof Task_DayView) {
-                    if (((Task_DayView) child).isRepeatingEvent()) {
-                        this.removeView(child);
+                View toAdd = getChildAt(i);
+                if (toAdd instanceof Task_DayView) {
+                    if (((Task_DayView) toAdd).isRepeatingEvent()) {
+                        toRemove[i] = toAdd;
                     }
                 }
             }
+            for (View view : toRemove) {
+                this.removeView(view);
+            }
             for (RepeatingEvent event : repeatingEvents) {
                 TaskObject parent = dataProvider.findTaskObjectBy(event.getParentID());
-                Task_DayView wrapper = new Task_DayView(context, null);
-                wrapper.insertData(parent, event);
-                this.addView(wrapper);
+                addNewTask(parent, event);
             }
         }
 
@@ -467,7 +487,7 @@ public class ChronoView extends ViewGroup {
         // Checks if there is any object to remove from:
         HashSet<Integer> arrivedTasksIDs = new HashSet<>();
         if (tasks != null) {
-            for (TaskObject task : tasks) {
+            for (TaskObject task :OJ tasks) {
                 arrivedTasksIDs.add(task.getHashID());
             }
         }
@@ -485,7 +505,6 @@ public class ChronoView extends ViewGroup {
             }
             // Now We delete items that are to be ousted:
             for (Task_DayView valueToDelete : itemsToDelete) {
-                //TODO: Does this require redraw?
                 this.removeView(valueToDelete);
             }
         }
@@ -531,11 +550,13 @@ public class ChronoView extends ViewGroup {
             }
         }
         */
+
     }
     private void addNewTask(TaskObject task, @Nullable RepeatingEvent event) {
         Task_DayView dayView = new Task_DayView(getContext(), null);
         dayView.insertData(task, event);
         this.addView(dayView);
+        Log.d("Adding task ", task.getHashID() + "");
     }
     private long calculateTimeDifference(Calendar startTime, Calendar endTime) {
         return endTime.getTimeInMillis() - startTime.getTimeInMillis();

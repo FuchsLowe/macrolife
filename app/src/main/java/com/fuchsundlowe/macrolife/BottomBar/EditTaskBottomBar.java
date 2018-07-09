@@ -1,32 +1,25 @@
 package com.fuchsundlowe.macrolife.BottomBar;
 
+import android.app.Activity;
 import android.content.Context;
 import android.graphics.Color;
-import android.graphics.Point;
 import android.os.Bundle;
-import android.os.Handler;
-import android.os.Looper;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.constraint.ConstraintLayout;
 import android.support.v4.app.Fragment;
-import android.util.Log;
+import android.util.DisplayMetrics;
 import android.view.Gravity;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.inputmethod.EditorInfo;
-import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
-import android.widget.CheckBox;
-import android.widget.EditText;
-import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 import android.widget.PopupWindow;
 import android.widget.Space;
 import android.widget.TextView;
-
 import com.fuchsundlowe.macrolife.DataObjects.RepeatingEvent;
 import com.fuchsundlowe.macrolife.DataObjects.TaskObject;
 import com.fuchsundlowe.macrolife.EngineClasses.LocalStorage;
@@ -35,12 +28,10 @@ import com.fuchsundlowe.macrolife.Interfaces.DataProviderNewProtocol;
 import com.fuchsundlowe.macrolife.Interfaces.EditTaskProtocol;
 import com.fuchsundlowe.macrolife.R;
 import com.fuchsundlowe.macrolife.TestCases.TestOfAlpha;
-
 import java.util.Calendar;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Timer;
-import java.util.TimerTask;
+
 
 import static com.fuchsundlowe.macrolife.BottomBar.EditTaskBottomBar.EditTaskState.editTask;
 
@@ -145,7 +136,7 @@ public class EditTaskBottomBar extends Fragment implements EditTaskProtocol {
                 if (taskObject != null) {
                     dynamicArea.removeAllViews();
                     dynamicArea.setVisibility(View.VISIBLE);
-                    EditingView_BottomBar editView = new EditingView_BottomBar(getContext());
+                    editView = new EditingView_BottomBar(getContext());
                     dynamicArea.addView(editView);
                     editView.insertData(taskObject, null, this);
                     defineModButtons();
@@ -166,6 +157,8 @@ public class EditTaskBottomBar extends Fragment implements EditTaskProtocol {
     private void defineModButtons() {
         // Should define all mods so that
         // Size; SHould have max size just in case...
+        modAreaOne.setVisibility(View.VISIBLE);
+        modAreaTwo.setVisibility(View.VISIBLE);
 
         int NUMBER_OF_MODS_FIRST_ROW = 4;
         int NUMBER_OF_MODS_SECOND_ROW = 2;
@@ -249,18 +242,24 @@ public class EditTaskBottomBar extends Fragment implements EditTaskProtocol {
     }
     private void deleteWarning() {
         View warningBox = inflater.inflate(R.layout.delete_warrning, null, false);
-        // TODO: Make sure this values make sense. Do you need to calculate them by self?
+        float WIDTH_BY_SCREEN_PERCENTAGE = 0.8f;
+        float HEIGHT_BY_SCREEN_PERCENTAGE = 0.25f;
+
+        DisplayMetrics displayMetrics = context.getResources().getDisplayMetrics();
+        int calculatedWidth = (int) (displayMetrics.widthPixels * WIDTH_BY_SCREEN_PERCENTAGE);
+        int calculatedHeight = (int) (displayMetrics.heightPixels * HEIGHT_BY_SCREEN_PERCENTAGE);
 
         TextView tittle = warningBox.findViewById(R.id.tittle_deleteWarning);
         tittle.setText(R.string.Toast_Tittle_WARNING);
         TextView subtitle = warningBox.findViewById(R.id.subtitle_deleteWarning);
         subtitle.setText(R.string.Toast_Subtitle);
 
-        final PopupWindow popupWindow = new PopupWindow(warningBox, warningBox.getWidth(), warningBox.getHeight());
+        final PopupWindow popupWindow = new PopupWindow(warningBox, calculatedWidth, calculatedHeight);
         popupWindow.setFocusable(true);        // TODO: Define animation
         popupWindow.showAtLocation(baseView, Gravity.CENTER,0,0);
 
         Button deleteButton = warningBox.findViewById(R.id.deleteButton_deleteWarning);
+        deleteButton.setText("DELETE");
         deleteButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -271,6 +270,7 @@ public class EditTaskBottomBar extends Fragment implements EditTaskProtocol {
             }
         });
         Button cancelButton = warningBox.findViewById(R.id.cancelButton_deleteWarning);
+        cancelButton.setText("CANCEL");
         cancelButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -296,7 +296,10 @@ public class EditTaskBottomBar extends Fragment implements EditTaskProtocol {
     //EditTaskProtocol implementation:
     @Override
     public void saveTask(TaskObject task, @Nullable RepeatingEvent event) {
-        // TODO: Implement!
+        dataProvider.saveTaskObject(task);
+        if (event != null) {
+            dataProvider.saveRepeatingEvent(event);
+        }
     }
     @Override
     public void clickOnMod(final TaskObject.Mods mod) {
@@ -321,9 +324,9 @@ public class EditTaskBottomBar extends Fragment implements EditTaskProtocol {
                 break;
             case list:
                 dynamicArea.removeAllViews();
-                dynamicArea.addView(new ListView_CompleteMod(this.context, taskObject, this));
                 modAreaOne.setVisibility(View.GONE);
                 modAreaTwo.setVisibility(View.GONE);
+                dynamicArea.addView(new ListView_CompleteMod(this.context, taskObject, this));
                 break;
             case checkable:
                 if (editView != null) {
@@ -334,6 +337,7 @@ public class EditTaskBottomBar extends Fragment implements EditTaskProtocol {
                         taskObject.setIsTaskCompleted(TaskObject.CheckableStatus.notCheckable);
                     }
                     // TODO: Save changes to taskObject
+                    saveTask(taskObject, null);
                 }
                 break;
             case delete:

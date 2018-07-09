@@ -63,8 +63,10 @@ public class DayDisplay_DayView extends Fragment {
             @Override
             public void onChanged(@Nullable List<RepeatingEvent> repeatingEvents) {
                 chronoView.setData(null, repeatingEvents);
+
             }
         });
+
         dataMaster.getTaskThatIntersects(dayWeDisplay).observe(this, new Observer<List<TaskObject>>() {
             @Override
             public void onChanged(@Nullable List<TaskObject> taskObjects) {
@@ -107,20 +109,12 @@ public class DayDisplay_DayView extends Fragment {
 
     }
     void defineLocalBroadcast() {
-
         broadcastReceiver = new BroadcastReceiver() {
             @Override
             public void onReceive(Context context, Intent intent) {
                 if (intent.getAction() == Constants.INTENT_FILTER_GLOBAL_EDIT) {
-                    // we grab the ID"s and we find the task and then we send it to bottom bar
-                    int taskId = intent.getIntExtra(Constants.INTENT_FILTER_FIELD_HASH_ID, 0);
 
                 } else if (intent.getAction() == Constants.INTENT_FILTER_NEW_TASK) {
-                    // create a new task with given loations
-                    Calendar taskStartTime = Calendar.getInstance();
-                    taskStartTime.setTimeInMillis(
-                            intent.getLongExtra(Constants.INTENT_FILTER_FIELD_START_TIME, 0)
-                    );
 
                 }
             }

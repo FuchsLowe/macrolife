@@ -4,8 +4,8 @@ import android.arch.lifecycle.LiveData;
 import android.arch.lifecycle.Observer;
 import android.arch.persistence.room.Room;
 import android.content.Context;
-import android.content.res.Resources;
 import android.support.annotation.Nullable;
+import android.util.Log;
 import com.fuchsundlowe.macrolife.DataObjects.ComplexGoal;
 import com.fuchsundlowe.macrolife.DataObjects.Constants;
 import com.fuchsundlowe.macrolife.DataObjects.DayOfWeek;
@@ -16,9 +16,15 @@ import com.fuchsundlowe.macrolife.DataObjects.TaskObject;
 import com.fuchsundlowe.macrolife.Interfaces.DataProviderNewProtocol;
 import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
+/*
+ * Known Issue: The Observe Forever for live data used to produce in memory holding of Tasks ( via
+ * function call defineInMemoryDataBaseCalls ) used for
+ * search and comparisons use is known not to provide updates to dataHolders after initial update.
+ * To overcome this issue, whenever a task is saved or deleted, manually the holders are updated.
+ *
+ * If possible find the cause and replace the faulty system!
+ */
 
 public class LocalStorage implements DataProviderNewProtocol {
 
@@ -66,9 +72,12 @@ public class LocalStorage implements DataProviderNewProtocol {
     }
     @Override
     public TaskObject findTaskObjectBy(int ID) {
-        if (taskObjectHolder != null) {
-            for (TaskObject object : taskObjectHolder) {
-                if (object.getHashID() == ID) { return object; }
+        List<TaskObject> transformed = TEST_liveDataHolder.getValue();
+        if (transformed != null) {
+            for (TaskObject task : transformed) {
+                if (task.getHashID() == ID) {
+                    return task;
+                }
             }
         }
         return null;
@@ -126,6 +135,7 @@ public class LocalStorage implements DataProviderNewProtocol {
                 dataBase.newDAO().removeTask(objectToDelete);
             }
         }).start();
+        taskObjectHolder.remove(objectToDelete);
     }
     @Override // If there is one it will update it if not it will create new
     public void saveListObject(final ListObject objectToSave) {
@@ -136,6 +146,7 @@ public class LocalStorage implements DataProviderNewProtocol {
                         @Override
                         public void run() {
                            dataBase.newDAO().saveListObject(objectToSave);
+                           listObjectHolder.add(objectToSave);
                         }
                     }).start();
                     return;
@@ -200,7 +211,17 @@ public class LocalStorage implements DataProviderNewProtocol {
                     dataBase.newDAO().insertRepeatingEvent(event);
                 }
             }).start();
+
+            for (RepeatingEvent event1: repeatingEventHolder) {
+                if (event1.getHashID() == event.getHashID()) {
+                    repeatingEventHolder.remove(event1);
+                    break;
+                }
+            }
+            repeatingEventHolder.add(event);
         }
+
+
     }
     @Override
     public ArrayList<TaskObject> getDataForRecommendationBar() {
@@ -233,12 +254,25 @@ public class LocalStorage implements DataProviderNewProtocol {
             new Thread(new Runnable() {
                 @Override
                 public void run() {
-                    dataBase.newDAO().insertTask(task);
+                    Log.d("New Task: ", "" + task.getHashID());
+                    if (task.getTaskName().length() > 0) {
+                        dataBase.newDAO().insertTask(task);
+                    }
                 }
             }).start();
+            if (task.getTaskName().length() > 0) {
+                for (TaskObject taskObject : taskObjectHolder) {
+                    if (task.getHashID() == task.getHashID()) {
+                        taskObjectHolder.remove(taskObject);
+                        break;
+                    }
+                }
+                taskObjectHolder.add(task);
+            }
         }
     }
     // Method calls:
+
     // first value is start time and second value is end time
    private long[] returnStartAndEndTimesForDay(Calendar day) {
        Calendar dayToWorkWith = (Calendar) day.clone();
@@ -256,6 +290,9 @@ public class LocalStorage implements DataProviderNewProtocol {
 
        return new long[]{startTimeStamp, endTimeStamp};
    }
+   // TODO: START TEST
+    public LiveData<List<TaskObject>> TEST_liveDataHolder;
+    // TODO: END TEST
    private void defineInMemoryDatabaseCalls() {
         taskObjectObserver = new Observer<List<TaskObject>>() {
             @Override
@@ -263,7 +300,8 @@ public class LocalStorage implements DataProviderNewProtocol {
                 taskObjectHolder = taskObjects;
             }
         };
-        dataBase.newDAO().getAllTaskObjects().observeForever(taskObjectObserver);
+        TEST_liveDataHolder = dataBase.newDAO().getAllTaskObjects();
+        TEST_liveDataHolder.observeForever(taskObjectObserver);
 
         complexGoalObserver = new Observer<List<ComplexGoal>>() {
             @Override

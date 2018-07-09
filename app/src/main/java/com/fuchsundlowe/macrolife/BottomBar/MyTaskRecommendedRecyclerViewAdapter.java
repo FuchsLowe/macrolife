@@ -35,7 +35,9 @@ public class MyTaskRecommendedRecyclerViewAdapter extends RecyclerView.Adapter<M
 
     @Override
     public int getItemCount() {
-        return data.size();
+        if (data != null) {
+            return data.size();
+        } else { return 0; }
     }
 
     public void addTask(TaskObject taskToAdd) {

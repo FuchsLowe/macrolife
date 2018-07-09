@@ -6,13 +6,22 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Color;
+import android.os.Handler;
+import android.os.Looper;
 import android.support.annotation.Nullable;
+import android.support.constraint.ConstraintLayout;
 import android.support.v4.content.LocalBroadcastManager;
 import android.support.v4.view.GestureDetectorCompat;
+import android.support.v7.widget.CardView;
+import android.text.Layout;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.GestureDetector;
+import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
+import android.view.View;
+import android.view.ViewGroup;
 import android.widget.CheckBox;
 import android.widget.FrameLayout;
 import android.widget.LinearLayout;
@@ -26,6 +35,7 @@ import com.fuchsundlowe.macrolife.Interfaces.DataProviderNewProtocol;
 import com.fuchsundlowe.macrolife.R;
 
 import java.util.Calendar;
+
 
 // A custom view Class that creates a taskView intended for usage in DayView's Chrono-View
 
@@ -44,31 +54,48 @@ public class Task_DayView extends FrameLayout {
     private float storedX, storedY;
     private LocalBroadcastManager manager;
     private ClickLocation clickLocation;
+    private View m;
 
     public Task_DayView(Context context, @Nullable AttributeSet attrs) {
         super(context, attrs);
-        LayoutInflater inflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-        inflater.inflate(R.layout.task_object_day_view,this,true);
-
+        LayoutInflater inflater = LayoutInflater.from(context);
+        m = inflater.inflate(R.layout.task_object_day_view,null,false);
+        this.addView(m);
         preferences = getContext().getSharedPreferences(Constants.SHARED_PREFERENCES_KEY, Context.MODE_PRIVATE);
         timeUnitSize = (preferences.getInt(Constants.HOUR_IN_PIXELS, 108) / 4 );
 
         longPressDetector = new GestureDetectorCompat(context, new LongPressDetector());
 
         clickLocation = ClickLocation.none;
-    }
 
-    // Lifecycle:
-    @Override
-    protected void onFinishInflate() {
-        super.onFinishInflate();
         taskName = findViewById(R.id.taskName_RecomendationTask);
         masterTaskName = findViewById(R.id.masterTaskName);
         modsHolder = findViewById(R.id.modsHodler);
         box = findViewById(R.id.checkBox);
         this.setBackgroundColor(Color.CYAN);
         this.setAlpha(0.5f);
-        initiateData();
+
+        Handler h = new Handler(Looper.getMainLooper());
+
+        h.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                requestLayout();
+                m.requestLayout();
+            }
+        }, 5000);
+    }
+
+    // Lifecycle:
+    @Override
+    protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
+        super.onMeasure(widthMeasureSpec, heightMeasureSpec);
+    }
+    @Override
+    protected void onLayout(boolean changed, int left, int top, int right, int bottom) {
+        setMeasureAllChildren(true);
+        measure(getWidth(), getHeight());
+        super.onLayout(changed, left, top, right, bottom);
     }
     @Override
     public boolean shouldDelayChildPressedState() {
@@ -77,13 +104,18 @@ public class Task_DayView extends FrameLayout {
 
     // Layout operations
     public void myLayout(int left, int top, int right, int bottom) {
-        if (bottom - top > timeUnitSize) {
+        if ((bottom - top) > (timeUnitSize / 2) ) {
             // only if its more than 15 min we will allow it
             this.layout(left, top, right, bottom);
-            if (masterTaskName.getBottom() < bottom) {
-                masterTaskName.setVisibility(VISIBLE);
+            if (masterTaskName != null) {
+                if (masterTaskName.getBottom() < bottom) {
+                    masterTaskName.setVisibility(VISIBLE);
+                } else {
+                    masterTaskName.setVisibility(GONE);
+                }
             } else {
-                masterTaskName.setVisibility(GONE);
+                // Should I schedule a timer to show this up
+
             }
         }
     }
@@ -128,7 +160,6 @@ public class Task_DayView extends FrameLayout {
                     storedX = event.getX();
                     storedY = event.getY();
                     detectClickLocation(event);
-                    //signalGlobalEdit(true);
                     break;
                 case MotionEvent.ACTION_MOVE:
                     float currentX = event.getX();
@@ -155,6 +186,11 @@ public class Task_DayView extends FrameLayout {
             }
 
         } else {
+            switch (event.getAction()) {
+                case MotionEvent.ACTION_DOWN:
+                    sendGlobalEditBroadcast();
+                    return true;
+            }
             return false;
         }
         return true;
@@ -192,6 +228,7 @@ public class Task_DayView extends FrameLayout {
     public void insertData(TaskObject data, @Nullable RepeatingEvent repeatingEvent) {
         this.task = data;
         this.repeatingEvent = repeatingEvent;
+        initiateData();
     }
     private void initiateData() {
         if (task.getParentGoal() > 0) { // make sure there is one
@@ -231,11 +268,6 @@ public class Task_DayView extends FrameLayout {
                     break;
             }
         }
-
-        // TODO: About mods, how will I retrieve and present them?
-
-        // TODO: Is this good enough?
-        this.requestLayout();
     }
 
     //Methods:
@@ -288,7 +320,7 @@ public class Task_DayView extends FrameLayout {
         }
     }
     public boolean isRepeatingEvent() {
-        if (repeatingEvent != null) { return true;} else {return false;}
+        return repeatingEvent != null;
     }
 
     private void sendGlobalEditBroadcast() {

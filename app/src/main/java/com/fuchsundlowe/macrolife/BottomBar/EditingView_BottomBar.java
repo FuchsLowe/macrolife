@@ -72,7 +72,6 @@ public class EditingView_BottomBar extends FrameLayout {
         });
     }
 
-
     // Methods:
     public void insertData(TaskObject taskObject, @Nullable RepeatingEvent event, EditTaskProtocol protocol) {
         this.protocolProvider = protocol;
@@ -118,6 +117,5 @@ public class EditingView_BottomBar extends FrameLayout {
     private void reportDataEdited() {
         protocolProvider.saveTask(taskObject, event);
     }
-
 
 }

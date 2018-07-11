@@ -30,14 +30,11 @@ public class LocalStorage implements DataProviderNewProtocol {
 
     private static LocalStorage self;
     private RoomDataBaseObject dataBase;
-    private List<TaskObject> taskObjectHolder;
-    private List<ListObject> listObjectHolder;
-    private List<RepeatingEvent> repeatingEventHolder;
-    private List<ComplexGoal> complexGoalHolder;
-    private Observer<List<TaskObject>> taskObjectObserver;
-    private Observer<List<ComplexGoal>> complexGoalObserver;
-    private Observer<List<ListObject>> listObjectObserver;
-    private Observer<List<RepeatingEvent>> repeatingEventObserver;
+    private LiveData<List<TaskObject>> taskObjectHolder;
+    private LiveData<List<ListObject>> listObjectHolder;
+    private LiveData<List<RepeatingEvent>> repeatingEventHolder;
+    private LiveData<List<ComplexGoal>> complexGoalHolder;
+
 
     // Constructor implementation:
     public static  @Nullable LocalStorage getInstance(@Nullable Context context) {
@@ -63,8 +60,8 @@ public class LocalStorage implements DataProviderNewProtocol {
     }
     @Override // Static return value
     public ComplexGoal findComplexGoal(int byID) {
-        if (complexGoalHolder != null) {
-            for (ComplexGoal goal: complexGoalHolder) {
+        if (complexGoalHolder.getValue() != null) {
+            for (ComplexGoal goal: complexGoalHolder.getValue()) {
                 if (goal.getHashID() == byID) { return goal; }
             }
         }
@@ -72,7 +69,7 @@ public class LocalStorage implements DataProviderNewProtocol {
     }
     @Override
     public TaskObject findTaskObjectBy(int ID) {
-        List<TaskObject> transformed = TEST_liveDataHolder.getValue();
+        List<TaskObject> transformed = taskObjectHolder.getValue();
         if (transformed != null) {
             for (TaskObject task : transformed) {
                 if (task.getHashID() == ID) {
@@ -97,16 +94,16 @@ public class LocalStorage implements DataProviderNewProtocol {
     }
     @Override
     public List<RepeatingEvent> getEventsBy(int masterID, TaskObject.Mods mod) {
-        if (repeatingEventHolder != null) {
+        if (repeatingEventHolder.getValue() != null) {
             List<RepeatingEvent> setToSend= new ArrayList<>();
             if (mod == TaskObject.Mods.repeating) {
-                for (RepeatingEvent event : repeatingEventHolder) {
+                for (RepeatingEvent event : repeatingEventHolder.getValue()) {
                     if (event.getParentID() == masterID && event.getDayOfWeek() == DayOfWeek.universal) {
                         setToSend.add(event);
                     }
                 }
             } else {
-                for (RepeatingEvent event : repeatingEventHolder) {
+                for (RepeatingEvent event : repeatingEventHolder.getValue()) {
                     if (event.getParentID() == masterID && event.getDayOfWeek() != DayOfWeek.universal) {
                         setToSend.add(event);
                     }
@@ -118,8 +115,8 @@ public class LocalStorage implements DataProviderNewProtocol {
     }
     @Override
     public ComplexGoal getComplexGoalBy(int masterID) {
-        if (complexGoalHolder != null) {
-            for (ComplexGoal goal : complexGoalHolder) {
+        if (complexGoalHolder.getValue() != null) {
+            for (ComplexGoal goal : complexGoalHolder.getValue()) {
                 if (goal.getHashID() == masterID) {
                     return goal;
                 }
@@ -135,21 +132,21 @@ public class LocalStorage implements DataProviderNewProtocol {
                 dataBase.newDAO().removeTask(objectToDelete);
             }
         }).start();
-        taskObjectHolder.remove(objectToDelete);
     }
     @Override // If there is one it will update it if not it will create new
     public void saveListObject(final ListObject objectToSave) {
-        if (listObjectHolder != null) {
-            for (final ListObject object : listObjectHolder) {
-                if (object.getHashID() == objectToSave.getHashID()) {
-                    new Thread(new Runnable() {
-                        @Override
-                        public void run() {
-                           dataBase.newDAO().saveListObject(objectToSave);
-                           listObjectHolder.add(objectToSave);
-                        }
-                    }).start();
-                    return;
+        if (listObjectHolder.getValue() != null) {
+            if (objectToSave.getHashID() != 0) {
+                for (final ListObject object : listObjectHolder.getValue()) {
+                    if (object.getHashID() == objectToSave.getHashID()) {
+                        new Thread(new Runnable() {
+                            @Override
+                            public void run() {
+                                dataBase.newDAO().saveListObject(objectToSave);
+                            }
+                        }).start();
+                        return;
+                    }
                 }
             }
             new Thread(new Runnable() {
@@ -171,9 +168,9 @@ public class LocalStorage implements DataProviderNewProtocol {
     }
     @Override
     public List<ListObject> findListFor(int taskObjectID) {
-        if (listObjectHolder != null) {
+        if (listObjectHolder.getValue() != null) {
             List<ListObject> setToReturn = new ArrayList<>();
-            for (ListObject object : listObjectHolder) {
+            for (ListObject object : listObjectHolder.getValue()) {
                 if (object.getMasterID() == taskObjectID) {
                     setToReturn.add(object);
                 }
@@ -193,8 +190,8 @@ public class LocalStorage implements DataProviderNewProtocol {
     }
     @Override
     public void saveRepeatingEvent(final RepeatingEvent event) {
-        if (repeatingEventHolder != null) {
-            for (final RepeatingEvent object : repeatingEventHolder) {
+        if (repeatingEventHolder.getValue() != null) {
+            for (final RepeatingEvent object : repeatingEventHolder.getValue()) {
                 if (object.getHashID() == event.getHashID()) {
                     new Thread(new Runnable() {
                         @Override
@@ -212,22 +209,20 @@ public class LocalStorage implements DataProviderNewProtocol {
                 }
             }).start();
 
-            for (RepeatingEvent event1: repeatingEventHolder) {
+            for (RepeatingEvent event1: repeatingEventHolder.getValue()) {
                 if (event1.getHashID() == event.getHashID()) {
-                    repeatingEventHolder.remove(event1);
                     break;
                 }
             }
-            repeatingEventHolder.add(event);
         }
 
 
     }
     @Override
     public ArrayList<TaskObject> getDataForRecommendationBar() {
-        if (taskObjectHolder != null) {
+        if (taskObjectHolder.getValue() != null) {
             ArrayList<TaskObject> listToReturn = new ArrayList<>();
-            for (TaskObject task : taskObjectHolder) {
+            for (TaskObject task : taskObjectHolder.getValue()) {
                 if (task.getIsTaskCompleted() == TaskObject.CheckableStatus.notCheckable &&
                         task.getTimeDefined() == TaskObject.TimeDefined.noTime) {
                     listToReturn.add(task);
@@ -239,8 +234,8 @@ public class LocalStorage implements DataProviderNewProtocol {
     }
     @Override
     public void saveTaskObject(final TaskObject task) {
-        if (taskObjectHolder != null) {
-            for (TaskObject taskObject : taskObjectHolder) {
+        if (taskObjectHolder.getValue() != null) {
+            for (TaskObject taskObject : taskObjectHolder.getValue()) {
                 if (taskObject.getHashID() == task.getHashID()) {
                     new Thread(new Runnable() {
                         @Override
@@ -260,21 +255,39 @@ public class LocalStorage implements DataProviderNewProtocol {
                     }
                 }
             }).start();
-            if (task.getTaskName().length() > 0) {
-                for (TaskObject taskObject : taskObjectHolder) {
-                    if (task.getHashID() == task.getHashID()) {
-                        taskObjectHolder.remove(taskObject);
-                        break;
-                    }
-                }
-                taskObjectHolder.add(task);
-            }
         }
     }
-    // Method calls:
+    @Override
+    public LiveData<TaskObject> getTaskObjectWithCreationTime(Calendar creationTime){
+        return dataBase.newDAO().getTaskObjectWithCreationTime(creationTime.getTimeInMillis());
+    }
+    @Override
+    public int findNextFreeHashIDForTask() {
+        if (taskObjectHolder.getValue() != null && taskObjectHolder.getValue().size() > 0) {
+            int biggestID = 0;
+            for (TaskObject task : taskObjectHolder.getValue()) {
+                biggestID = Math.max(biggestID, task.getHashID());
+            }
+            return biggestID +1;
+        } else {
+            return 0;
+        }
+    }
+    @Override
+    public int findNextFreeHashIDForList() {
+        if (listObjectHolder.getValue() != null && listObjectHolder.getValue().size() > 0) {
+            int bigestID = 0;
+            for (ListObject listy : listObjectHolder.getValue()) {
+                bigestID = Math.max(bigestID, listy.getHashID());
+            }
+            return bigestID +1;
+        } else {
+            return 0;
+        }
+    }
 
-    // first value is start time and second value is end time
-   private long[] returnStartAndEndTimesForDay(Calendar day) {
+    // Method calls:
+    private long[] returnStartAndEndTimesForDay(Calendar day) {
        Calendar dayToWorkWith = (Calendar) day.clone();
 
        dayToWorkWith.set(Calendar.HOUR_OF_DAY,0);
@@ -290,60 +303,47 @@ public class LocalStorage implements DataProviderNewProtocol {
 
        return new long[]{startTimeStamp, endTimeStamp};
    }
-   // TODO: START TEST
-    public LiveData<List<TaskObject>> TEST_liveDataHolder;
-    // TODO: END TEST
-   private void defineInMemoryDatabaseCalls() {
-        taskObjectObserver = new Observer<List<TaskObject>>() {
+    private void defineInMemoryDatabaseCalls() {
+        taskObjectHolder = dataBase.newDAO().getAllTaskObjects();
+        taskObjectHolder.observeForever(new Observer<List<TaskObject>>() {
             @Override
             public void onChanged(@Nullable List<TaskObject> taskObjects) {
-                taskObjectHolder = taskObjects;
+                Log.d("Report Changes", " to database task Objects");
             }
-        };
-        TEST_liveDataHolder = dataBase.newDAO().getAllTaskObjects();
-        TEST_liveDataHolder.observeForever(taskObjectObserver);
-
-        complexGoalObserver = new Observer<List<ComplexGoal>>() {
-            @Override
-            public void onChanged(@Nullable List<ComplexGoal> complexGoals) {
-                complexGoalHolder = complexGoals;
-            }
-        };
-        dataBase.newDAO().getAllComplexGoals().observeForever(complexGoalObserver);
-
-        listObjectObserver = new Observer<List<ListObject>>() {
+        });
+        listObjectHolder = dataBase.newDAO().getAllListObjects();
+        listObjectHolder.observeForever(new Observer<List<ListObject>>() {
             @Override
             public void onChanged(@Nullable List<ListObject> listObjects) {
-                listObjectHolder = listObjects;
+                Log.d("Report Changes", " to List database");
             }
-        };
-        dataBase.newDAO().getAllListObjects().observeForever(listObjectObserver);
-
-        repeatingEventObserver = new Observer<List<RepeatingEvent>>() {
+        });
+        repeatingEventHolder = dataBase.newDAO().getAllRepeatingEvents();
+        repeatingEventHolder.observeForever(new Observer<List<RepeatingEvent>>() {
             @Override
             public void onChanged(@Nullable List<RepeatingEvent> repeatingEvents) {
-                repeatingEventHolder = repeatingEvents;
+                Log.d("report changes to", " repeating events dB");
             }
-        };
-        dataBase.newDAO().getAllRepeatingEvents().observeForever(repeatingEventObserver);
+        });
+        complexGoalHolder = dataBase.newDAO().getAllComplexGoals();
+        complexGoalHolder.observeForever(new Observer<List<ComplexGoal>>() {
+            @Override
+            public void onChanged(@Nullable List<ComplexGoal> complexGoals) {
+                Log.d("Report Changes to", " complex goal DB");
+            }
+        });
    }
-   public boolean isDataBaseOpen() {
+    public boolean isDataBaseOpen() {
         return dataBase.isOpen();
    }
-   public void closeDataBase() {
-
-        dataBase.newDAO().getAllTaskObjects().removeObserver(taskObjectObserver);
-        taskObjectObserver = null;
-
-        dataBase.newDAO().getAllComplexGoals().removeObserver(complexGoalObserver);
-        complexGoalObserver = null;
-
-        dataBase.newDAO().getAllListObjects().removeObserver(listObjectObserver);
-        listObjectObserver = null;
-
-        dataBase.newDAO().getAllRepeatingEvents().removeObserver(repeatingEventObserver);
-        repeatingEventObserver = null;
+    public void closeDataBase() {
+        taskObjectHolder = null;
+        listObjectHolder = null;
+        repeatingEventHolder = null;
+        complexGoalHolder = null;
 
         dataBase.close();
    }
+
+
 }

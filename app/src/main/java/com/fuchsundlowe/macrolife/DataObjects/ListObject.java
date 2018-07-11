@@ -6,21 +6,16 @@ import android.arch.persistence.room.PrimaryKey;
 
 import java.util.Calendar;
 
-/**
- * Created by macbook on 1/29/18.
- * Small data holder that doesn't inherit from DataMasterClass
- * Holds single enrty and is used exclusivlely as subgoal for listMaster
- * USed as subelement in grocery lists and alike.
- * TODO: To delete self on request? How will I manage this?
- */
 @Entity
 public class ListObject {
     // Local Variables
+
+    @PrimaryKey(autoGenerate = true)
+    private int hashID;
+
     private String taskName;
     private boolean taskStatus;
     private int masterID;
-    @PrimaryKey(autoGenerate = true)
-    private int hashID;
     private Calendar lastTimeModified;
 
 
@@ -31,6 +26,7 @@ public class ListObject {
         this.taskStatus = taskStatus;
         this.masterID = masterID;
         this.lastTimeModified = lastTimeModified;
+        this.hashID = hashID;
 
     }
 

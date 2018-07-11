@@ -306,10 +306,17 @@ public class EditTaskBottomBar extends Fragment implements EditTaskProtocol {
         /* We Respond on mod click
          * If its one of the mods the task can have we
          */
+        int screenHeight = getResources().getDisplayMetrics().heightPixels;
         switch (mod) {
             case repeating:
                 dynamicArea.removeAllViews();
                 RepeatingEventEditor editor = new RepeatingEventEditor(getContext(), this);
+                float howMuchShouldIOccupyScreen = 0.8f;
+                ConstraintLayout.LayoutParams param = new ConstraintLayout.LayoutParams(
+                        ViewGroup.LayoutParams.MATCH_PARENT,
+                        (int)(screenHeight * howMuchShouldIOccupyScreen)
+                );
+                editor.setLayoutParams(param);
                 dynamicArea.addView(editor);
                 editor.defineMe(taskObject);
                 modAreaOne.setVisibility(View.GONE);
@@ -326,7 +333,14 @@ public class EditTaskBottomBar extends Fragment implements EditTaskProtocol {
                 dynamicArea.removeAllViews();
                 modAreaOne.setVisibility(View.GONE);
                 modAreaTwo.setVisibility(View.GONE);
-                dynamicArea.addView(new ListView_CompleteMod(this.context, taskObject, this));
+                ListView_CompleteMod modToAdd = new ListView_CompleteMod(this.context, taskObject, this);
+                float percentage_H = 0.6f;
+                LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
+                        ViewGroup.LayoutParams.MATCH_PARENT,
+                        (int)(screenHeight * percentage_H)
+                );
+                modToAdd.setLayoutParams(params);
+                dynamicArea.addView(modToAdd);
                 break;
             case checkable:
                 if (editView != null) {

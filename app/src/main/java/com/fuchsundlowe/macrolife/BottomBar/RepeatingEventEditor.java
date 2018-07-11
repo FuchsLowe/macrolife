@@ -10,6 +10,7 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.ScrollView;
+import android.widget.Space;
 import android.widget.TextView;
 
 import com.fuchsundlowe.macrolife.DataObjects.Constants;
@@ -48,7 +49,7 @@ public class RepeatingEventEditor extends ConstraintLayout {
 
         inflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
 
-        baseView = (ConstraintLayout) inflater.inflate(R.layout.repeating_event_editor, this, false);
+        baseView = (ConstraintLayout) inflater.inflate(R.layout.repeating_event_editor, this, true);
 
         bottomBarHolder = baseView.findViewById(R.id.bottomBar_RepeatEditor);
 
@@ -66,11 +67,11 @@ public class RepeatingEventEditor extends ConstraintLayout {
         MAX_BUTTON_SIZE = dpToPixConverter(MAX_BUTTON_SIZE);
 
         defineButtonClickListener();
-        defineBottomButtons();
     }
 
     public void defineMe(TaskObject objectWeEdit) {
         editedObject = objectWeEdit;
+        taskName.setText(objectWeEdit.getTaskName());
         TaskObject.Mods repeatingModWeHave = objectWeEdit.getRepeatingMod();
         //If task is set with single/repeating
         if (repeatingModWeHave == null) {
@@ -83,6 +84,7 @@ public class RepeatingEventEditor extends ConstraintLayout {
             defineLeftSideHolder(false);
             dayView.populateViewWithTasks(objectWeEdit, DayOfWeek.monday);
         }
+        defineBottomButtons();
     }
 
     private void defineLeftSideHolder(boolean isUniversal) {
@@ -134,6 +136,8 @@ public class RepeatingEventEditor extends ConstraintLayout {
                     mod = new ModButton(getContext(), ModButton.SpecialtyButton.delete, buttonClickListener);
                     break;
                 case 2:
+                    // EditedObject is null
+                    boolean repeatModNotNull = editedObject.getRepeatingMod() != null;
                     if (editedObject.getRepeatingMod() != null &&
                             editedObject.getRepeatingMod() == TaskObject.Mods.repeatingMultiValues) {
                         mod = new ModButton(getContext(), ModButton.SpecialtyButton.complex, buttonClickListener);
@@ -146,11 +150,12 @@ public class RepeatingEventEditor extends ConstraintLayout {
                     mod = new ModButton(getContext(), ModButton.SpecialtyButton.save, buttonClickListener);
                     break;
             }
-            mod.setPadding(buttonValues.x, 0,0,0);
-            ViewGroup.LayoutParams parm =mod.getLayoutParams();
-            parm.width = buttonValues.y;
-            parm.height = buttonValues.y;
-            mod.setLayoutParams(parm);
+            // add space
+            Space padding = new Space(getContext());
+            padding.setLayoutParams(new ViewGroup.LayoutParams(buttonValues.x, buttonValues.y));
+            bottomBarHolder.addView(padding);
+            ViewGroup.LayoutParams parms = new ViewGroup.LayoutParams(buttonValues.y, buttonValues.y);
+            mod.setLayoutParams(parms);
             bottomBarHolder.addView(mod);
         }
 
@@ -163,9 +168,10 @@ public class RepeatingEventEditor extends ConstraintLayout {
         int maxCalculatedButtonSize = (bottomBarHolder.getWidth() -
                 ((numberOfButtonsInRow + 1) * MIN_PADDING_BETWEEN_BUTTONS)) / numberOfButtonsInRow;
         int buttonSize = Math.max(MAX_BUTTON_SIZE, maxCalculatedButtonSize);
+        int screenSize =(int) (getResources().getDisplayMetrics().widthPixels * 0.90f); // Temp solution, should get real size
 
-        Point toReturn = new Point((bottomBarHolder.getWidth() - (buttonSize * numberOfButtonsInRow)) /
-                (numberOfButtonsInRow + 1) ,buttonSize);
+        Point toReturn = new Point((screenSize - (buttonSize * numberOfButtonsInRow)) /
+                (numberOfButtonsInRow + 1), buttonSize);
 
         return toReturn;
     }

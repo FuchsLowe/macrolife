@@ -45,14 +45,14 @@ public class ListView_RecyclerView extends RecyclerView {
         adapter = new TaskAdapter(localStorage.findListFor(taskMasterID));
 
         this.setAdapter(adapter);
-
+        swipeFunctionality();
     }
 
     public void addListObject(ListObject newListObject) {
         adapter.dataToDisplay.add(newListObject);
         adapter.notifyDataSetChanged();
     }
-// https://medium.com/@kitek/recyclerview-swipe-to-delete-easier-than-you-thought-cff67ff5e5f6
+    // https://medium.com/@kitek/recyclerview-swipe-to-delete-easier-than-you-thought-cff67ff5e5f6
     private void swipeFunctionality() {
         ItemTouchHelper touchHelper = new ItemTouchHelper(new ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.LEFT) {
             @Override
@@ -62,20 +62,21 @@ public class ListView_RecyclerView extends RecyclerView {
 
             @Override
             public void onSwiped(ViewHolder viewHolder, int direction) {
-
+                adapter.removeAt(viewHolder.getAdapterPosition());
             }
 
             @Override
             public void onChildDraw(Canvas c, RecyclerView recyclerView, ViewHolder viewHolder, float dX, float dY, int actionState, boolean isCurrentlyActive) {
+                /*
                 View itemView = viewHolder.itemView;
                 int itemHeight = itemView.getHeight();
-                getBackground().setBounds(
+                itemView.getBackground().setBounds(
                         itemView.getRight() + (int)dX,
                         itemView.getTop(),
                         itemView.getRight(),
                         itemView.getBottom()
                         );
-                getBackground().draw(c);
+                itemView.getBackground().draw(c);
 
                 int percentOfMargin = 10;
                 int margin = itemHeight / percentOfMargin;
@@ -86,7 +87,7 @@ public class ListView_RecyclerView extends RecyclerView {
                 int iconBottom = itemView.getBottom() - margin;
 
                 // TODO: Draw the icon...
-
+                */
                 super.onChildDraw(c, recyclerView, viewHolder, dX, dY, actionState, isCurrentlyActive);
             }
         });

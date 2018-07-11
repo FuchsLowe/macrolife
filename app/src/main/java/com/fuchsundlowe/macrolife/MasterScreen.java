@@ -4,6 +4,7 @@ import android.content.Intent;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
+import android.widget.Toast;
 
 import com.fuchsundlowe.macrolife.ComplexGoal.ComplexTaskActivity;
 import com.fuchsundlowe.macrolife.DayView.DayView;
@@ -25,6 +26,7 @@ public class MasterScreen extends AppCompatActivity {
         setContentView(R.layout.activity_master_screen);
         //test2();
         //test3();
+        testJohnsWife();
         toDay(null);
     }
 
@@ -54,6 +56,14 @@ public class MasterScreen extends AppCompatActivity {
         super.onDestroy();
         if (dataBaseMaster.isDataBaseOpen()) {
             dataBaseMaster.closeDataBase();
+            // TODO: Delete after testing:
+            Toast t = new Toast(this);
+            t.setDuration(Toast.LENGTH_LONG);
+            t.setText("OnDestroy Called in MasterScreen");
+            t.show();
         }
+    }
+
+    void testJohnsWife(){
     }
 }

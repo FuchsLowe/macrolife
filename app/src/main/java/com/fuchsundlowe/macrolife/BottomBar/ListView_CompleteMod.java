@@ -21,10 +21,11 @@ import com.fuchsundlowe.macrolife.R;
 
 import java.util.Calendar;
 
-public class ListView_CompleteMod extends FrameLayout{
+public class ListView_CompleteMod extends FrameLayout {
 
-    private ConstraintLayout baseLayout;
+    private View baseLayout;
     private ListView_RecyclerView recyclerView;
+    private FrameLayout recyclerViewHolder;
     private TextView taskName;
     private EditText newTaskName;
     private DataProviderNewProtocol localData;
@@ -37,9 +38,12 @@ public class ListView_CompleteMod extends FrameLayout{
         localData = LocalStorage.getInstance(context);
 
         LayoutInflater inflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-        baseLayout = (ConstraintLayout) inflater.inflate(R.layout.listview_mod, this, false);
+        baseLayout = inflater.inflate(R.layout.listview_mod, this, true);
 
-        recyclerView = baseLayout.findViewById(R.id.listView_RecyclerView);
+        recyclerViewHolder = baseLayout.findViewById(R.id.listViewHolder_RecyclerView);
+
+        recyclerView = new ListView_RecyclerView(context);
+        recyclerViewHolder.addView(recyclerView);
         recyclerView.defineMe(ownerOfList.getHashID());
 
         taskName = baseLayout.findViewById(R.id.taskName_listMod);
@@ -52,10 +56,12 @@ public class ListView_CompleteMod extends FrameLayout{
                 if (actionId == EditorInfo.IME_ACTION_DONE) {
                     if (v.getText().length() > 0) {
                         // Create a new task, add it to shit and save it
+                        int nextID = localData.findNextFreeHashIDForList();
                         ListObject newListTask = new ListObject(v.getText().toString(), false,
-                                ownerOfList.getHashID(), 0, Calendar.getInstance());
+                                ownerOfList.getHashID(), nextID, Calendar.getInstance());
                         localData.saveListObject(newListTask);
                         recyclerView.addListObject(newListTask);
+                        newTaskName.setText("");
                         return true;
                     }
                 }
@@ -64,6 +70,7 @@ public class ListView_CompleteMod extends FrameLayout{
         });
 
         Button doneButton = baseLayout.findViewById(R.id.doneButton_listMod);
+        doneButton.setText("DONE");
         doneButton.setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(View v) {

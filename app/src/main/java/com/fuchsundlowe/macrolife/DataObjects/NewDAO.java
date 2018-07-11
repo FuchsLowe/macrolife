@@ -90,8 +90,7 @@ public interface NewDAO {
     @Query("SELECT * FROM TaskObject WHERE (TimeDefined == 1 AND taskStartTime BETWEEN :dayStart AND :dayEnd)")
     LiveData<List<TaskObject>> getReminderTasksForDay(long dayStart, long dayEnd);
 
-    // TEST
-    @Query("SELECT * FROM TaskObject WHERE hashID == :id")
-    TaskObject taskByID_TEST(int id);
+    @Query("SELECT * FROM TaskObject WHERE (taskCreatedTimeStamp == :timeStamp)")
+    LiveData<TaskObject> getTaskObjectWithCreationTime(long timeStamp);
 
 }

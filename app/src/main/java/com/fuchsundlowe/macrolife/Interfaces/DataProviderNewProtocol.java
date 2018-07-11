@@ -33,4 +33,7 @@ public interface DataProviderNewProtocol {
     ArrayList<TaskObject>getDataForRecommendationBar();
     boolean isDataBaseOpen();
     void closeDataBase();
+    LiveData<TaskObject> getTaskObjectWithCreationTime(Calendar creationTime);
+    int findNextFreeHashIDForTask();
+    int findNextFreeHashIDForList();
 }

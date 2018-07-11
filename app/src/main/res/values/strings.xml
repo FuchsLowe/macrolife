@@ -6,6 +6,7 @@
     <string name="RepeatingGoalText">Repeating Tasks</string>
     <string name="OrdinaryTasksText">Ordinary Tasks</string>
     <string name="ListTaskText">List Tasks</string>
+    <string name="NewTask">New Task</string>
 
     <string name="animation_end">M50 95, C 10 95 10 50 10 50, H 95, C 95 50 95 95 50 95</string>
     <string name="animation_start">M50 95, C 50 95, 50 95, 50 95, H50, C 50 95, 50 95, 50 95</string>

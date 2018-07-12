@@ -16,6 +16,7 @@ import com.fuchsundlowe.macrolife.DataObjects.Constants;
 import com.fuchsundlowe.macrolife.DataObjects.DayOfWeek;
 import com.fuchsundlowe.macrolife.DataObjects.RepeatingEvent;
 import com.fuchsundlowe.macrolife.DataObjects.TaskObject;
+import com.fuchsundlowe.macrolife.EngineClasses.LocalStorage;
 import com.fuchsundlowe.macrolife.Interfaces.DataProviderNewProtocol;
 
 import java.util.ArrayList;
@@ -24,7 +25,7 @@ import java.util.List;
 import java.util.Set;
 
 // Holds the ChronoView type of view for RepeatEditor
-public class DayView_RepeatEditor extends ViewGroup {
+public class CronoViewFor_RepeatEditor extends ViewGroup {
 
     // StandardValues
     private int LINE_COLOR = Color.BLACK;
@@ -52,8 +53,9 @@ public class DayView_RepeatEditor extends ViewGroup {
     private List<RepeatingEvent> events;
     private DayOfWeek dayDisplayed;
 
-    public DayView_RepeatEditor(@NonNull Context context) {
+    public CronoViewFor_RepeatEditor(@NonNull Context context) {
         super(context);
+        dataProvider = LocalStorage.getInstance(context);
 
         calculatedLineWidth = dpToPixConverter(LINE_WIDTH);
         calculatedTextSize = dpToPixConverter(TEXT_SIZE);

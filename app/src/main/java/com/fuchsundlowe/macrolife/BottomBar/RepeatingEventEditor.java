@@ -3,7 +3,10 @@ package com.fuchsundlowe.macrolife.BottomBar;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.graphics.Point;
+import android.os.Looper;
 import android.support.constraint.ConstraintLayout;
+import android.support.constraint.Constraints;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -21,13 +24,16 @@ import com.fuchsundlowe.macrolife.Interfaces.DataProviderNewProtocol;
 import com.fuchsundlowe.macrolife.Interfaces.EditTaskProtocol;
 import com.fuchsundlowe.macrolife.R;
 import java.util.Calendar;
+import java.util.Timer;
+import java.util.TimerTask;
+import java.util.logging.Handler;
 
 // This is the master presenter of the Repeating events
 public class RepeatingEventEditor extends ConstraintLayout {
 
     private LinearLayout leftSideHolder;
     private TextView taskName;
-    private DayView_RepeatEditor dayView;
+    private CronoViewFor_RepeatEditor dayView;
     private ScrollView dayViewHolder;
     private LinearLayout bottomBarHolder;
     private LayoutInflater inflater;
@@ -54,12 +60,15 @@ public class RepeatingEventEditor extends ConstraintLayout {
         bottomBarHolder = baseView.findViewById(R.id.bottomBar_RepeatEditor);
 
         dayViewHolder = baseView.findViewById(R.id.DayViewHolder_RepeatEditor);
-        dayView = new DayView_RepeatEditor(getContext());
+        dayView = new CronoViewFor_RepeatEditor(getContext());
         dayViewHolder.addView(dayView);
 
         taskName = baseView.findViewById(R.id.taskName_RepeatEditor);
 
         leftSideHolder = baseView.findViewById(R.id.leftSideHolder_RepeatEditor);
+        //int leftSideWidth = getResources().getDisplayMetrics().widthPixels / leftHolderWidthByPercentageOfTotalWidth;
+        //leftSideHolder.setLayoutParams(new Constraints.LayoutParams(leftSideWidth, LayoutParams.MATCH_CONSTRAINT));
+
 
         localStorage = LocalStorage.getInstance(context);
 
@@ -69,6 +78,7 @@ public class RepeatingEventEditor extends ConstraintLayout {
         defineButtonClickListener();
     }
 
+    // This class manages recevieng of data and infuses fields and methods with it, as layouting
     public void defineMe(TaskObject objectWeEdit) {
         editedObject = objectWeEdit;
         taskName.setText(objectWeEdit.getTaskName());
@@ -76,7 +86,7 @@ public class RepeatingEventEditor extends ConstraintLayout {
         //If task is set with single/repeating
         if (repeatingModWeHave == null) {
             leftSideHolder.setVisibility(GONE);
-            // TODO: SHould we delete the tasks associated with repeaitng event?
+            // TODO: SHould we delete the tasks associated with repeaitng event? Like delete them if this gets reseted?
         } else if (repeatingModWeHave == TaskObject.Mods.repeating){
             defineLeftSideHolder(true);
             dayView.populateViewWithTasks(objectWeEdit, DayOfWeek.universal);
@@ -86,26 +96,30 @@ public class RepeatingEventEditor extends ConstraintLayout {
         }
         defineBottomButtons();
     }
-
+    // Determines if side bar is required, makes it visible or invisible depending on implementation
+    // and defines buttons as days depending on users preference for the first day of week
     private void defineLeftSideHolder(boolean isUniversal) {
-        if (isUniversal) {
+        if (isUniversal) { // meaning that there is no need for side to define specific day
             leftSideHolder.setVisibility(GONE);
         } else {
             leftSideHolder.setVisibility(VISIBLE);
-            int widthOfButton = this.getWidth() / leftHolderWidthByPercentageOfTotalWidth;
-            int heightOfButton = this.getHeight() / 7; // because we have 7 days in week
+            leftSideHolder.removeAllViews();
+
+            int widthOfButton = 200;
+            int heightOfButton = 0;
+
             weekButtons  = new Button[7];
             preferences = getContext().getSharedPreferences(Constants.SHARED_PREFERENCES_KEY, Context.MODE_PRIVATE);
             int firstDayOfWeek = preferences.getInt(Constants.FIRST_DAY_OF_WEEK,
                     Calendar.getInstance().getFirstDayOfWeek());
             switch (firstDayOfWeek) {
                 case 1: // US System Sunday
-                    for (int i = 1; i<=7; i++) {
+                    for (int i = 0; i<7; i++) {
                         SideButton_RepeatEditor sideButton = new SideButton_RepeatEditor(getContext(),Constants.AMERICAN_WEEK_DAYS[i]
                                 , buttonClickListener);
-                        ViewGroup.LayoutParams params = sideButton.getLayoutParams();
-                        params.height = heightOfButton;
-                        params.width = widthOfButton;
+                        LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(widthOfButton,
+                                heightOfButton);
+                        params.weight = 1;
                         sideButton.setLayoutParams(params);
                         leftSideHolder.addView(sideButton);
                         weekButtons[i] = sideButton;
@@ -115,9 +129,9 @@ public class RepeatingEventEditor extends ConstraintLayout {
                     for (int i = 1; i<=7; i++) {
                         SideButton_RepeatEditor sideButton = new SideButton_RepeatEditor(getContext(),Constants.EUROPEAN_WEEK_DAYS[i]
                                 , buttonClickListener);
-                        ViewGroup.LayoutParams params = sideButton.getLayoutParams();
-                        params.height = heightOfButton;
-                        params.width = widthOfButton;
+                        LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(widthOfButton,
+                                heightOfButton);
+                        params.weight = 1;
                         sideButton.setLayoutParams(params);
                         leftSideHolder.addView(sideButton);
                         weekButtons[i] = sideButton;
@@ -127,6 +141,7 @@ public class RepeatingEventEditor extends ConstraintLayout {
         }
     }
     private void defineBottomButtons() {
+        bottomBarHolder.removeAllViews();
         int NUMBER_OF_BUTTONS_IN_ROW = 3; // KEEP THIS UPDATED!!!
         Point buttonValues = calculatePaddingAndButtonHeight(NUMBER_OF_BUTTONS_IN_ROW);
         for (int i = 1; i<=NUMBER_OF_BUTTONS_IN_ROW; i++) {
@@ -136,7 +151,6 @@ public class RepeatingEventEditor extends ConstraintLayout {
                     mod = new ModButton(getContext(), ModButton.SpecialtyButton.delete, buttonClickListener);
                     break;
                 case 2:
-                    // EditedObject is null
                     boolean repeatModNotNull = editedObject.getRepeatingMod() != null;
                     if (editedObject.getRepeatingMod() != null &&
                             editedObject.getRepeatingMod() == TaskObject.Mods.repeatingMultiValues) {
@@ -167,7 +181,7 @@ public class RepeatingEventEditor extends ConstraintLayout {
 
         int maxCalculatedButtonSize = (bottomBarHolder.getWidth() -
                 ((numberOfButtonsInRow + 1) * MIN_PADDING_BETWEEN_BUTTONS)) / numberOfButtonsInRow;
-        int buttonSize = Math.max(MAX_BUTTON_SIZE, maxCalculatedButtonSize);
+        int buttonSize = Math.min(MAX_BUTTON_SIZE, maxCalculatedButtonSize);
         int screenSize =(int) (getResources().getDisplayMetrics().widthPixels * 0.90f); // Temp solution, should get real size
 
         Point toReturn = new Point((screenSize - (buttonSize * numberOfButtonsInRow)) /

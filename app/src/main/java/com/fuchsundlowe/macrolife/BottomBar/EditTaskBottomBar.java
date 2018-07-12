@@ -140,10 +140,22 @@ public class EditTaskBottomBar extends Fragment implements EditTaskProtocol {
                     dynamicArea.addView(editView);
                     editView.insertData(taskObject, null, this);
                     defineModButtons();
+                    /* TODO:
+                     * Should I Change the color of the button on possible mod? Problem is
+                     * that change of color is expected when button gets clicked and having
+                     * this selected will impede selection of the button. One solutuion owuld be
+                     * to have 4 different states of button. One for selected w/o click and other
+                     * two are unselected with w/o click.
+                     *
+                     * Known issue:
+                     * There is no repeatingMultiValues equivalent button in the modButtons...
+                     * Solution is to make a if statement that will check for that and possibly
+                     * other un-defined possibilities and activate appropriate buttons in such case
                     List<TaskObject.Mods> modsToImplement = taskObject.getAllMods();
                     for (TaskObject.Mods mod : modsToImplement) {
                         modButtons.get(mod).setModActive(true);
                     }
+                    */
                     dynamicArea.requestLayout();
                     return;
                 } else {return;}

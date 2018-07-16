@@ -1,6 +1,7 @@
 package com.fuchsundlowe.macrolife.BottomBar;
 
 import android.content.Context;
+import android.util.AttributeSet;
 
 import com.fuchsundlowe.macrolife.DataObjects.DayOfWeek;
 import com.fuchsundlowe.macrolife.R;
@@ -10,8 +11,19 @@ public class SideButton_RepeatEditor extends android.support.v7.widget.AppCompat
 
     public DayOfWeek dayOfWeek;
 
-    public SideButton_RepeatEditor(Context context, DayOfWeek dayOfWeek, OnClickListener clickListener) {
+    public SideButton_RepeatEditor(Context context) {
         super(context);
+    }
+
+    public SideButton_RepeatEditor(Context context, AttributeSet attrs) {
+        super(context, attrs);
+    }
+
+    public SideButton_RepeatEditor(Context context, AttributeSet attrs, int defStyleAttr) {
+        super(context, attrs, defStyleAttr);
+    }
+
+    public void defineMe(DayOfWeek dayOfWeek, OnClickListener clickListener) {
         this.dayOfWeek = dayOfWeek;
         switch (dayOfWeek) {
             case monday:

@@ -36,4 +36,5 @@ public interface DataProviderNewProtocol {
     LiveData<TaskObject> getTaskObjectWithCreationTime(Calendar creationTime);
     int findNextFreeHashIDForTask();
     int findNextFreeHashIDForList();
+    int findNextFreeHashIDForEvent();
 }

@@ -326,7 +326,6 @@ public class ChronoView extends ViewGroup {
         @Override
         public void onLongPress(MotionEvent e) {
             sendCreateNewTaskWithLocationBroadcast(getTimeLocationOf(e.getY()));
-
         }
     }
     @Nullable

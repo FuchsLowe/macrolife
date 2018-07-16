@@ -23,7 +23,15 @@ import java.util.List;
  * search and comparisons use is known not to provide updates to dataHolders after initial update.
  * To overcome this issue, whenever a task is saved or deleted, manually the holders are updated.
  *
+ * Newest implementation:
+ * Data object Holders like taskObjectHolder & etc. are always accessed and transferrd to
+ * array in order to do in memory checks of data.
+ * For this to work, I need to register at least one observer and observe forever is thus doing
+ * that job even if it doesn't report back to in all occasions changes.
+ *
  * If possible find the cause and replace the faulty system!
+ *
+ * Looks like depending on the platform or system version the observe forever work on some?
  */
 
 public class LocalStorage implements DataProviderNewProtocol {
@@ -281,6 +289,18 @@ public class LocalStorage implements DataProviderNewProtocol {
                 bigestID = Math.max(bigestID, listy.getHashID());
             }
             return bigestID +1;
+        } else {
+            return 0;
+        }
+    }
+    @Override
+    public int findNextFreeHashIDForEvent() {
+        if (repeatingEventHolder.getValue() != null && repeatingEventHolder.getValue().size() > 0) {
+            int biggestID = 0;
+            for (RepeatingEvent event: repeatingEventHolder.getValue()) {
+                biggestID = Math.max(biggestID, event.getHashID());
+            }
+            return biggestID +1;
         } else {
             return 0;
         }

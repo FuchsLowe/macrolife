@@ -78,6 +78,8 @@ public class CronoViewFor_RepeatEditor extends ViewGroup {
 
         timeUnitSize = dpToPixConverter(preferences.getInt(Constants.HOUR_IN_PIXELS,108));
 
+        longPressDetector = new GestureDetectorCompat(context, new LongPressDetector());
+
     }
 
     // LifeCycle:
@@ -121,6 +123,7 @@ public class CronoViewFor_RepeatEditor extends ViewGroup {
         int left = (int) lineOffset;
         int right = getWidth() - RIGHT_PADDING;
         for (int i = 0; i<childCount; i++) {
+            measureChildren(getWidth(), getHeight());
             View child = getChildAt(i);
             if (child instanceof RepeatingTask_RepeatEditor) {
                 child.layout(left,
@@ -128,9 +131,17 @@ public class CronoViewFor_RepeatEditor extends ViewGroup {
                         right,
                         getPixelLocationOf(((RepeatingTask_RepeatEditor) child).getTaskEndTime(), false)
                         );
+
             }
         }
     }
+
+    @Override
+    public boolean onTouchEvent(MotionEvent event) {
+        longPressDetector.onTouchEvent(event);
+        return true;
+    }
+
     public void populateViewWithTasks(TaskObject taskMaster, DayOfWeek dayDisplayed) {
         objectPresented = taskMaster;
         this.dayDisplayed = dayDisplayed;
@@ -155,6 +166,8 @@ public class CronoViewFor_RepeatEditor extends ViewGroup {
         }
     }
 
+
+    // Methods:
     private ArrayList<RepeatingEvent> filterAvailableTasksBy(DayOfWeek day) {
         ArrayList<RepeatingEvent> dataToReturn = new ArrayList<>();
         if (events != null) {
@@ -166,8 +179,6 @@ public class CronoViewFor_RepeatEditor extends ViewGroup {
         }
         return dataToReturn;
     }
-
-    // Methods:
     private int dpToPixConverter(float dp) {
         float scale = getContext().getResources().getDisplayMetrics().density;
         return (int) (dp * scale * 0.5f);
@@ -245,9 +256,11 @@ public class CronoViewFor_RepeatEditor extends ViewGroup {
     class LongPressDetector extends GestureDetector.SimpleOnGestureListener {
         @Override
         public void onLongPress(MotionEvent e) {
+            // Grab parent and establish if scroll is happenig
             RepeatingTask_RepeatEditor toAddView = new RepeatingTask_RepeatEditor(getContext());
-            toAddView.createMe(objectPresented, getTimeLocationOf(e.getY()), null);
+            toAddView.createMe(objectPresented, getTimeLocationOf(e.getY()), dayDisplayed);
             addView(toAddView);
         }
+
     }
 }

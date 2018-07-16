@@ -21,7 +21,7 @@ public class RepeatingEvent {
     private Calendar startTime;
     private Calendar endTime;
     private Calendar lastTimeModified;
-    private DayOfWeek dayOfWeek; // TODO: How should I represent this? This is found in startTime thou
+    private DayOfWeek dayOfWeek;
     @PrimaryKey(autoGenerate = true)
     private int hashID;
     private CheckableStatus isTaskCompleted;
@@ -34,7 +34,7 @@ public class RepeatingEvent {
         this.startTime = startTime;
         this.endTime = endTime;
         this.lastTimeModified = lastTimeModified;
-
+        this.hashID = hashID;
     }
 
     // Methods:

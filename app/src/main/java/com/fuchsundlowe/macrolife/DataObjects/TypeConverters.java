@@ -96,10 +96,17 @@ public class TypeConverters {
 
     @TypeConverter
     public static int fromCheckableStatusToInt(TaskObject.CheckableStatus status) {
-        switch (status){
-            case incomplete: return 1;
-            case completed: return 2;
-            default: return 0;
+        if (status != null) {
+            switch (status) {
+                case incomplete:
+                    return 1;
+                case completed:
+                    return 2;
+                default:
+                    return 0;
+            }
+        }else {
+            return 0;
         }
     }
     @TypeConverter

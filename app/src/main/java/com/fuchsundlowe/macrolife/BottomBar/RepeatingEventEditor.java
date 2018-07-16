@@ -24,6 +24,7 @@ import com.fuchsundlowe.macrolife.Interfaces.DataProviderNewProtocol;
 import com.fuchsundlowe.macrolife.Interfaces.EditTaskProtocol;
 import com.fuchsundlowe.macrolife.R;
 import java.util.Calendar;
+import java.util.HashMap;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.logging.Handler;
@@ -35,13 +36,13 @@ public class RepeatingEventEditor extends ConstraintLayout {
     private TextView taskName;
     private CronoViewFor_RepeatEditor dayView;
     private ScrollView dayViewHolder;
-    private LinearLayout bottomBarHolder;
+    private ConstraintLayout bottomBarHolder;
     private LayoutInflater inflater;
     private ConstraintLayout baseView;
     private TaskObject editedObject;
     private DataProviderNewProtocol localStorage;
     private int leftHolderWidthByPercentageOfTotalWidth = 10;
-    private Button[] weekButtons;
+    private HashMap<Integer, SideButton_RepeatEditor> weekButtons;
     private SharedPreferences preferences;
     private OnClickListener buttonClickListener;
     private int MIN_PADDING_BETWEEN_BUTTONS = 10;
@@ -66,9 +67,8 @@ public class RepeatingEventEditor extends ConstraintLayout {
         taskName = baseView.findViewById(R.id.taskName_RepeatEditor);
 
         leftSideHolder = baseView.findViewById(R.id.leftSideHolder_RepeatEditor);
-        //int leftSideWidth = getResources().getDisplayMetrics().widthPixels / leftHolderWidthByPercentageOfTotalWidth;
-        //leftSideHolder.setLayoutParams(new Constraints.LayoutParams(leftSideWidth, LayoutParams.MATCH_CONSTRAINT));
 
+        weekButtons = new HashMap<>();
 
         localStorage = LocalStorage.getInstance(context);
 
@@ -76,6 +76,7 @@ public class RepeatingEventEditor extends ConstraintLayout {
         MAX_BUTTON_SIZE = dpToPixConverter(MAX_BUTTON_SIZE);
 
         defineButtonClickListener();
+
     }
 
     // This class manages recevieng of data and infuses fields and methods with it, as layouting
@@ -87,6 +88,7 @@ public class RepeatingEventEditor extends ConstraintLayout {
         if (repeatingModWeHave == null) {
             leftSideHolder.setVisibility(GONE);
             // TODO: SHould we delete the tasks associated with repeaitng event? Like delete them if this gets reseted?
+            dayView.populateViewWithTasks(objectWeEdit, DayOfWeek.universal);
         } else if (repeatingModWeHave == TaskObject.Mods.repeating){
             defineLeftSideHolder(true);
             dayView.populateViewWithTasks(objectWeEdit, DayOfWeek.universal);
@@ -103,44 +105,57 @@ public class RepeatingEventEditor extends ConstraintLayout {
             leftSideHolder.setVisibility(GONE);
         } else {
             leftSideHolder.setVisibility(VISIBLE);
-            leftSideHolder.removeAllViews();
 
-            int widthOfButton = 200;
-            int heightOfButton = 0;
+            // grab buttons
+            weekButtons.put(0, (SideButton_RepeatEditor) leftSideHolder.findViewById(R.id.sideButton_1));
+            weekButtons.put(1, (SideButton_RepeatEditor) leftSideHolder.findViewById(R.id.sideButton_2));
+            weekButtons.put(2, (SideButton_RepeatEditor) leftSideHolder.findViewById(R.id.sideButton_3));
+            weekButtons.put(3, (SideButton_RepeatEditor) leftSideHolder.findViewById(R.id.sideButton_4));
+            weekButtons.put(4, (SideButton_RepeatEditor) leftSideHolder.findViewById(R.id.sideButton_5));
+            weekButtons.put(5, (SideButton_RepeatEditor) leftSideHolder.findViewById(R.id.sideButton_6));
+            weekButtons.put(6, (SideButton_RepeatEditor) leftSideHolder.findViewById(R.id.sideButton_7));
 
-            weekButtons  = new Button[7];
             preferences = getContext().getSharedPreferences(Constants.SHARED_PREFERENCES_KEY, Context.MODE_PRIVATE);
             int firstDayOfWeek = preferences.getInt(Constants.FIRST_DAY_OF_WEEK,
                     Calendar.getInstance().getFirstDayOfWeek());
+
+            DayOfWeek[] daysOfWeek;
             switch (firstDayOfWeek) {
-                case 1: // US System Sunday
-                    for (int i = 0; i<7; i++) {
-                        SideButton_RepeatEditor sideButton = new SideButton_RepeatEditor(getContext(),Constants.AMERICAN_WEEK_DAYS[i]
-                                , buttonClickListener);
-                        LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(widthOfButton,
-                                heightOfButton);
-                        params.weight = 1;
-                        sideButton.setLayoutParams(params);
-                        leftSideHolder.addView(sideButton);
-                        weekButtons[i] = sideButton;
-                    }
+                case 1: // US - Sunday first day of week
+                    daysOfWeek = Constants.AMERICAN_WEEK_DAYS;
                     break;
-                case 2: // European System Monday
-                    for (int i = 1; i<=7; i++) {
-                        SideButton_RepeatEditor sideButton = new SideButton_RepeatEditor(getContext(),Constants.EUROPEAN_WEEK_DAYS[i]
-                                , buttonClickListener);
-                        LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(widthOfButton,
-                                heightOfButton);
-                        params.weight = 1;
-                        sideButton.setLayoutParams(params);
-                        leftSideHolder.addView(sideButton);
-                        weekButtons[i] = sideButton;
-                    }
+                default: // Europe - Monday first day of week
+                    daysOfWeek = Constants.EUROPEAN_WEEK_DAYS;
                     break;
+            }
+            // Assigning phase
+            for (int i = 0; i < 7; i++) {
+                weekButtons.get(i).defineMe(daysOfWeek[i], buttonClickListener);
             }
         }
     }
     private void defineBottomButtons() {
+        // I only need to assign them values, nothing about positioning. Its defined statically!
+        ModButton one = bottomBarHolder.findViewById(R.id.modButton_1_repatingEventEditor);
+        one.defineMe(ModButton.SpecialtyButton.delete, buttonClickListener);
+
+        ModButton two = bottomBarHolder.findViewById(R.id.modButton_2_repatingEventEditor);
+
+        two.defineMe(ModButton.SpecialtyButton.universal, buttonClickListener);
+        if (editedObject.getRepeatingMod() != null &&
+                editedObject.getRepeatingMod() == TaskObject.Mods.repeatingMultiValues) {
+            two.defineMe(ModButton.SpecialtyButton.complex, buttonClickListener);
+        } else {
+            // produce single value
+            two.defineMe(ModButton.SpecialtyButton.universal, buttonClickListener);
+        }
+        ModButton three = bottomBarHolder.findViewById(R.id.modButton_3_repatingEventEditor);
+        three.defineMe(ModButton.SpecialtyButton.save, buttonClickListener);
+
+        /* This is the old definition of the bottom buttons... Looks like I don't need to set things
+         * dynamically as they are only set once and never changed. So I default to static linear
+         * implementation...
+         *
         bottomBarHolder.removeAllViews();
         int NUMBER_OF_BUTTONS_IN_ROW = 3; // KEEP THIS UPDATED!!!
         Point buttonValues = calculatePaddingAndButtonHeight(NUMBER_OF_BUTTONS_IN_ROW);
@@ -172,7 +187,7 @@ public class RepeatingEventEditor extends ConstraintLayout {
             mod.setLayoutParams(parms);
             bottomBarHolder.addView(mod);
         }
-
+        */
     }
     private Point calculatePaddingAndButtonHeight(int numberOfButtonsInRow) {
         // This function calculates padding between buttons in row only considering one padding parameter

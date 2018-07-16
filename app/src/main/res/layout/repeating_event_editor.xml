@@ -19,7 +19,7 @@
 
     <LinearLayout
         android:id="@+id/leftSideHolder_RepeatEditor"
-        android:layout_width="wrap_content"
+        android:layout_width="40dp"
         android:layout_height="0dp"
         android:layout_marginBottom="8dp"
         android:layout_marginStart="8dp"
@@ -29,7 +29,58 @@
         app:layout_constraintBottom_toTopOf="@+id/bottomBar_RepeatEditor"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/taskName_RepeatEditor"
-        app:layout_constraintVertical_bias="1.0" />
+        app:layout_constraintVertical_bias="1.0">
+
+        <com.fuchsundlowe.macrolife.BottomBar.SideButton_RepeatEditor
+            android:id="@+id/sideButton_1"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:text="com.fuchsundlowe.macrolife.BottomBar.SideButton_RepeatEditor" />
+
+        <com.fuchsundlowe.macrolife.BottomBar.SideButton_RepeatEditor
+            android:id="@+id/sideButton_2"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:text="com.fuchsundlowe.macrolife.BottomBar.SideButton_RepeatEditor" />
+
+        <com.fuchsundlowe.macrolife.BottomBar.SideButton_RepeatEditor
+            android:id="@+id/sideButton_3"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:text="com.fuchsundlowe.macrolife.BottomBar.SideButton_RepeatEditor" />
+
+        <com.fuchsundlowe.macrolife.BottomBar.SideButton_RepeatEditor
+            android:id="@+id/sideButton_4"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:text="com.fuchsundlowe.macrolife.BottomBar.SideButton_RepeatEditor" />
+
+        <com.fuchsundlowe.macrolife.BottomBar.SideButton_RepeatEditor
+            android:id="@+id/sideButton_5"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:text="com.fuchsundlowe.macrolife.BottomBar.SideButton_RepeatEditor" />
+
+        <com.fuchsundlowe.macrolife.BottomBar.SideButton_RepeatEditor
+            android:id="@+id/sideButton_6"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:text="com.fuchsundlowe.macrolife.BottomBar.SideButton_RepeatEditor" />
+
+        <com.fuchsundlowe.macrolife.BottomBar.SideButton_RepeatEditor
+            android:id="@+id/sideButton_7"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:text="com.fuchsundlowe.macrolife.BottomBar.SideButton_RepeatEditor" />
+
+    </LinearLayout>
 
     <ScrollView
         android:id="@+id/DayViewHolder_RepeatEditor"
@@ -44,7 +95,7 @@
         app:layout_constraintStart_toEndOf="@+id/leftSideHolder_RepeatEditor"
         app:layout_constraintTop_toBottomOf="@+id/taskName_RepeatEditor" />
 
-    <LinearLayout
+    <android.support.constraint.ConstraintLayout
         android:id="@+id/bottomBar_RepeatEditor"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
@@ -54,6 +105,51 @@
         android:orientation="horizontal"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent" />
+        app:layout_constraintStart_toStartOf="parent">
+
+        <com.fuchsundlowe.macrolife.BottomBar.ModButton
+            android:id="@+id/modButton_1_repatingEventEditor"
+            android:layout_width="9mm"
+            android:layout_height="9mm"
+            android:layout_marginBottom="8dp"
+            android:layout_marginTop="8dp"
+            android:layout_weight="0"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toStartOf="@+id/modButton_2_repatingEventEditor"
+            app:layout_constraintHorizontal_bias="0.5"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:srcCompat="@drawable/clear_24px" />
+
+        <com.fuchsundlowe.macrolife.BottomBar.ModButton
+            android:id="@+id/modButton_2_repatingEventEditor"
+            android:layout_width="9mm"
+            android:layout_height="9mm"
+            android:layout_marginBottom="8dp"
+            android:layout_marginTop="8dp"
+            android:layout_weight="0"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toStartOf="@+id/modButton_3_repatingEventEditor"
+            app:layout_constraintHorizontal_bias="0.5"
+            app:layout_constraintStart_toEndOf="@+id/modButton_1_repatingEventEditor"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintVertical_bias="0.666"
+            app:srcCompat="@drawable/clear_24px" />
+
+        <com.fuchsundlowe.macrolife.BottomBar.ModButton
+            android:id="@+id/modButton_3_repatingEventEditor"
+            android:layout_width="9mm"
+            android:layout_height="9mm"
+            android:layout_marginBottom="8dp"
+            android:layout_marginTop="8dp"
+            android:layout_weight="0"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHorizontal_bias="0.5"
+            app:layout_constraintStart_toEndOf="@+id/modButton_2_repatingEventEditor"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintVertical_bias="0.666"
+            app:srcCompat="@drawable/clear_24px" />
+    </android.support.constraint.ConstraintLayout>
 
 </android.support.constraint.ConstraintLayout>

@@ -28,7 +28,10 @@ public interface DataProviderNewProtocol {
     void deleteListObject(ListObject objectToDelete);
     List<ListObject> findListFor(int taskObjectID);
     void deleteRepeatingEvent(RepeatingEvent eventToDelete);
+    void deleteAllRepeatingEvents(int forMasterID, TaskObject.Mods withMod);
     void saveRepeatingEvent(RepeatingEvent event);
+    void reSaveRepeatingEventsFor(int masterHashID);
+    LiveData<List<RepeatingEvent>>getAllEvents();
     void saveTaskObject(TaskObject task);
     ArrayList<TaskObject>getDataForRecommendationBar();
     boolean isDataBaseOpen();

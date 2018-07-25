@@ -27,14 +27,20 @@ import java.util.Calendar;
 
 public class TestActivity3 extends AppCompatActivity  {
 
-    LinearLayout uArea;
+    FrameLayout a, b, c;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_test3);
-        uArea = findViewById(R.id.uArea);
-        LayoutInflater inf =(LayoutInflater) this.getSystemService(LAYOUT_INFLATER_SERVICE);
-        View m = inf.inflate(R.layout.task_object_day_view, null);
-        uArea.addView(m);
+        a= findViewById(R.id.frameLayout_a);
+        b= findViewById(R.id.frameLayout_b);
+        c= findViewById(R.id.frameLayout_c);
+
+        View alpha, beta, gamma;
+        alpha = View.inflate(this, R.layout.task_object_day_view, a);
+        beta = View.inflate(this, R.layout.task_object_day_view, b);
+        gamma = View.inflate(this, R.layout.task_object_day_view, c);
+
+
     }
 }

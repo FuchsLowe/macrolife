@@ -1,6 +1,10 @@
 package com.fuchsundlowe.macrolife;
 
+import android.arch.persistence.room.Ignore;
+import android.graphics.Point;
+
 import com.fuchsundlowe.macrolife.DataObjects.Constants;
+import com.fuchsundlowe.macrolife.DataObjects.TaskObject;
 
 import org.joda.time.DateTime;
 import org.joda.time.Days;
@@ -10,8 +14,12 @@ import org.junit.Before;
 import org.junit.Test;
 
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 /**
  * Example local unit test, which will execute on the development machine (host).
@@ -20,37 +28,55 @@ import java.util.Date;
  */
 public class ExampleUnitTest {
 
+    private ArrayList<TaskObject.Mods> allMods;
+    private ArrayList<TaskObject.Mods> acceptableMods;
+    String mods;
+
+    void defien() {
+        mods = "";
+        allMods = new ArrayList<>();
+        acceptableMods = new ArrayList<>();
+        acceptableMods.add(TaskObject.Mods.repeating);
+        acceptableMods.add(TaskObject.Mods.repeatingMultiValues);
+        acceptableMods.add(TaskObject.Mods.note);
+    }
 
     @Test
     public void myTest() {
+        defien();
+        Set<Integer> bob = new HashSet<>();
+        bob.
 
-        Calendar mk1 = Calendar.getInstance();
-        long[] result = returnStartAndEndTimesForDay(mk1);
-        SimpleDateFormat f = new SimpleDateFormat("dd-MM-YYYY-HH:mm");
-        String r1 = f.format(new Date(result[0]));
-        String r2 = f.format(new Date(result[1]));
 
-        System.out.print(r1);
-        System.out.print("\n");
-        System.out.print(r2);
-        System.out.print("\nDistance is: ");
-        System.out.print(result[1] - result[0]);
-
+        String Jacka ="Jackal hasnaj";
     }
 
-    private long[] returnStartAndEndTimesForDay(Calendar day) {
-        Calendar dayToWorkWith = (Calendar) day.clone();
-        dayToWorkWith.set(Calendar.HOUR_OF_DAY,0);
-        dayToWorkWith.set(Calendar.MINUTE,0);
-        dayToWorkWith.set(Calendar.SECOND,0);
-        dayToWorkWith.set(Calendar.MILLISECOND,0);
-        long startTimeStamp = dayToWorkWith.getTimeInMillis();
 
-        dayToWorkWith.set(Calendar.HOUR_OF_DAY, 23);
-        dayToWorkWith.set(Calendar.MINUTE, 59);
-        dayToWorkWith.set(Calendar.SECOND, 59);
-        long endTimeStamp = dayToWorkWith.getTimeInMillis();
+    public void addMod(TaskObject.Mods modToAdd) {
+        if (acceptableMods.contains(modToAdd)) {
+            if (!allMods.contains(modToAdd)) {
+                allMods.add(modToAdd);
 
-        return new long[]{startTimeStamp, endTimeStamp};
+                // This implementation prevents us from having both mods because they are mutually exclusive
+                if (modToAdd == TaskObject.Mods.repeating) {
+                    removeAMod(TaskObject.Mods.repeatingMultiValues);
+                } else if (modToAdd == TaskObject.Mods.repeatingMultiValues) {
+                    removeAMod(TaskObject.Mods.repeating);
+                }
+            }
+            updateMods();
+        }
     }
+    public void removeAMod(TaskObject.Mods modToRemove) {
+        allMods.remove(modToRemove);
+        updateMods();
+    }
+
+    private void updateMods() {
+        mods = ""; // We clean the mods
+        for (TaskObject.Mods mod : allMods) {
+            mods+= "\n"+ mod.toString();
+        }
+    }
+
 }

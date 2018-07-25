@@ -20,7 +20,9 @@ import com.fuchsundlowe.macrolife.Interfaces.EditTaskProtocol;
 import com.fuchsundlowe.macrolife.R;
 
 import java.util.Calendar;
-
+/*
+ * This class hold the ListViewer for BottomBar implementation
+ */
 public class ListView_CompleteMod extends FrameLayout {
 
     private View baseLayout;
@@ -74,11 +76,25 @@ public class ListView_CompleteMod extends FrameLayout {
         doneButton.setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(View v) {
-                // Collapse the whole thing and produce
+                // Collapse the whole thing, set mod or remove save task
+                if (isThereAnyListForThisTask()) {
+                    ownerOfList.addMod(TaskObject.Mods.list);
+                } else {
+                    ownerOfList.removeAMod(TaskObject.Mods.list);
+                }
+                // Should I save?
+                localData.saveTaskObject(ownerOfList);
                 protocol.modDone();
             }
         });
     }
 
+    /*
+     * Returns boolean defining if there are any ListObjects associated with TaskObject defined here
+     * as "ownerOfList"
+     */
+    private boolean isThereAnyListForThisTask() {
+        return localData.findListFor(ownerOfList.getHashID()).size() > 0;
+    }
 
 }

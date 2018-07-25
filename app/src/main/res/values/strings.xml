@@ -14,7 +14,9 @@
     <string name="Toast_Empty_Note">Empty Note</string>
     <string name="Toast_Tittle_WARNING">WARNING</string>
     <string name="Toast_Subtitle">Once deleted this action can\'t be undone.</string>
-
+    <string name="set_start_date">Set at least start date before setting end date</string>
+    <string name="set_start_time">You must set start time before setting end time</string>
+    
     <string name="Monday_Short">M</string>
     <string name="Tuesday_Short">T</string>
     <string name="Wednesday_Short">W</string>
@@ -22,5 +24,5 @@
     <string name="Friday_Short">F</string>
     <string name="Saturday_Short">S</string>
     <string name="Sunday_Short">S</string>
-
+    
 </resources>

@@ -8,6 +8,7 @@ import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.os.Handler;
 import android.os.Looper;
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.constraint.ConstraintLayout;
 import android.support.v4.content.LocalBroadcastManager;
@@ -24,17 +25,22 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.CheckBox;
 import android.widget.FrameLayout;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import com.fuchsundlowe.macrolife.DataObjects.ComplexGoal;
 import com.fuchsundlowe.macrolife.DataObjects.Constants;
+import com.fuchsundlowe.macrolife.DataObjects.DayOfWeek;
 import com.fuchsundlowe.macrolife.DataObjects.RepeatingEvent;
 import com.fuchsundlowe.macrolife.DataObjects.TaskObject;
+import com.fuchsundlowe.macrolife.EngineClasses.LocalStorage;
 import com.fuchsundlowe.macrolife.Interfaces.DataProviderNewProtocol;
 import com.fuchsundlowe.macrolife.R;
 
 import java.util.Calendar;
+import java.util.Timer;
+import java.util.TimerTask;
 
 
 // A custom view Class that creates a taskView intended for usage in DayView's Chrono-View
@@ -56,13 +62,36 @@ public class Task_DayView extends FrameLayout {
     private ClickLocation clickLocation;
     private View m;
 
-    public Task_DayView(Context context, @Nullable AttributeSet attrs) {
+
+    // Constructors:
+    public Task_DayView(@NonNull Context context) {
+        super(context);
+        universalInit(context);
+    }
+    public Task_DayView(@NonNull Context context, @Nullable AttributeSet attrs) {
         super(context, attrs);
+        universalInit(context);
+    }
+    public Task_DayView(@NonNull Context context, @Nullable AttributeSet attrs, int defStyleAttr) {
+        super(context, attrs, defStyleAttr);
+        universalInit(context);
+    }
+    public Task_DayView(@NonNull Context context, @Nullable AttributeSet attrs, int defStyleAttr, int defStyleRes) {
+        super(context, attrs, defStyleAttr, defStyleRes);
+        universalInit(context);
+    }
+    /*
+     * A default constructor specific for this implementation that is called by all possible init medthods
+     */
+    private void universalInit(Context context) {
         LayoutInflater inflater = LayoutInflater.from(context);
-        m = inflater.inflate(R.layout.task_object_day_view,null,false);
+        m = inflater.inflate(R.layout.task_object_day_view,this,false);
+        // m.setLayoutParams(new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
         this.addView(m);
         preferences = getContext().getSharedPreferences(Constants.SHARED_PREFERENCES_KEY, Context.MODE_PRIVATE);
         timeUnitSize = (preferences.getInt(Constants.HOUR_IN_PIXELS, 108) / 4 );
+
+        storageMaster = LocalStorage.getInstance(context);
 
         longPressDetector = new GestureDetectorCompat(context, new LongPressDetector());
 
@@ -74,28 +103,17 @@ public class Task_DayView extends FrameLayout {
         box = findViewById(R.id.checkBox);
         this.setBackgroundColor(Color.CYAN);
         this.setAlpha(0.5f);
-
-        Handler h = new Handler(Looper.getMainLooper());
-
-        h.postDelayed(new Runnable() {
-            @Override
-            public void run() {
-                requestLayout();
-                m.requestLayout();
-            }
-        }, 5000);
     }
+
 
     // Lifecycle:
-    @Override
-    protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
-        super.onMeasure(widthMeasureSpec, heightMeasureSpec);
-    }
-    @Override
-    protected void onLayout(boolean changed, int left, int top, int right, int bottom) {
-        setMeasureAllChildren(true);
-        measure(getWidth(), getHeight());
-        super.onLayout(changed, left, top, right, bottom);
+
+    private void layoutOnlyChild() {
+        View onlyChild = getChildAt(0);
+        if (onlyChild != null) {
+            onlyChild.layout(0, 0, getWidth(), getHeight());
+            onlyChild.invalidate();
+        }
     }
     @Override
     public boolean shouldDelayChildPressedState() {
@@ -103,21 +121,41 @@ public class Task_DayView extends FrameLayout {
     }
 
     // Layout operations
-    public void myLayout(int left, int top, int right, int bottom) {
-        if ((bottom - top) > (timeUnitSize / 2) ) {
-            // only if its more than 15 min we will allow it
-            this.layout(left, top, right, bottom);
-            if (masterTaskName != null) {
-                if (masterTaskName.getBottom() < bottom) {
-                    masterTaskName.setVisibility(VISIBLE);
-                } else {
-                    masterTaskName.setVisibility(GONE);
-                }
-            } else {
-                // Should I schedule a timer to show this up
 
+    @Override
+    protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
+        super.onMeasure(getWidth(), getHeight());
+    }
+
+    @Override
+    protected void onSizeChanged(int w, int h, int oldw, int oldh) {
+        super.onSizeChanged(w, h, oldw, oldh);
+        final View onlyChild = getChildAt(0);
+        if (onlyChild != null) {
+            onlyChild.setLayoutParams(new FrameLayout.LayoutParams(w, h));
+            onlyChild.measure(w, h);
+            onlyChild.invalidate();
+        }
+
+
+    }
+
+    public void myLayout(int left, int top, int right, int bottom) {
+        if ((bottom - top) > (timeUnitSize) ) {
+            // only if its more than 30 min
+            this.layout(left, top, right, bottom);
+        } else {
+            // else I will default it to its minimum 30 min size
+            this.layout(left, top, right, top + timeUnitSize);
+        }
+        if (masterTaskName != null) {
+            if (masterTaskName.getBottom() < getHeight()) {
+                masterTaskName.setVisibility(VISIBLE);
+            } else {
+                masterTaskName.setVisibility(GONE);
             }
         }
+
     }
     // Used to make the layout snap to one of 4 different quarters of day
     private void snapLayoutAndSaveNewTime() {
@@ -231,7 +269,16 @@ public class Task_DayView extends FrameLayout {
         initiateData();
     }
     private void initiateData() {
+        if (task == null) { // Then we have a problem, and we need to delete this thing
+            if (repeatingEvent != null) {
+                storageMaster.deleteRepeatingEvent(repeatingEvent);
+                repeatingEvent = null;
+                this.setVisibility(GONE);
+            }
+            return;
+        }
         if (task.getParentGoal() > 0) { // make sure there is one
+            // TODO: Does auto-increment start from 1 or 0?
             ComplexGoal result = storageMaster.findComplexGoal(task.getParentGoal());
             if (result != null) {
                 masterTaskName.setText(result.getTaskName());
@@ -267,6 +314,31 @@ public class Task_DayView extends FrameLayout {
                     box.setChecked(false);
                     break;
             }
+        }
+
+        // Now we need to define the mods...
+        for (TaskObject.Mods mod : task.getAllMods()) {
+            ImageView modImage = new ImageView(getContext());
+            switch (mod) {
+                case repeating:
+                    modImage.setImageResource(R.drawable.repeat_one_24px);
+                    break;
+                case repeatingMultiValues:
+                    modImage.setImageResource(R.drawable.repeat_24px);
+                    break;
+                case note:
+                    modImage.setImageResource(R.drawable.note_add_24px);
+                    break;
+                case list:
+                    modImage.setImageResource(R.drawable.list_alt_24px);
+                    break;
+                case checkable:
+                    // TODO: What do I do with checkables?
+                    break;
+            }
+            modImage.setLayoutParams(new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT,
+                    ViewGroup.LayoutParams.MATCH_PARENT));
+            modsHolder.addView(modImage);
         }
     }
 
@@ -322,7 +394,12 @@ public class Task_DayView extends FrameLayout {
     public boolean isRepeatingEvent() {
         return repeatingEvent != null;
     }
-
+    // Returns null if its not repeatingEvent
+    public Boolean isMultiValue() {
+        if (repeatingEvent != null) {
+            return repeatingEvent.getDayOfWeek() != DayOfWeek.universal;
+        } else { return null;}
+    }
     private void sendGlobalEditBroadcast() {
         manager = LocalBroadcastManager.getInstance(getContext());
         Intent intent = new Intent(Constants.INTENT_FILTER_GLOBAL_EDIT);
@@ -337,11 +414,21 @@ public class Task_DayView extends FrameLayout {
             return repeatingEvent.getHashID();
         }
     }
-
+    public int getTaskObjectHashID() {
+        return task.getHashID();
+    }
+    public Calendar lastTimeEdited() {
+        if (repeatingEvent != null) {
+            return repeatingEvent.getLastTimeModified();
+        } else {
+            return task.getLastTimeModified();
+        }
+    }
     // Local Enum:
     private enum ClickLocation{
         top, center, bottom, none;
     }
+
 
 }
 

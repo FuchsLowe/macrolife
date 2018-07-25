@@ -1,8 +1,10 @@
 package com.fuchsundlowe.macrolife.BottomBar;
 
 import android.content.Context;
+import android.inputmethodservice.InputMethodService;
 import android.support.annotation.Nullable;
 import android.support.constraint.ConstraintLayout;
+import android.util.Log;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -33,9 +35,11 @@ public class EditingView_BottomBar extends FrameLayout {
     private RepeatingEvent event;
     private EditTaskProtocol protocolProvider;
     private View baseView;
+    private Context context;
 
     public EditingView_BottomBar(Context context) {
         super(context);
+        this.context = context;
         LayoutInflater inflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
         baseView = inflater.inflate(R.layout.edit_task, this);
         box = baseView.findViewById(R.id.edit_task_checkBox);
@@ -101,17 +105,21 @@ public class EditingView_BottomBar extends FrameLayout {
             return true;
         }
     }
-    // This method manages appearance and disappearance of the soft keyboard
+    // This method manages appearance and disappearance of the soft keyboard, the right way
     public void softKeyboard(boolean appearance) {
         InputMethodManager imm = (InputMethodManager)
-                getContext().getSystemService(Context.INPUT_METHOD_SERVICE);
-        if (appearance) {
-            taskName.requestFocus();
-            imm.showSoftInput(taskName, 0);
-        } else {
-            taskName.clearFocus();
-            imm.hideSoftInputFromInputMethod(taskName.getWindowToken(),0);
+                context.getSystemService(Context.INPUT_METHOD_SERVICE);
+        try {
+            if (appearance) {
+                taskName.requestFocus();
+                imm.showSoftInput(taskName, 0);
+            } else {
 
+                imm.hideSoftInputFromWindow(this.baseView.getWindowToken(), 0);
+                taskName.clearFocus();
+            }
+        } catch (NullPointerException e) {
+            Log.e("Keyboard Error", "Null pointer error -> " + e.getMessage());
         }
     }
     private void reportDataEdited() {

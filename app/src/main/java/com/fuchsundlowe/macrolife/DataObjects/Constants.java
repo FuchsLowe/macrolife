@@ -20,8 +20,10 @@ public class Constants {
     public static String INTENT_FILTER_GLOBAL_EDIT = "Global Edit Signaling";
     public static String INTENT_FILTER_NEW_TASK = "This is new task";
     public static String INTENT_FILTER_FIELD_HASH_ID = "Get me the hash ID";
+    public static String INTENT_FILTER_FIELD_MOD_TYPE = "The Mod this task has now";
     public static String INTENT_FILTER_FIELD_START_TIME = "Time of start in Long";
     public static String INTENT_FILTER_RECOMENDATION = "Get the recommendation engine";
+    public static String INTENT_FILTER_CHANGE_IN_MOD = "Mod has been changed, update the ChronoView";
     public static DayOfWeek[] AMERICAN_WEEK_DAYS = {DayOfWeek.sunday, DayOfWeek.monday,
             DayOfWeek.tuesday, DayOfWeek.wednesday, DayOfWeek.thursday, DayOfWeek.friday,
     DayOfWeek.saturday};

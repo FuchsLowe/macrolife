@@ -27,8 +27,11 @@ import com.fuchsundlowe.macrolife.EngineClasses.LocalStorage;
 import com.fuchsundlowe.macrolife.Interfaces.DataProviderNewProtocol;
 import com.fuchsundlowe.macrolife.R;
 
+import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.TimerTask;
 
 public class DayDisplay_DayView extends Fragment {
@@ -41,6 +44,7 @@ public class DayDisplay_DayView extends Fragment {
     private SharedPreferences preferences;
     private BroadcastReceiver broadcastReceiver;
     private DataProviderNewProtocol dataMaster;
+    private Set<Integer> taskIDs;
 
     //Lifecycle Methods:
     @Nullable
@@ -57,20 +61,40 @@ public class DayDisplay_DayView extends Fragment {
 
         chronoView = new ChronoView(getContext(), dayWeDisplay);
         chronoViewHolder.addView(chronoView);
+        taskIDs = new HashSet<>();
+
+
 
         // Subscribe to live data:
-        dataMaster.getEventsThatIntersect(dayWeDisplay).observe(this, new Observer<List<RepeatingEvent>>() {
+        dataMaster.getAllEvents().observe(this, new Observer<List<RepeatingEvent>>() {
+            /*
+             * This is know not to be effective way of searching through the DB, but problem is that
+             * SQL in Android doesn't support Array queries well and implementation for that is
+             * simply too big...
+             * Ideal solution would be to search by Parent hashID's in array and return only those
+             * as Live Data Objects...
+             */
             @Override
             public void onChanged(@Nullable List<RepeatingEvent> repeatingEvents) {
-                chronoView.setData(null, repeatingEvents);
-
+                List<RepeatingEvent> toSend = new ArrayList<>();
+                for (RepeatingEvent event: repeatingEvents) {
+                    if (taskIDs.contains(event.getParentID())) {
+                        toSend.add(event);
+                    }
+                }
+                chronoView.setData(null, toSend);
             }
         });
 
         dataMaster.getTaskThatIntersects(dayWeDisplay).observe(this, new Observer<List<TaskObject>>() {
             @Override
             public void onChanged(@Nullable List<TaskObject> taskObjects) {
+                taskIDs.clear();
+                for (TaskObject object : taskObjects) {
+                    taskIDs.add(object.getHashID());
+                }
                 chronoView.setData(taskObjects, null);
+
             }
         });
 

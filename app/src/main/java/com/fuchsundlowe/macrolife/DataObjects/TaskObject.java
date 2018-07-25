@@ -29,6 +29,14 @@ public class TaskObject {
     private String mods;
     private int mX, mY; // for location on the screen of Complex Activity
     @Ignore
+    /*
+     * AllMods is enum based holder that manages insertion, removal and retrieval of mods from string
+     * and acts as a intermediary so outside
+     * implementation don't have to work with strings in the first place. It is accessed by getters
+     * and setters named addMod and removeMod.
+     * The initializer methods that on creation grabs the info and converts it into enums is called
+     * defineMods and takes no parameters.
+     */
     private ArrayList<Mods> allMods;
     @Ignore
     private ArrayList<Mods> acceptableMods;
@@ -86,31 +94,38 @@ public class TaskObject {
             }
         }
     }
-    public void addMod(Mods modToAdd) {
+    public void addMod(TaskObject.Mods modToAdd) {
         if (acceptableMods.contains(modToAdd)) {
             if (!allMods.contains(modToAdd)) {
                 allMods.add(modToAdd);
-                // TODO:Should this save the data?
-                if (!mods.contains(modToAdd.name())) {
-                    mods += "\n" + modToAdd.name();
-                }
+
                 // This implementation prevents us from having both mods because they are mutually exclusive
-                if (modToAdd == Mods.repeating) {
-                    removeAMod(Mods.repeatingMultiValues);
-                } else if (modToAdd == Mods.repeatingMultiValues) {
-                    removeAMod(Mods.repeating);
+                if (modToAdd == TaskObject.Mods.repeating) {
+                    removeAMod(TaskObject.Mods.repeatingMultiValues);
+                } else if (modToAdd == TaskObject.Mods.repeatingMultiValues) {
+                    removeAMod(TaskObject.Mods.repeating);
                 }
             }
+            updateMods();
         }
     }
-    public void removeAMod(Mods modToRemove) {
+    public void removeAMod(TaskObject.Mods modToRemove) {
         allMods.remove(modToRemove);
-        mods.replace("\n" + modToRemove.name(),"");
-        // TODO: Should this save data?
+        updateMods();
+    }
+
+    private void updateMods() {
+        mods = ""; // We clean the mods
+        for (TaskObject.Mods mod : allMods) {
+            mods+= "\n"+ mod.toString();
+        }
     }
     public List<Mods> getAllMods() {
         return this.allMods;
     }
+    /*
+     * Returns either repeating or repeatingMultiValues, no other mod
+     */
     @Nullable
     public Mods getRepeatingMod() {
         if (allMods.contains(Mods.repeating)) {
@@ -168,6 +183,13 @@ public class TaskObject {
     }
     public boolean setTaskEndTime(Calendar taskEndTime) {
         Calendar startTime = this.getTaskStartTime();
+        if (taskStartTime == null) {
+            this.taskEndTime = null;
+            return false;
+        } else if (taskEndTime == null) {
+            this.taskEndTime = null;
+            return true;
+        }
         if (taskEndTime.after(startTime)) {
             this.taskEndTime = taskEndTime;
             return true;
@@ -219,6 +241,10 @@ public class TaskObject {
     }
     public void setTimeDefined(TimeDefined timeDefined) {
         this.timeDefined = timeDefined;
+        if (timeDefined == TimeDefined.noTime) {
+            setTaskStartTime(null);
+            setTaskEndTime(null);
+        }
     }
 
     // Enum that defines the types of checkable statuses that exist

@@ -165,7 +165,6 @@ public class EditTaskBottomBar extends Fragment implements EditTaskProtocol {
                 break;
         }
     }
-
     private void defineModButtons() {
         // Should define all mods so that
         // Size; SHould have max size just in case...
@@ -374,6 +373,7 @@ public class EditTaskBottomBar extends Fragment implements EditTaskProtocol {
                 modAreaOne.removeAllViews();
                 modAreaOne.setVisibility(View.GONE);
                 modAreaTwo.removeAllViews();
+                // Defining the click listeners for buttons that are presented for this mod
                 View.OnClickListener localClickListener = new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
@@ -384,7 +384,7 @@ public class EditTaskBottomBar extends Fragment implements EditTaskProtocol {
                                     modSelected = ModButton.SpecialtyButton.startValues;
                                     break;
                                 case endValues:
-                                    modAreaTwo.setVisibility(View.VISIBLE);
+                                    modAreaOne.setVisibility(View.VISIBLE);
                                     modSelected = ModButton.SpecialtyButton.endValues;
                                     break;
                                 case clear:
@@ -422,27 +422,52 @@ public class EditTaskBottomBar extends Fragment implements EditTaskProtocol {
                         }
                     }
                 };
+
+                // Defining the buttons:
                 ModButton.SpecialtyButton[] firstRowButtons = {ModButton.SpecialtyButton.date,
                         ModButton.SpecialtyButton.time, ModButton.SpecialtyButton.clear};
                 ModButton.SpecialtyButton[] secondRow = {ModButton.SpecialtyButton.startValues,
                         ModButton.SpecialtyButton.endValues, ModButton.SpecialtyButton.delete, ModButton.SpecialtyButton.clear};
                 int[] paddingAndButtonValues = calculatePaddingAndButtonHeight(firstRowButtons.length, secondRow.length);
 
+                // Creating the first row buttons and adding them along with space for even look
                 for (ModButton.SpecialtyButton value: firstRowButtons) {
                     ModButton button = new ModButton(getContext(), value, localClickListener);
-                    button.setPadding(paddingAndButtonValues[1], 0, 0, 0);
                     button.setLayoutParams(new ConstraintLayout.LayoutParams(paddingAndButtonValues[0],
                             paddingAndButtonValues[0]));
+                    Space space = new Space(context);
+                    LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, 5);
+                    lp.weight = 1;
+                    space.setLayoutParams(lp);
+                    modAreaOne.addView(space);
                     modAreaOne.addView(button);
                 }
+                // This one is added at the end to make everything even
+                Space spaceUpper = new Space(context);
+                LinearLayout.LayoutParams lpu = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, 5);
+                lpu.weight = 1;
+                spaceUpper.setLayoutParams(lpu);
+                modAreaOne.addView(spaceUpper);
 
+                // Creating the second row buttons and adding them along with space for even look
                 for (ModButton.SpecialtyButton value: secondRow) {
                     ModButton button = new ModButton(getContext(), value, localClickListener);
-                    button.setPadding(paddingAndButtonValues[2],0,0,0);
+                    //button.setPadding(paddingAndButtonValues[2],0,0,0);
                     button.setLayoutParams(new ConstraintLayout.LayoutParams(paddingAndButtonValues[0],
                             paddingAndButtonValues[0]));
+                    Space space = new Space(context);
+                    LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, 5);
+                    lp.weight = 1;
+                    space.setLayoutParams(lp);
+                    modAreaTwo.addView(space);
                     modAreaTwo.addView(button);
                 }
+                Space spaceLower = new Space(context);
+                LinearLayout.LayoutParams lpl = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, 5);
+                lpl.weight = 1;
+                spaceLower.setLayoutParams(lpl);
+                modAreaTwo.addView(spaceLower);
+                // Done:
                 break;
         }
     }

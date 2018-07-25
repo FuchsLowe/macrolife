@@ -8,6 +8,8 @@ import com.fuchsundlowe.macrolife.DataObjects.TaskObject.CheckableStatus;
 
 import java.util.Calendar;
 
+import static android.arch.persistence.room.ForeignKey.CASCADE;
+
 
 /**
  * Created by macbook on 1/30/18.

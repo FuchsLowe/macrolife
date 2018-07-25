@@ -4,6 +4,7 @@ import android.app.Dialog;
 import android.app.DialogFragment;
 import android.app.TimePickerDialog;
 import android.os.Bundle;
+import android.support.annotation.Nullable;
 import android.text.format.DateFormat;
 import android.widget.TimePicker;
 
@@ -12,6 +13,8 @@ import com.fuchsundlowe.macrolife.Interfaces.EditTaskProtocol;
 
 import java.util.Calendar;
 
+import static java.util.Calendar.YEAR;
+
 public class TimePickerFragment extends android.support.v4.app.DialogFragment
         implements TimePickerDialog.OnTimeSetListener {
 
@@ -19,12 +22,18 @@ public class TimePickerFragment extends android.support.v4.app.DialogFragment
     private TaskObject taskObject;
     private boolean isEditiingStartValue;
 
+
     @Override
     public Dialog onCreateDialog(Bundle savedInstanceState) {
-        // Use the current time as the default values for the picker
-        final Calendar c = Calendar.getInstance();
-        int hour = c.get(Calendar.HOUR_OF_DAY);
-        int minute = c.get(Calendar.MINUTE);
+        int hour, minute;
+        Calendar c;
+        if (taskObject.getTaskStartTime() != null) {
+            c = taskObject.getTaskStartTime();
+        } else {
+            c = Calendar.getInstance();
+        }
+        hour = c.get(Calendar.HOUR_OF_DAY);
+        minute = c.get(Calendar.MINUTE);
 
         // Create a new instance of TimePickerDialog and return it
         return new TimePickerDialog(getActivity(), this, hour, minute,

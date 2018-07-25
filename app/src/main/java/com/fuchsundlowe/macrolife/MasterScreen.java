@@ -24,9 +24,7 @@ public class MasterScreen extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         dataBaseMaster = LocalStorage.getInstance(this);
         setContentView(R.layout.activity_master_screen);
-        //test2();
         //test3();
-        testJohnsWife();
         toDay(null);
     }
 
@@ -56,14 +54,8 @@ public class MasterScreen extends AppCompatActivity {
         super.onDestroy();
         if (dataBaseMaster.isDataBaseOpen()) {
             dataBaseMaster.closeDataBase();
-            // TODO: Delete after testing:
-            Toast t = new Toast(this);
-            t.setDuration(Toast.LENGTH_LONG);
-            t.setText("OnDestroy Called in MasterScreen");
-            t.show();
         }
     }
-
-    void testJohnsWife(){
+    public void deleteRepEvents(View view) {
     }
 }

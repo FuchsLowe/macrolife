@@ -6,6 +6,9 @@ import android.graphics.Point;
 import android.os.Handler;
 import android.os.Looper;
 import android.support.annotation.Nullable;
+import android.support.constraint.ConstraintLayout;
+import android.util.AttributeSet;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -23,23 +26,35 @@ import java.time.DayOfWeek;
 import java.util.Calendar;
 
 // Task that is used by Repeating event Editor to show task in DayView_RepeatEditor
-public class RepeatingTask_RepeatEditor extends FrameLayout {
+public class RepeatingTask_RepeatEditor extends LinearLayout {
 
-    private View baseView;
+    //private View baseView;
     private TextView tittle;
     private TaskObject master;
     private RepeatingEvent event;
     private DataProviderNewProtocol dataProvider;
 
+    // Default Init's:
     public RepeatingTask_RepeatEditor(Context context) {
         super(context);
-        LayoutInflater inflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-        baseView = inflater.inflate(R.layout.repeating_task_repeating_editor, null, false);
+        universalInit(context);
+    }
+    public RepeatingTask_RepeatEditor(Context context, AttributeSet attrs) {
+        super(context, attrs);
+        universalInit(context);
+    }
+    public RepeatingTask_RepeatEditor(Context context, AttributeSet attrs, int defStyleAttr) {
+        super(context, attrs, defStyleAttr);
+        universalInit(context);
+    }
 
-        this.addView(baseView);
 
-        tittle = baseView.findViewById(R.id.taskTitle_RepeatEditor);
-        Button deleteButton = baseView.findViewById(R.id.deleteButton_RepeatEditor);
+    // Initialization methods:
+    private void universalInit(Context context) {
+        View base = LayoutInflater.from(context).inflate(R.layout.repeating_task_repeating_editor, null,false);
+        this.addView(base);
+        tittle = findViewById(R.id.taskTitle_RepeatEditor);
+        Button deleteButton = findViewById(R.id.deleteButton_RepeatEditor);
         dataProvider = LocalStorage.getInstance(context);
         deleteButton.setOnClickListener(new OnClickListener() {
             @Override
@@ -47,14 +62,11 @@ public class RepeatingTask_RepeatEditor extends FrameLayout {
                 // Delete Self
                 dataProvider.deleteRepeatingEvent(event);
                 // TODO: Remove self from master view? and its local group... if there is one...
+                setVisibility(GONE);
             }
         });
-        // TODO: TEST
-        this.setBackgroundColor(Color.GRAY);
+
     }
-
-
-    // Initialization methods:
     public void defineMe(TaskObject master, RepeatingEvent event) {
         this.master = master;
         this.event = event;
@@ -73,17 +85,33 @@ public class RepeatingTask_RepeatEditor extends FrameLayout {
 
     }
 
-
     // Lifecycle:
+    @Override
+    protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
+        super.onMeasure(widthMeasureSpec, heightMeasureSpec);
+    }
+
+    @Override
+    protected void onLayout(boolean changed, int left, int top, int right, int bottom) {
+        super.onLayout(changed, left, top, right, bottom);
+        layoutOnlyChild();
+    }
 
     @Override
     protected void onSizeChanged(int w, int h, int oldw, int oldh) {
         super.onSizeChanged(w, h, oldw, oldh);
-        if (baseView != null) {
-            baseView.layout(0, 0, w, h);
+        layoutOnlyChild();
+    }
+
+    private void layoutOnlyChild() {
+        View onlyChild = getChildAt(0);
+        if (onlyChild != null) {
+            onlyChild.layout(0, 0, getWidth(), getHeight());
+            onlyChild.invalidate();
         }
     }
 
+    // Methods:
     public Calendar getTaskStartTime() {
         return event.getStartTime();
     }

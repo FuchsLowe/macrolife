@@ -5,12 +5,15 @@ import android.content.SharedPreferences;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
+import android.os.Handler;
+import android.os.Looper;
 import android.support.annotation.NonNull;
 import android.support.v4.view.GestureDetectorCompat;
 import android.view.GestureDetector;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ScrollView;
 
 import com.fuchsundlowe.macrolife.DataObjects.Constants;
 import com.fuchsundlowe.macrolife.DataObjects.DayOfWeek;
@@ -135,16 +138,15 @@ public class CronoViewFor_RepeatEditor extends ViewGroup {
             }
         }
     }
-
     @Override
     public boolean onTouchEvent(MotionEvent event) {
         longPressDetector.onTouchEvent(event);
         return true;
     }
-
     public void populateViewWithTasks(TaskObject taskMaster, DayOfWeek dayDisplayed) {
         objectPresented = taskMaster;
         this.dayDisplayed = dayDisplayed;
+        removeAllViews();
 
         if (dayDisplayed == DayOfWeek.universal) {
             events = dataProvider.getEventsBy(taskMaster.getHashID(), TaskObject.Mods.repeating);
@@ -166,6 +168,29 @@ public class CronoViewFor_RepeatEditor extends ViewGroup {
         }
     }
 
+    @Override
+    protected void onAttachedToWindow() {
+        super.onAttachedToWindow();
+        if (getParent() instanceof ScrollView) {
+            // We move either to first task or we go to time of the day
+            Handler handler = new Handler(Looper.getMainLooper());
+            handler.postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    int pixelDestination = 0;
+                    // If there is a task
+                    if (getChildCount() > 0) {
+                        pixelDestination = (int) getChildAt(0).getY();
+                    } else { // Else we go to current time in day
+                        Calendar currentTime = Calendar.getInstance();
+                        pixelDestination = getPixelLocationOf(currentTime, true);
+                    }
+                    ((ScrollView) getParent()).smoothScrollTo(0, pixelDestination);
+                }
+            }, 500);
+        }
+
+    }
 
     // Methods:
     private ArrayList<RepeatingEvent> filterAvailableTasksBy(DayOfWeek day) {

@@ -4,8 +4,10 @@ package com.fuchsundlowe.macrolife.DayView;
  * Created by macbook on 2/13/18.
  */
 
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.graphics.Canvas;
 import android.graphics.Color;
@@ -23,12 +25,16 @@ import android.view.ViewGroup;
 import android.widget.LinearLayout;
 
 import com.fuchsundlowe.macrolife.DataObjects.Constants;
+import com.fuchsundlowe.macrolife.DataObjects.DayOfWeek;
 import com.fuchsundlowe.macrolife.DataObjects.RepeatingEvent;
 import com.fuchsundlowe.macrolife.DataObjects.TaskObject;
 import com.fuchsundlowe.macrolife.EngineClasses.LocalStorage;
 import com.fuchsundlowe.macrolife.Interfaces.DataProviderNewProtocol;
 
+import java.sql.PreparedStatement;
+import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -63,6 +69,7 @@ public class ChronoView extends ViewGroup {
     private DataProviderNewProtocol dataProvider;
     private GestureDetectorCompat longPressDetector;
     private LocalBroadcastManager manager;
+
 
 
     // Public constructor that makes initialization of values as well at the same time
@@ -108,37 +115,28 @@ public class ChronoView extends ViewGroup {
         return (int) (dp * scale * 0.5f);
     }
     private String[] getTimeRepresentation(){
-        if (SHOW_HOURS) {
-            return getHourly();
-        } else {
-            return getAmerican();
-        }
-    }
-    // Returns string[] of hours like 1:00, 13:00 etc
-    private String[] getHourly() {
         String[] toReturn = new String[24];
-        for (int i = 0; i<24; i++) {
-            if (i == 0) {
-                toReturn[i] = "00:00";
-            } else {
-                toReturn[i] = i + ":00";
+        if (SHOW_HOURS) { // Hour system of 24h in a day
+            for (int i = 0; i<24; i++) {
+                if (i == 0) {
+                    toReturn[i] = "00:00";
+                } else {
+                    toReturn[i] = i + ":00";
+                }
+            }
+        } else { // American system of AM/PM
+            toReturn[0] = "12AM";
+            for (int i = 1; i < 12; i++) {
+                toReturn[i] = i+"AM";
+            }
+            toReturn[12] = "12PM";
+            for (int b = 1; b<12;b++) {
+                toReturn[12+b] = b+"PM";
             }
         }
         return toReturn;
     }
-    // Returns string[] of time in PM/AM representation starting from 12AM
-    private String[] getAmerican() {
-        String[] toReturn = new String[24];
-        toReturn[0] = "12AM";
-        for (int i = 1; i < 12; i++) {
-            toReturn[i] = i+"AM";
-        }
-        toReturn[12] = "12PM";
-        for (int b = 1; b<12;b++) {
-            toReturn[12+b] = b+"PM";
-        }
-        return toReturn;
-    }
+
     private int calculateRowHeight(boolean byScreenScale, int screenHeight) {
         if (byScreenScale) {
             return screenHeight / SCALE_FACTOR;
@@ -354,6 +352,8 @@ public class ChronoView extends ViewGroup {
         height = timeUnitSize * 24; // Because day has 24 hours
         width = widthMeasureSpec - (RIGHT_PADDING + LEFT_PADDING);
 
+        measureChildren(height, width);
+
         setMeasuredDimension(width, height);
     }
     @Override
@@ -427,135 +427,154 @@ public class ChronoView extends ViewGroup {
         if (dataProvider == null) {
             dataProvider = LocalStorage.getInstance(getContext());
         }
-        // Replace tasks
-        // Remove all exisitng ones
-        // create new ones
+        // Task Evaluation:
         if (tasks != null) {
-            // Remove all taskObjects
-            int count = this.getChildCount();
-            View[] toRemove = new View[count];
-            for (int i = 0; i < count; i++) {
-                View toAdd = getChildAt(i);
-                if (toAdd instanceof Task_DayView) {
-                    if (!((Task_DayView) toAdd).isRepeatingEvent()) {
-                        toRemove[i] = toAdd;
+            List<View> viewsToRemove = new ArrayList<>();
+            HashMap<Integer, TaskObject> taskMap = new HashMap<>();
+            // Defining the HashMap
+            for (TaskObject object: tasks) {
+                taskMap.put(object.getHashID(), object);
+            }
+            // Querying the view hierarchy for evaluation of possible removal of removed and updated
+            // tasks from new batch
+            for (int i = 0; i< getChildCount(); i++) {
+                View child = getChildAt(i);
+                // We only work on views that are known to be TaskObjects wrapped in Task_DayView class
+                if (child instanceof Task_DayView) {
+                    if (!((Task_DayView) child).isRepeatingEvent()) {
+                        // Now we check if child exists in new implementation
+                        if (taskMap.containsKey(((Task_DayView) child).getTaskObjectHashID())) {
+                            // means that we need to check if task has been updated
+                            if (((Task_DayView) child).lastTimeEdited().
+                                    before(taskMap.get(((Task_DayView) child).getTaskObjectHashID()).
+                                            getLastTimeModified())) {
+                                // Means that this was updated and needs to be removed
+                                viewsToRemove.add(child);
+                            } else {
+                                // means that this is good, and we don't need to touch it...
+                                taskMap.remove(((Task_DayView) child).getTaskObjectHashID());
+                            }
+                        } else {
+                            // we will remove this task latter
+                            viewsToRemove.add(child);
+                        }
                     }
                 }
             }
-            for (View view : toRemove) {
-                this.removeView(view);
+            // Now we remove the views:
+            for (View toRemove: viewsToRemove) {
+                removeView(toRemove);
             }
-
-            for (TaskObject newTask : tasks) {
-                addNewTask(newTask, null);
+            // And now we add remaining views:
+            for (TaskObject objectToPresent: taskMap.values()) {
+                // Only if Task is not a repeating one we will display it, because we only display
+                // children of repeating tasks
+                if (objectToPresent.getRepeatingMod() == null) {
+                    addNewTask(objectToPresent, null);
+                }
             }
-
         }
 
+        // Events Evaluation:
         if (repeatingEvents != null) {
-            int count = this.getChildCount();
-            View[] toRemove = new View[count];
-            for (int i = 0; i < count; i++) {
-                View toAdd = getChildAt(i);
-                if (toAdd instanceof Task_DayView) {
-                    if (((Task_DayView) toAdd).isRepeatingEvent()) {
-                        toRemove[i] = toAdd;
+            List<View> viewsToRemove = new ArrayList<>();
+            HashMap<Integer, RepeatingEvent> taskMap = new HashMap<>();
+            // Defining the HashMap
+            for (RepeatingEvent event: repeatingEvents) {
+                taskMap.put(event.getHashID(), event);
+            }
+            // Querying the view hierarchy for evaluation of possible removal of removed and updated
+            // tasks from new batch
+            for (int i = 0; i< getChildCount(); i++) {
+                View child = getChildAt(i);
+                // We only work on views that are known to be RepeatingEvent wrapped in Task_DayView class
+                if (child instanceof Task_DayView) {
+                    if (((Task_DayView) child).isRepeatingEvent()) {
+                        // Now we check if child exists in new implementation
+                        if (taskMap.containsKey(((Task_DayView) child).getActiveHashID())) {
+                            // means that we need to check if task has been updated
+                            if (((Task_DayView) child).lastTimeEdited().
+                                    before(taskMap.get(((Task_DayView) child).getActiveHashID()).
+                                            getLastTimeModified())) {
+                                // Means that this was updated and needs to be removed
+                                viewsToRemove.add(child);
+                            } else {
+                                // means that this is good, and we don't need to touch it...
+                                taskMap.remove(((Task_DayView) child).getActiveHashID());
+                            }
+                        } else {
+                            // we will remove this task latter
+                            viewsToRemove.add(child);
+                        }
                     }
                 }
             }
-            for (View view : toRemove) {
-                this.removeView(view);
+            // Now we remove the views:
+            for (View toRemove: viewsToRemove) {
+                removeView(toRemove);
             }
-            for (RepeatingEvent event : repeatingEvents) {
-                TaskObject parent = dataProvider.findTaskObjectBy(event.getParentID());
-                addNewTask(parent, event);
-            }
-        }
-
-        /* Old implemnetation that might not work
-        // Checks if these exist, either has a pair, or doesn't or gets removed?
-        // Grabs all task ID's that we have currently displayed in ChronoView
-        HashSet<Task_DayView> allTasksInCurrentView = new HashSet<>();
-        for (int i = 0; i < this.getChildCount(); i++) {
-            View child = getChildAt(i);
-            if (child instanceof Task_DayView) {
-                allTasksInCurrentView.add((Task_DayView) child);
-            }
-        }
-
-        // Checks if there is any object to remove from:
-        HashSet<Integer> arrivedTasksIDs = new HashSet<>();
-        if (tasks != null) {
-            for (TaskObject task :OJ tasks) {
-                arrivedTasksIDs.add(task.getHashID());
-            }
-        }
-        if (repeatingEvents != null) {
-            for (RepeatingEvent event : repeatingEvents) {
-                arrivedTasksIDs.add(event.getHashID());
-            }
-        }
-        HashSet<Task_DayView> itemsToDelete = new HashSet<>();
-        if (!allTasksInCurrentView.isEmpty()) {
-            for (Task_DayView dayView : allTasksInCurrentView) {
-                if (!arrivedTasksIDs.contains(dayView)) {
-                  itemsToDelete.add(dayView);
-                }
-            }
-            // Now We delete items that are to be ousted:
-            for (Task_DayView valueToDelete : itemsToDelete) {
-                this.removeView(valueToDelete);
-            }
-        }
-
-        // Either updates or adds new task to ChronoView
-        HashSet<Task_DayView> itemsToAdd = new HashSet<>();
-        // Now we check to determine if we add or update items:
-        if (repeatingEvents != null) {
-            for (RepeatingEvent event : repeatingEvents) {
-
-                 // If task exists, we attempt to update it, if it doesn't then we create a new one
-
-                boolean didUpdate = false;
-                Task_DayView dayView;
-                for (Iterator<Task_DayView> it = allTasksInCurrentView.iterator(); it.hasNext(); ) {
-                    dayView = it.next();
-                    if (dayView.getActiveHashID() == event.getHashID()) {
-                        dayView.insertData(dataProvider.findTaskObjectBy(event.getParentID()), event);
-                        didUpdate = true;
-                        break;
+            // And now we add remaining views:
+            for (RepeatingEvent objectToPresent: taskMap.values()) {
+                // We only present ones whose parents show same mod as possessed by this task
+                TaskObject parent = dataProvider.findTaskObjectBy(objectToPresent.getParentID());
+                if (parent != null && parent.getRepeatingMod() != null) {
+                    if (objectToPresent.getDayOfWeek() == DayOfWeek.universal) {
+                        if (parent.getRepeatingMod() == TaskObject.Mods.repeating) {
+                            // only now we add
+                            addNewTask(parent, objectToPresent);
+                        }
+                    } else {
+                        if (parent.getRepeatingMod() == TaskObject.Mods.repeatingMultiValues) {
+                            // Make sure that this task is for today
+                            switch (dayDisplayed.get(Calendar.DAY_OF_WEEK)) {
+                                case Calendar.MONDAY:
+                                    if (objectToPresent.getDayOfWeek() == DayOfWeek.monday) {
+                                        addNewTask(parent, objectToPresent);
+                                    }
+                                    break;
+                                case Calendar.TUESDAY:
+                                    if (objectToPresent.getDayOfWeek() == DayOfWeek.tuesday) {
+                                        addNewTask(parent, objectToPresent);
+                                    }
+                                    break;
+                                case Calendar.WEDNESDAY:
+                                    if (objectToPresent.getDayOfWeek() == DayOfWeek.wednesday) {
+                                        addNewTask(parent, objectToPresent);
+                                    }
+                                    break;
+                                case Calendar.THURSDAY:
+                                    if (objectToPresent.getDayOfWeek() == DayOfWeek.thursday) {
+                                        addNewTask(parent, objectToPresent);
+                                    }
+                                    break;
+                                case Calendar.FRIDAY:
+                                    if (objectToPresent.getDayOfWeek() == DayOfWeek.friday) {
+                                        addNewTask(parent, objectToPresent);
+                                    }
+                                    break;
+                                case Calendar.SATURDAY:
+                                    if (objectToPresent.getDayOfWeek() == DayOfWeek.saturday) {
+                                        addNewTask(parent, objectToPresent);
+                                    }
+                                    break;
+                                case Calendar.SUNDAY:
+                                    if (objectToPresent.getDayOfWeek() == DayOfWeek.sunday) {
+                                        addNewTask(parent, objectToPresent);
+                                    }
+                                    break;
+                            }
+                        }
                     }
-                }// end of for loop
-                if (!didUpdate) {
-                    addNewTask(dataProvider.findTaskObjectBy(event.getParentID()), event);
+                } else {
+                    dataProvider.deleteRepeatingEvent(objectToPresent);
                 }
             }
         }
-        if (tasks != null) {
-            for (TaskObject task : tasks) {
-                Task_DayView dayView;
-                boolean didUpdate = false;
-                for (Iterator<Task_DayView> it = allTasksInCurrentView.iterator(); it.hasNext(); ) {
-                    dayView = it.next();
-                    if (dayView.getActiveHashID() == task.getHashID()) {
-                        dayView.insertData(task, null);
-                        didUpdate = true;
-                        break;
-                    }
-                }// end of for loop
-                if (!didUpdate) {
-                    addNewTask(task, null);
-                }
-            }
-        }
-        */
-
     }
     private void addNewTask(TaskObject task, @Nullable RepeatingEvent event) {
         Task_DayView dayView = new Task_DayView(getContext(), null);
         dayView.insertData(task, event);
         this.addView(dayView);
-        Log.d("Adding task ", task.getHashID() + "");
     }
     private long calculateTimeDifference(Calendar startTime, Calendar endTime) {
         return endTime.getTimeInMillis() - startTime.getTimeInMillis();

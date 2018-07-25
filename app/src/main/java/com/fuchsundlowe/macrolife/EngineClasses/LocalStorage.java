@@ -4,6 +4,8 @@ import android.arch.lifecycle.LiveData;
 import android.arch.lifecycle.Observer;
 import android.arch.persistence.room.Room;
 import android.content.Context;
+import android.os.Handler;
+import android.os.Looper;
 import android.support.annotation.Nullable;
 import android.util.Log;
 import com.fuchsundlowe.macrolife.DataObjects.ComplexGoal;
@@ -14,6 +16,7 @@ import com.fuchsundlowe.macrolife.DataObjects.RepeatingEvent;
 import com.fuchsundlowe.macrolife.DataObjects.RoomDataBaseObject;
 import com.fuchsundlowe.macrolife.DataObjects.TaskObject;
 import com.fuchsundlowe.macrolife.Interfaces.DataProviderNewProtocol;
+
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
@@ -121,6 +124,17 @@ public class LocalStorage implements DataProviderNewProtocol {
         }
         return null;
     }
+    private ArrayList<RepeatingEvent> getAllEventsBy(int masterID) {
+        ArrayList<RepeatingEvent> toReturn= new ArrayList<>();
+        if (repeatingEventHolder.getValue() != null) {
+            for (RepeatingEvent event: repeatingEventHolder.getValue()) {
+                if (event.getParentID() == masterID) {
+                    toReturn.add(event);
+                }
+            }
+        }
+        return toReturn;
+    }
     @Override
     public ComplexGoal getComplexGoalBy(int masterID) {
         if (complexGoalHolder.getValue() != null) {
@@ -137,6 +151,13 @@ public class LocalStorage implements DataProviderNewProtocol {
         new Thread(new Runnable() {
             @Override
             public void run() {
+                // Delete the children of type Repeating Events
+                ArrayList<RepeatingEvent> eventsToDelete = getAllEventsBy(objectToDelete.getHashID());
+                if (eventsToDelete.size() > 0) {
+                    RepeatingEvent[] tempStorage = new RepeatingEvent[eventsToDelete.size()];
+                    eventsToDelete.toArray(tempStorage);
+                    dataBase.newDAO().removeRepeatingEvent(tempStorage);
+                }
                 dataBase.newDAO().removeTask(objectToDelete);
             }
         }).start();
@@ -150,6 +171,7 @@ public class LocalStorage implements DataProviderNewProtocol {
                         new Thread(new Runnable() {
                             @Override
                             public void run() {
+                                objectToSave.setLastTimeModified(Calendar.getInstance());
                                 dataBase.newDAO().saveListObject(objectToSave);
                             }
                         }).start();
@@ -175,6 +197,10 @@ public class LocalStorage implements DataProviderNewProtocol {
         }).start();
     }
     @Override
+    public LiveData<List<RepeatingEvent>> getAllEvents() {
+        return dataBase.newDAO().getAllRepeatingEvents();
+    }
+    @Override
     public List<ListObject> findListFor(int taskObjectID) {
         if (listObjectHolder.getValue() != null) {
             List<ListObject> setToReturn = new ArrayList<>();
@@ -197,6 +223,34 @@ public class LocalStorage implements DataProviderNewProtocol {
         }).start();
     }
     @Override
+    public void deleteAllRepeatingEvents(int forMasterID, TaskObject.Mods withMod) {
+        if (repeatingEventHolder!= null) {
+            final ArrayList<RepeatingEvent> holderToDelete = new ArrayList<>();
+            for (RepeatingEvent event : repeatingEventHolder.getValue()) {
+                if (event.getParentID() == forMasterID) {
+                    if (withMod == TaskObject.Mods.repeating) {
+                        if (event.getDayOfWeek() == DayOfWeek.universal) {
+                            holderToDelete.add(event);
+                        }
+                    } else if (withMod == TaskObject.Mods.repeatingMultiValues){
+                        if (event.getDayOfWeek() != DayOfWeek.universal) {
+                            holderToDelete.add(event);
+                        }
+                    }
+                }
+            }
+
+            new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    RepeatingEvent[] itemsToDelete = new RepeatingEvent[holderToDelete.size()];
+                    holderToDelete.toArray(itemsToDelete);
+                    dataBase.newDAO().removeRepeatingEvent(itemsToDelete);
+                }
+            }).start();
+        }
+    }
+    @Override
     public void saveRepeatingEvent(final RepeatingEvent event) {
         if (repeatingEventHolder.getValue() != null) {
             for (final RepeatingEvent object : repeatingEventHolder.getValue()) {
@@ -204,6 +258,7 @@ public class LocalStorage implements DataProviderNewProtocol {
                     new Thread(new Runnable() {
                         @Override
                         public void run() {
+                            event.setLastTimeModified(Calendar.getInstance());
                             dataBase.newDAO().saveRepeatingEvent(event);
                         }
                     }).start();
@@ -217,14 +272,30 @@ public class LocalStorage implements DataProviderNewProtocol {
                 }
             }).start();
 
-            for (RepeatingEvent event1: repeatingEventHolder.getValue()) {
-                if (event1.getHashID() == event.getHashID()) {
-                    break;
-                }
-            }
         }
 
 
+    }
+    @Override
+    public void reSaveRepeatingEventsFor(int masterHashID) {
+        // Find them all
+        ArrayList<RepeatingEvent> list = new ArrayList<>();
+        if (repeatingEventHolder.getValue() != null) {
+            for (RepeatingEvent event : repeatingEventHolder.getValue()) {
+                if (event.getParentID() == masterHashID) {
+                    event.setLastTimeModified(Calendar.getInstance());
+                    list.add(event);
+                }
+            }
+            final RepeatingEvent[] toSaveInBulk = new RepeatingEvent[list.size()];
+            list.toArray(toSaveInBulk);
+            new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    dataBase.newDAO().saveRepeatingEvent(toSaveInBulk);
+                }
+            }).start();
+        }
     }
     @Override
     public ArrayList<TaskObject> getDataForRecommendationBar() {
@@ -248,6 +319,7 @@ public class LocalStorage implements DataProviderNewProtocol {
                     new Thread(new Runnable() {
                         @Override
                         public void run() {
+                            task.setLastTimeModified(Calendar.getInstance());
                             dataBase.newDAO().saveTask(task);
                         }
                     }).start();
@@ -352,6 +424,10 @@ public class LocalStorage implements DataProviderNewProtocol {
                 Log.d("Report Changes to", " complex goal DB");
             }
         });
+
+        // TODO:  TEST PART:
+        displayInLogcatDB();
+
    }
     public boolean isDataBaseOpen() {
         return dataBase.isOpen();
@@ -365,5 +441,75 @@ public class LocalStorage implements DataProviderNewProtocol {
         dataBase.close();
    }
 
+   /* TODO: Consistency manager implementation:
+    * The goal of this implementation is to in background do consistency check on relationships and
+    * logic of the DataBase. The relationships between objects, cleanup and other things would be
+    * evaluated and changes would be committed.
+    *
+    * This would also check with server to establish the consistency of both data-bases.
+    *
+    */
+   private class ConsistencyManager {
 
+       // Called to start the manager
+       void start() {
+
+       }
+       /* This method checks the relationships between repeating event and task object and removes
+        * ones that are not in sync.
+        */
+       void determineRepeatingTaskConsistency() {
+
+       }
+       /*
+        * This method checks for consistency of mods in task Objects and adjusts the status of
+        * those mods accordingly
+        */
+       void determineTaskObjectModConsistency() {
+
+       }
+       /*
+        * This method checks for existence of complex goals defined in TaskObject and makes
+        * changes to ensure consistency
+        */
+       void determineTaskObjectComplexGoalRelationships() {
+
+       }
+       /*
+        * This method makes calls to server and establishes consistency between the data in server
+        * and data in phone.
+        */
+       void syncWithServer() {
+
+       }
+   }
+
+   //TODO: TEST START:
+    void displayInLogcatDB() {
+        // Tasks:
+        Handler main = new Handler(Looper.getMainLooper());
+        main.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                if (taskObjectHolder.getValue() != null) {
+                    for (TaskObject task: taskObjectHolder.getValue()) {
+                        Log.d("Task: "+ task.getTaskName(), ": hash: " + task.getHashID() + ", Mods: " + task.getMods());
+                    }
+                }
+            }
+        }, 1000);
+        // Events:
+        main.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                if (repeatingEventHolder.getValue() != null) {
+                    for (RepeatingEvent task: repeatingEventHolder.getValue()) {
+                        Log.d("Event: - parent: "+ task.getParentID(), ": hash: " + task.getHashID() + ", dayOfWeek: " + task.getDayOfWeek());
+                    }
+                }
+            }
+        }, 1000);
+
+    }
+    //TODO:TEST END:
 }

@@ -30,4 +30,17 @@
         android:onClick="toTest"
         android:text="TestView" />
 
+    <Button
+        android:id="@+id/delete_db"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Delete W/DB" />
+
+    <Button
+        android:id="@+id/clear_repeatingEvents"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:onClick="deleteRepEvents"
+        android:text="CLEAR REP_EVENTS" />
+
 </LinearLayout>

@@ -16,15 +16,21 @@ public class DatePickerFragment extends DialogFragment
 
     private EditTaskProtocol protocol;
     private TaskObject taskObject;
-    private boolean isEditiingStartValue;
+    private boolean isEditingStartValue;
+
     @Override
     public Dialog onCreateDialog(Bundle savedInstanceState) {
-        // Use the current date as the default date in the picker
-        final Calendar c = Calendar.getInstance();
-        int year = c.get(Calendar.YEAR);
-        int month = c.get(Calendar.MONTH);
-        int day = c.get(Calendar.DAY_OF_MONTH);
+        int year, month, day;
+        Calendar c;
+        if (taskObject.getTaskStartTime() != null) {
+            c = taskObject.getTaskStartTime();
+        } else {
+            c = Calendar.getInstance();
+        }
 
+        year = c.get(Calendar.YEAR);
+        month = c.get(Calendar.MONTH);
+        day = c.get(Calendar.DAY_OF_MONTH);
         // Create a new instance of DatePickerDialog and return it
         return new DatePickerDialog(getActivity(), this, year, month, day);
     }
@@ -32,12 +38,12 @@ public class DatePickerFragment extends DialogFragment
     public void defineMe(TaskObject objectManipulated, EditTaskProtocol protocol, boolean isEditingStartValue) {
         this.protocol = protocol;
         this.taskObject = objectManipulated;
-        this.isEditiingStartValue = isEditingStartValue;
+        this.isEditingStartValue = isEditingStartValue;
     }
 
     public void onDateSet(DatePicker view, int year, int month, int day) {
         Calendar valueEdited;
-        if (isEditiingStartValue) {
+        if (isEditingStartValue) {
             valueEdited = taskObject.getTaskStartTime();
         } else {
             valueEdited = taskObject.getTaskEndTime();

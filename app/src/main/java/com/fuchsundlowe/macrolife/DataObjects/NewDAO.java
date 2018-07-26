@@ -73,6 +73,12 @@ public interface NewDAO {
     @Query("SELECT * FROM RepeatingEvent")
     LiveData<List<RepeatingEvent>> getAllRepeatingEvents();
 
+    @Query("SELECT * FROM REPEATINGEVENT")
+    RepeatingEvent[] TEST_repeatingEvents();
+
+    @Query("SELECT * FROM TASKOBJECT")
+    TaskObject[] TEST_taskObjects();
+
 
     // Specialty Queries:
     @Query("SELECT * FROM TaskObject WHERE (TimeDefined == 2 AND ((taskStartTime BETWEEN :dayStart AND :dayEnd) OR " +

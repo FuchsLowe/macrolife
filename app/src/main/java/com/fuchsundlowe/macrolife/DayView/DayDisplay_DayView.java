@@ -63,8 +63,6 @@ public class DayDisplay_DayView extends Fragment {
         chronoViewHolder.addView(chronoView);
         taskIDs = new HashSet<>();
 
-
-
         // Subscribe to live data:
         dataMaster.getAllEvents().observe(this, new Observer<List<RepeatingEvent>>() {
             /*

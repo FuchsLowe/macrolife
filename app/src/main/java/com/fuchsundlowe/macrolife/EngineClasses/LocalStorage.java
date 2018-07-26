@@ -4,8 +4,6 @@ import android.arch.lifecycle.LiveData;
 import android.arch.lifecycle.Observer;
 import android.arch.persistence.room.Room;
 import android.content.Context;
-import android.os.Handler;
-import android.os.Looper;
 import android.support.annotation.Nullable;
 import android.util.Log;
 import com.fuchsundlowe.macrolife.DataObjects.ComplexGoal;
@@ -16,7 +14,6 @@ import com.fuchsundlowe.macrolife.DataObjects.RepeatingEvent;
 import com.fuchsundlowe.macrolife.DataObjects.RoomDataBaseObject;
 import com.fuchsundlowe.macrolife.DataObjects.TaskObject;
 import com.fuchsundlowe.macrolife.Interfaces.DataProviderNewProtocol;
-
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
@@ -41,9 +38,9 @@ public class LocalStorage implements DataProviderNewProtocol {
 
     private static LocalStorage self;
     private RoomDataBaseObject dataBase;
-    private LiveData<List<TaskObject>> taskObjectHolder;
+    public LiveData<List<TaskObject>> taskObjectHolder;
     private LiveData<List<ListObject>> listObjectHolder;
-    private LiveData<List<RepeatingEvent>> repeatingEventHolder;
+    private LiveData<List<RepeatingEvent>> repeatingEventHolder; // TODO: TEMP, return to private
     private LiveData<List<ComplexGoal>> complexGoalHolder;
 
 
@@ -223,31 +220,55 @@ public class LocalStorage implements DataProviderNewProtocol {
         }).start();
     }
     @Override
-    public void deleteAllRepeatingEvents(int forMasterID, TaskObject.Mods withMod) {
-        if (repeatingEventHolder!= null) {
-            final ArrayList<RepeatingEvent> holderToDelete = new ArrayList<>();
-            for (RepeatingEvent event : repeatingEventHolder.getValue()) {
-                if (event.getParentID() == forMasterID) {
-                    if (withMod == TaskObject.Mods.repeating) {
-                        if (event.getDayOfWeek() == DayOfWeek.universal) {
-                            holderToDelete.add(event);
-                        }
-                    } else if (withMod == TaskObject.Mods.repeatingMultiValues){
-                        if (event.getDayOfWeek() != DayOfWeek.universal) {
-                            holderToDelete.add(event);
+    public void deleteAllRepeatingEvents(final int forMasterID, final TaskObject.Mods withMod) {
+        // This function only will work with repeating and repaetingMultiValues...
+        if (withMod == TaskObject.Mods.repeatingMultiValues || withMod == TaskObject.Mods.repeating) {
+            if (repeatingEventHolder != null && taskObjectHolder != null) {
+                final ArrayList<RepeatingEvent> holderToDelete = new ArrayList<>();
+                final TaskObject parent = findTaskObjectBy(forMasterID);
+                for (RepeatingEvent event : repeatingEventHolder.getValue()) {
+                    if (event.getParentID() == forMasterID) {
+                        if (withMod == TaskObject.Mods.repeating) {
+                            if (event.getDayOfWeek() == DayOfWeek.universal) {
+                                holderToDelete.add(event);
+                            }
+                        } else if (withMod == TaskObject.Mods.repeatingMultiValues) {
+                            if (event.getDayOfWeek() != DayOfWeek.universal) {
+                                holderToDelete.add(event);
+                            }
                         }
                     }
                 }
-            }
 
-            new Thread(new Runnable() {
-                @Override
-                public void run() {
-                    RepeatingEvent[] itemsToDelete = new RepeatingEvent[holderToDelete.size()];
-                    holderToDelete.toArray(itemsToDelete);
-                    dataBase.newDAO().removeRepeatingEvent(itemsToDelete);
+                // Establishing consistency of mods for parent task
+                if (parent != null) {
+                    if (withMod == TaskObject.Mods.repeatingMultiValues) {
+                        if (isThereAnyEventForThis(forMasterID, TaskObject.Mods.repeating)) {
+                            parent.addMod(TaskObject.Mods.repeating);
+                        } else {
+                            parent.removeAMod(TaskObject.Mods.repeating);
+                            parent.removeAMod(TaskObject.Mods.repeatingMultiValues);
+                        }
+                    } else {
+                        if (isThereAnyEventForThis(forMasterID, TaskObject.Mods.repeatingMultiValues)) {
+                            parent.addMod(TaskObject.Mods.repeatingMultiValues);
+                        } else {
+                            parent.removeAMod(TaskObject.Mods.repeating);
+                            parent.removeAMod(TaskObject.Mods.repeatingMultiValues);
+                        }
+                    }
                 }
-            }).start();
+                // Finally saving the system...
+                new Thread(new Runnable() {
+                    @Override
+                    public void run() {
+                        RepeatingEvent[] itemsToDelete = new RepeatingEvent[holderToDelete.size()];
+                        holderToDelete.toArray(itemsToDelete);
+                        dataBase.newDAO().removeRepeatingEvent(itemsToDelete);
+                        dataBase.newDAO().saveTask(parent);
+                    }
+                }).start();
+            }
         }
     }
     @Override
@@ -425,8 +446,6 @@ public class LocalStorage implements DataProviderNewProtocol {
             }
         });
 
-        // TODO:  TEST PART:
-        displayInLogcatDB();
 
    }
     public boolean isDataBaseOpen() {
@@ -440,6 +459,21 @@ public class LocalStorage implements DataProviderNewProtocol {
 
         dataBase.close();
    }
+    /*
+     *  Returns true if there is at least one event (list, repearting) for this hashID and false if no
+     *  Should not be called from main thread, as it will produce exception
+     */
+    private boolean isThereAnyEventForThis(int masterHashID, TaskObject.Mods forMod) {
+        switch (forMod) {
+            case repeating:
+                break;
+            case repeatingMultiValues:
+                break;
+            case list:
+                break;
+        }
+        return false;
+    }
 
    /* TODO: Consistency manager implementation:
     * The goal of this implementation is to in background do consistency check on relationships and
@@ -484,32 +518,5 @@ public class LocalStorage implements DataProviderNewProtocol {
        }
    }
 
-   //TODO: TEST START:
-    void displayInLogcatDB() {
-        // Tasks:
-        Handler main = new Handler(Looper.getMainLooper());
-        main.postDelayed(new Runnable() {
-            @Override
-            public void run() {
-                if (taskObjectHolder.getValue() != null) {
-                    for (TaskObject task: taskObjectHolder.getValue()) {
-                        Log.d("Task: "+ task.getTaskName(), ": hash: " + task.getHashID() + ", Mods: " + task.getMods());
-                    }
-                }
-            }
-        }, 1000);
-        // Events:
-        main.postDelayed(new Runnable() {
-            @Override
-            public void run() {
-                if (repeatingEventHolder.getValue() != null) {
-                    for (RepeatingEvent task: repeatingEventHolder.getValue()) {
-                        Log.d("Event: - parent: "+ task.getParentID(), ": hash: " + task.getHashID() + ", dayOfWeek: " + task.getDayOfWeek());
-                    }
-                }
-            }
-        }, 1000);
 
-    }
-    //TODO:TEST END:
 }

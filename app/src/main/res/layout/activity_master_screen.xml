@@ -34,13 +34,27 @@
         android:id="@+id/delete_db"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Delete W/DB" />
+        android:onClick="create_rep_event"
+        android:text="create_rep_event" />
 
     <Button
         android:id="@+id/clear_repeatingEvents"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:onClick="deleteRepEvents"
+        android:onClick="remove_events"
         android:text="CLEAR REP_EVENTS" />
+
+    <ScrollView
+        android:background="#000000"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <TextView
+            android:id="@+id/textView"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:fontFamily="monospace"
+            android:text="TextView" />
+    </ScrollView>
 
 </LinearLayout>

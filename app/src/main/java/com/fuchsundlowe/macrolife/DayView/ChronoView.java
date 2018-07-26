@@ -54,6 +54,7 @@ public class ChronoView extends ViewGroup {
     private boolean ROW_BY_SCREEN = true; // If we should render by screen scale or by abs dp
     private int TEXT_SIZE = 22;
     private int TIMER_UPDATE_INTERVAL = 1000; // 10 seconds
+    private float lineStartMark = 0;
 
     // Variables to be calculated
     private Paint lineMarker;
@@ -286,13 +287,14 @@ public class ChronoView extends ViewGroup {
 
         // Can draw on this canvas here because its gonna be static
         String[] time = getTimeRepresentation();
+        int x = 10;
         float lineOffset = maxTextSize(time);
+        lineStartMark = x + lineOffset + dpToPixConverter(5);
         // Drawing:
         for (int i = 0; i<24; i++) {
             int y = i * timeUnitSize;
-            int x = 10; // To be calculated by the maxWidth of text
             canvas.drawText(time[i], x, y, textMarker);
-            canvas.drawLine(x + lineOffset + dpToPixConverter(5) , y, canvas.getWidth(), y, lineMarker);
+            canvas.drawLine(lineStartMark , y, canvas.getWidth(), y, lineMarker);
             canvas.save();
         }
     }
@@ -383,7 +385,7 @@ public class ChronoView extends ViewGroup {
                 if ((endTime.getTimeInMillis() - startTime.getTimeInMillis()) < thirtyMinInMilliseconds ) {
                     end  = start + thirthyMinInPixels;
                 }
-                ((Task_DayView) viewObject).myLayout((int) LEFT_OFFSET, start, this.getWidth(), end);
+                ((Task_DayView) viewObject).myLayout((int) lineStartMark, start, this.getWidth(), end);
             } else {
                 //Assuming its only the TimeDisplayer
                 int top = getPixelLocationOf(Calendar.getInstance(), true);
@@ -503,7 +505,7 @@ public class ChronoView extends ViewGroup {
                                 taskMap.remove(((Task_DayView) child).getActiveHashID());
                             }
                         } else {
-                            // we will remove this task latter
+                            // we will remove this view latter
                             viewsToRemove.add(child);
                         }
                     }
@@ -521,6 +523,7 @@ public class ChronoView extends ViewGroup {
                     if (objectToPresent.getDayOfWeek() == DayOfWeek.universal) {
                         if (parent.getRepeatingMod() == TaskObject.Mods.repeating) {
                             // only now we add
+                            // TODO: Am I adding the view even thou parent's time might not cover it?
                             addNewTask(parent, objectToPresent);
                         }
                     } else {
@@ -566,7 +569,7 @@ public class ChronoView extends ViewGroup {
                         }
                     }
                 } else {
-                    dataProvider.deleteRepeatingEvent(objectToPresent);
+                    //dataProvider.deleteRepeatingEvent(objectToPresent);
                 }
             }
         }

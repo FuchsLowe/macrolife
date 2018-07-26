@@ -256,6 +256,7 @@ public class RepeatingEventEditor extends ConstraintLayout {
                     switch (((ModButton) v).reportButtonType()) {
                         case delete:
                             // The delete procedure will remove all events based on current displayed mod
+                            // TODO this one should not manage the mod changes... that is done by Database provider
                             if (leftSideHolder.getVisibility() == VISIBLE) {
                                 // means that we have multi-values, xoxo cheat!!!
                                 localStorage.deleteAllRepeatingEvents(editedObject.getHashID(),
@@ -291,7 +292,9 @@ public class RepeatingEventEditor extends ConstraintLayout {
                             protocol.modDone();
                             break;
                         case save:
-                            // save self and collapse to edit
+                            // Save self and collapse to edit
+
+                            // Goal here is to establish what should be fall back to?
                             if (leftSideHolder.getVisibility() == VISIBLE) {
                                 if (isThereAnyEventForThisMod(TaskObject.Mods.repeatingMultiValues)) {
                                     editedObject.addMod(TaskObject.Mods.repeatingMultiValues);
@@ -307,7 +310,7 @@ public class RepeatingEventEditor extends ConstraintLayout {
                                     editedObject.removeAMod(TaskObject.Mods.repeatingMultiValues);
                                 }
                             }
-
+                            // TODO: Consider order of saving here! Task Object or re-save events?
                             localStorage.saveTaskObject(editedObject);
                             protocol.modDone();
                             // Request the ChronoView To Re-update itself

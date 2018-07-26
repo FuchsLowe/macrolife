@@ -283,6 +283,8 @@ public class Task_DayView extends FrameLayout {
             if (result != null) {
                 masterTaskName.setText(result.getTaskName());
             }
+        } else {
+            masterTaskName.setText("");
         }
         taskName.setText(task.getTaskName());
 

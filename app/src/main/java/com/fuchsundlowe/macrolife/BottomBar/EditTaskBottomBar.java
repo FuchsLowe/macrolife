@@ -1,6 +1,5 @@
 package com.fuchsundlowe.macrolife.BottomBar;
 
-import android.app.Activity;
 import android.content.Context;
 import android.graphics.Color;
 import android.os.Bundle;
@@ -30,7 +29,6 @@ import com.fuchsundlowe.macrolife.R;
 import com.fuchsundlowe.macrolife.TestCases.TestOfAlpha;
 import java.util.Calendar;
 import java.util.HashMap;
-import java.util.List;
 
 
 import static com.fuchsundlowe.macrolife.BottomBar.EditTaskBottomBar.EditTaskState.editTask;
@@ -89,10 +87,6 @@ public class EditTaskBottomBar extends Fragment implements EditTaskProtocol {
         super.onStart();
         setState(state);
     }
-    @Override
-    public void onResume() {
-        super.onResume();
-    }
 
     // Editing of object appearance:
     public void defineMe(final EditTaskState setState, @Nullable TaskObject taskManipulated,
@@ -102,7 +96,7 @@ public class EditTaskBottomBar extends Fragment implements EditTaskProtocol {
         this.parentProtocol = parentProtocol;
         this.sizeOfParent = sizeToWorkWith;
     }
-    protected void setState(EditTaskState newState) {
+    protected void setState(EditTaskState newState){
         this.state = newState;
 
         switch (newState) {
@@ -165,14 +159,27 @@ public class EditTaskBottomBar extends Fragment implements EditTaskProtocol {
                 break;
         }
     }
+    /*
+     * This function just defines the look of buttons, their spacing and fills the ModButton objects
+     * with relevant info for put method of the ModButton class
+     */
     private void defineModButtons() {
         // Should define all mods so that
         // Size; SHould have max size just in case...
-        modAreaOne.setVisibility(View.VISIBLE);
-        modAreaTwo.setVisibility(View.VISIBLE);
+
+        modAreaOne.removeAllViews();
+        modAreaTwo.removeAllViews();
 
         int NUMBER_OF_MODS_FIRST_ROW = 4;
         int NUMBER_OF_MODS_SECOND_ROW = 2;
+
+        if (NUMBER_OF_MODS_FIRST_ROW > 0) {
+            modAreaOne.setVisibility(View.VISIBLE);
+        }
+
+        if (NUMBER_OF_MODS_SECOND_ROW > 0) {
+            modAreaTwo.setVisibility(View.VISIBLE);
+        }
 
         //===!!!MAKE SURE NUMBER OF MODS IN FIRST AND SECOND ROW == TOTAL NUMBER OF MODS!!!===//
 
@@ -183,7 +190,9 @@ public class EditTaskBottomBar extends Fragment implements EditTaskProtocol {
         int[] buttonAndPaddingResults = calculatePaddingAndButtonHeight(NUMBER_OF_MODS_FIRST_ROW,
                 NUMBER_OF_MODS_SECOND_ROW);
         Space space = new Space(getContext());
-        space.setLayoutParams(new LinearLayout.LayoutParams(buttonAndPaddingResults[1], buttonAndPaddingResults[0]));
+        LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, 5);
+        lp.weight = 1;
+        space.setLayoutParams(lp);
         modAreaOne.addView(space);
         for (int i = 1; i <= NUMBER_OF_MODS_FIRST_ROW; i++) {
             ModButton mod;
@@ -209,14 +218,14 @@ public class EditTaskBottomBar extends Fragment implements EditTaskProtocol {
             layoutParams.gravity = 0;
             mod.setLayoutParams(layoutParams);
             modAreaOne.addView(mod);
-            if (i < NUMBER_OF_MODS_FIRST_ROW) {
-                Space padding = new Space(getContext());
-                padding.setLayoutParams(new LinearLayout.LayoutParams(buttonAndPaddingResults[1], buttonAndPaddingResults[0]));
-                modAreaOne.addView(padding);
-            }
+
+            Space padding = new Space(getContext());
+            padding.setLayoutParams(lp);
+            modAreaOne.addView(padding);
+
         }
         Space lowerPart = new Space(getContext());
-        lowerPart.setLayoutParams(new LinearLayout.LayoutParams(buttonAndPaddingResults[2], buttonAndPaddingResults[0]));
+        lowerPart.setLayoutParams(lp);
         modAreaTwo.addView(lowerPart);
         for (int i = 1; i<= NUMBER_OF_MODS_SECOND_ROW; i++) {
             ModButton mod;
@@ -234,11 +243,10 @@ public class EditTaskBottomBar extends Fragment implements EditTaskProtocol {
             layoutParams.gravity = 0;
             mod.setLayoutParams(layoutParams);
             modAreaTwo.addView(mod);
-            if (i < NUMBER_OF_MODS_SECOND_ROW) {
-                Space padding = new Space(getContext());
-                padding.setLayoutParams(new LinearLayout.LayoutParams(buttonAndPaddingResults[2], buttonAndPaddingResults[0]));
-                modAreaTwo.addView(padding);
-            }
+
+            Space padding = new Space(getContext());
+            padding.setLayoutParams(lp);
+            modAreaTwo.addView(padding);
         }
     }
     private TaskObject createNewTask(String taskName) {
@@ -251,7 +259,7 @@ public class EditTaskBottomBar extends Fragment implements EditTaskProtocol {
         float scale = getContext().getResources().getDisplayMetrics().density;
         return (int) (dp * scale * 0.5f);
     }
-    private void deleteWarning() {
+    private void presentDeleteWarning() {
         View warningBox = inflater.inflate(R.layout.delete_warrning, null, false);
         float WIDTH_BY_SCREEN_PERCENTAGE = 0.8f;
         float HEIGHT_BY_SCREEN_PERCENTAGE = 0.25f;
@@ -361,12 +369,11 @@ public class EditTaskBottomBar extends Fragment implements EditTaskProtocol {
                     } else {
                         taskObject.setIsTaskCompleted(TaskObject.CheckableStatus.notCheckable);
                     }
-                    // TODO: Save changes to taskObject
                     saveTask(taskObject, null);
                 }
                 break;
             case delete:
-                deleteWarning();
+                presentDeleteWarning();
                 break;
             case dateAndTime:
                 dynamicArea.setVisibility(View.GONE);
@@ -390,10 +397,12 @@ public class EditTaskBottomBar extends Fragment implements EditTaskProtocol {
                                 case clear:
                                     // Detect which value to delete
                                     taskObject.setTimeDefined(TaskObject.TimeDefined.onlyDate);
+                                    // TODO: Should I save?
                                     break;
                                 case delete:
                                     // Should there be warning?
                                     taskObject.setTimeDefined(TaskObject.TimeDefined.noTime);
+                                    // TODO: SHould I Save?
                                     break;
                                 case time:
                                     TimePickerFragment timeFragment = new TimePickerFragment();

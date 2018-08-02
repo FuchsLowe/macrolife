@@ -38,6 +38,7 @@ import com.fuchsundlowe.macrolife.EngineClasses.LocalStorage;
 import com.fuchsundlowe.macrolife.Interfaces.DataProviderNewProtocol;
 import com.fuchsundlowe.macrolife.R;
 
+import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -105,9 +106,7 @@ public class Task_DayView extends FrameLayout {
         this.setAlpha(0.5f);
     }
 
-
     // Lifecycle:
-
     private void layoutOnlyChild() {
         View onlyChild = getChildAt(0);
         if (onlyChild != null) {
@@ -121,12 +120,10 @@ public class Task_DayView extends FrameLayout {
     }
 
     // Layout operations
-
     @Override
     protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
         super.onMeasure(getWidth(), getHeight());
     }
-
     @Override
     protected void onSizeChanged(int w, int h, int oldw, int oldh) {
         super.onSizeChanged(w, h, oldw, oldh);
@@ -139,7 +136,6 @@ public class Task_DayView extends FrameLayout {
 
 
     }
-
     public void myLayout(int left, int top, int right, int bottom) {
         if ((bottom - top) > (timeUnitSize) ) {
             // only if its more than 30 min
@@ -383,14 +379,23 @@ public class Task_DayView extends FrameLayout {
     private void initiateDragAndDrop() {
         String[] MIME_Type = {ClipDescription.MIMETYPE_TEXT_PLAIN};
         DragShadowBuilder defaultShadowBuilder = new DragShadowBuilder(this);
+        Integer height = getHeight();
+        ClipData.Item dataItem = new ClipData.Item(height.toString());
         if (repeatingEvent == null) {
-            ClipData.Item dataItem = new ClipData.Item("" + task.getHashID());
             ClipData data = new ClipData(Constants.TASK_OBJECT, MIME_Type, dataItem);
-            this.startDrag(data, defaultShadowBuilder, task, 0);
+
+            // TEST: Define before drag op:
+            SimpleDateFormat format = new SimpleDateFormat("yyyy.MM.dd  'at' HH:mm:ss z");
+            String start = format.format(task.getTaskStartTime().getTime());
+            String end = format.format(task.getTaskEndTime().getTime());
+            Log.d("A1: ", "\nBEFORE DRAG: " + "\nSTART: " + start + "\nEND: " + end);
+            Log.d("A2: ", "My Height is: " + this.getHeight());
+            // END TEST
+
+            this.startDrag(data, defaultShadowBuilder, this.task, 0);
         } else {
-            ClipData.Item dataItem = new ClipData.Item("" + repeatingEvent.getHashID());
             ClipData data = new ClipData(Constants.REPEATING_EVENT, MIME_Type, dataItem);
-            this.startDrag(data, defaultShadowBuilder, repeatingEvent, 0);
+            this.startDrag(data, defaultShadowBuilder, this.repeatingEvent, 0);
         }
     }
     public boolean isRepeatingEvent() {

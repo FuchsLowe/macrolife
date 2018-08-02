@@ -28,7 +28,6 @@ public class TaskObject {
     private String note;
     private String mods;
     private int mX, mY; // for location on the screen of Complex Activity
-    @Ignore
     /*
      * AllMods is enum based holder that manages insertion, removal and retrieval of mods from string
      * and acts as a intermediary so outside
@@ -37,6 +36,7 @@ public class TaskObject {
      * The initializer methods that on creation grabs the info and converts it into enums is called
      * defineMods and takes no parameters.
      */
+    @Ignore
     private ArrayList<Mods> allMods;
     @Ignore
     private ArrayList<Mods> acceptableMods;
@@ -176,25 +176,43 @@ public class TaskObject {
     }
     public void setTaskStartTime(Calendar taskStartTime) {
         this.taskStartTime = taskStartTime;
+        if (taskStartTime != null) {
+            // If We don't have end time then we can at max have only date as variable defined in TimeDef.
+            if (taskEndTime != null) {
+                if (taskEndTime.before(taskStartTime) ||
+                        taskEndTime.getTimeInMillis() == taskStartTime.getTimeInMillis()) {
+                    // we can't have end time appearing before start time or happening at same time
+                    this.taskEndTime = (Calendar) taskStartTime.clone();
+                    // We will add 15 min to differentiate the two
+                    this.taskEndTime.add(Calendar.MINUTE, 15);
+                }
+            } else {
+                setTimeDefined(TimeDefined.onlyDate);
+            }
+        } else {
+            this.taskEndTime = null;
+            timeDefined = TimeDefined.noTime;
+        }
     }
 
     public Calendar getTaskEndTime() {
         return taskEndTime;
     }
-    public boolean setTaskEndTime(Calendar taskEndTime) {
-        Calendar startTime = this.getTaskStartTime();
-        if (taskStartTime == null) {
-            this.taskEndTime = null;
-            return false;
-        } else if (taskEndTime == null) {
-            this.taskEndTime = null;
-            return true;
-        }
-        if (taskEndTime.after(startTime)) {
-            this.taskEndTime = taskEndTime;
-            return true;
+    public void setTaskEndTime(Calendar taskEndTime) {
+        // Must prevent start and end time collision and inconsistency
+        if (taskStartTime != null && taskEndTime != null) {
+            if (taskEndTime.before(taskStartTime)) {
+                // we can't accept this value...  we
+                this.taskEndTime = (Calendar) taskStartTime.clone();
+                // We set 15 min after start Time
+                this.taskEndTime.add(Calendar.MINUTE, 15);
+            } else {
+                // We can save:
+                this.taskEndTime = taskEndTime;
+            }
         } else {
-            return false;
+            // We can't set the time, because we don't have start time
+            this.taskEndTime = null;
         }
     }
 

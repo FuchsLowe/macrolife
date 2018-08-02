@@ -5,6 +5,7 @@ package com.fuchsundlowe.macrolife.DayView;
  */
 
 import android.content.BroadcastReceiver;
+import android.content.ClipData;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
@@ -23,6 +24,7 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.LinearLayout;
+import android.widget.ScrollView;
 
 import com.fuchsundlowe.macrolife.DataObjects.Constants;
 import com.fuchsundlowe.macrolife.DataObjects.DayOfWeek;
@@ -32,6 +34,7 @@ import com.fuchsundlowe.macrolife.EngineClasses.LocalStorage;
 import com.fuchsundlowe.macrolife.Interfaces.DataProviderNewProtocol;
 
 import java.sql.PreparedStatement;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.HashMap;
@@ -47,7 +50,6 @@ public class ChronoView extends ViewGroup {
     private int SCALE_FACTOR = 10; // Defines how many hours we will show at screen at one time...
     private int RIGHT_PADDING = 5;
     private int LEFT_PADDING = 10;
-    private float LEFT_OFFSET = 24;
     private boolean SHOW_HOURS = false;
     private int LINE_WIDTH = 1;
     private int ROW_IN_DP = 36;
@@ -70,6 +72,7 @@ public class ChronoView extends ViewGroup {
     private DataProviderNewProtocol dataProvider;
     private GestureDetectorCompat longPressDetector;
     private LocalBroadcastManager manager;
+    private String[] time;
 
 
 
@@ -108,6 +111,11 @@ public class ChronoView extends ViewGroup {
 
         longPressDetector = new GestureDetectorCompat(context, new LongPressDetector());
         dataProvider = LocalStorage.getInstance(context);
+
+        // Calculating the position to offset the Hour Divider line
+        time = getTimeRepresentation();
+        float lineOffset = maxTextSize(time);
+        lineStartMark = lineOffset + dpToPixConverter(5);
     }
 
     // Methods:
@@ -115,6 +123,7 @@ public class ChronoView extends ViewGroup {
         float scale = context.getResources().getDisplayMetrics().density;
         return (int) (dp * scale * 0.5f);
     }
+    // Generates the Time Format to be drawn on the ChronoView background.
     private String[] getTimeRepresentation(){
         String[] toReturn = new String[24];
         if (SHOW_HOURS) { // Hour system of 24h in a day
@@ -151,7 +160,6 @@ public class ChronoView extends ViewGroup {
         for (String text: textVals) {
             max = Math.max(max, textMarker.measureText(text));
         }
-        LEFT_OFFSET = max;
         return max;
     }
     private void createTempTimerDisplay() {
@@ -196,61 +204,107 @@ public class ChronoView extends ViewGroup {
                 switch (event.getAction()) {
                     case DragEvent.ACTION_DRAG_STARTED:
                         // determine if I should accept this
-                        if (event.getClipData().getDescription().getLabel() == Constants.TASK_OBJECT) {
+                        if (event.getClipDescription().getLabel().equals(Constants.TASK_OBJECT)
+                                ||
+                                event.getClipDescription().getLabel().equals(Constants.REPEATING_EVENT)) {
+                            Object eventDragged = event.getLocalState();
+                            // determine if these exist in current view hierachy and remove them if so
+                            if (eventDragged instanceof TaskObject) {
+                                for (int i = 0; i< getChildCount(); i++) {
+                                    View child = getChildAt(i);
+                                    if (child instanceof Task_DayView && !((Task_DayView) child).isRepeatingEvent()) {
+                                        if (((Task_DayView) child).getTaskObjectHashID() == ((TaskObject) eventDragged).getHashID()) {
+                                            removeView(child);
+                                            break;
+                                        }
+                                    }
+                                }
+                            } else if (eventDragged instanceof RepeatingEvent) {
+                                for (int i = 0; i < getChildCount(); i++) {
+                                    View child = getChildAt(i);
+                                    if (child instanceof Task_DayView && ((Task_DayView) child).isRepeatingEvent()) {
+                                        if (((Task_DayView) child).getActiveHashID() == ((RepeatingEvent) eventDragged).getHashID()) {
+                                            removeView(child);
+                                            break;
+                                        }
+                                    }
+                                }
+                            }
                             return true;
                         } else {
                             return false;
                         }
+
                     case DragEvent.ACTION_DRAG_ENTERED:
                         break;
                     case DragEvent.ACTION_DRAG_LOCATION:
-                        break;
+                       break;
                     case DragEvent.ACTION_DROP:
+                        // Grab the data and set new times and dates for task...
+                        SimpleDateFormat format = new SimpleDateFormat("yyyy.MM.dd  'at' HH:mm:ss z");
+
                         Object dropData = event.getLocalState();
-                        long timeDifferenceBetweenOldStartAndEndTime;
-                        Calendar newStartTime = getTimeLocationOf(event.getY());
-                        Calendar newEndTime;
+                        // Determining the start location based on the topBar of the DragShadow
+                        ClipData.Item itemHeight = event.getClipData().getItemAt(0);
+                        Integer height = Integer.valueOf(String.valueOf(itemHeight.getText()));
+
+                        Calendar newStartTime = getTimeLocationOf(event.getY() - (height/2));
+                        Calendar newEndTime = (Calendar) newStartTime.clone(); // not set yet to desired time
+                        // I need to determine if there is time defined, if not then I need to set
+                        // default 30 min duration...
                         if (dropData instanceof TaskObject) {
-                            timeDifferenceBetweenOldStartAndEndTime = calculateTimeDifference(
-                                    ((TaskObject) dropData).getTaskStartTime(),
-                                    ((TaskObject) dropData).getTaskEndTime());
-                            newEndTime = (Calendar) newStartTime.clone();
-                            newEndTime.add(Calendar.MILLISECOND, (int)
-                                    timeDifferenceBetweenOldStartAndEndTime);
-                            Task_DayView viewToPresent = getDisplayedTask(
-                                    ((TaskObject) dropData).getHashID());
-                            if (viewToPresent != null) {
-                                // Update time
-                                viewToPresent.setNewTaskTimes(newStartTime, newEndTime);
+                            if (((TaskObject) dropData).getTimeDefined() == TaskObject.TimeDefined.dateAndTime &&
+                                    ((TaskObject) dropData).getTaskEndTime() != null) {
+                                // Calculate the duration of task in previous terms:
+                                /* This is used instead of dropData because it is known that fields get
+                                 * corrupted during transport, if that even makes sense. What was happening
+                                 * was that the fields of start and end time would change values ( get
+                                 * multiplied by 8 or possibly some other value ) and then they would't
+                                 * make sense.
+                                 */
+                                TaskObject toHandle = dataProvider.findTaskObjectBy(((TaskObject) dropData).getHashID());
+
+                                Calendar oldStartTime = toHandle.getTaskStartTime();
+                                Calendar oldEndTime = toHandle.getTaskEndTime();
+
+                                // TEST: Displaying data
+                                String oldStartTimeString = format.format(oldStartTime.getTime());
+                                String oldEndTimeString = format.format(oldEndTime.getTime());
+                                Log.d("A1: ",
+                                        "\nRECEIVED DRAG" +
+                                                "\nSTART: " + oldStartTimeString +
+                                                "\nEND:" + oldEndTimeString
+                                        );
+                                //END TEST//
+
+                                long oldTaskDuration = oldEndTime.getTimeInMillis() - oldStartTime.getTimeInMillis();
+
+                                newEndTime.add(Calendar.MILLISECOND, (int) oldTaskDuration);
                             } else {
-                                // Create new view with new data:
-                                ((TaskObject) dropData).setTaskStartTime(newStartTime);
-                                ((TaskObject) dropData).setTaskEndTime(newEndTime);
-                                addNewTask((TaskObject) dropData, null);
+                                // we set default 30 min duration
+                                newEndTime.add(Calendar.MINUTE, 30);
                             }
 
-                        } else if (dropData instanceof  RepeatingEvent) {
-                            timeDifferenceBetweenOldStartAndEndTime = calculateTimeDifference(
-                                    ((RepeatingEvent) dropData).getStartTime(),
-                                    ((RepeatingEvent) dropData).getEndTime());
-                            newEndTime = (Calendar) newStartTime.clone();
-                            newEndTime.add(Calendar.MILLISECOND, (int)
-                                    timeDifferenceBetweenOldStartAndEndTime);
-                            Task_DayView viewToPresent = getDisplayedTask(
-                                    ((RepeatingEvent) dropData).getHashID());
-                            if (viewToPresent != null) {
-                                // Update time
-                                viewToPresent.setNewTaskTimes(newStartTime, newEndTime);
-                            } else {
-                                // Create new view with new data:
+                            ((TaskObject) dropData).setTaskStartTime(newStartTime);
+                            ((TaskObject) dropData).setTaskEndTime(newEndTime);
+                            ((TaskObject) dropData).setTimeDefined(TaskObject.TimeDefined.dateAndTime);
+
+                            dataProvider.saveTaskObject((TaskObject) dropData);
+                        } else if (dropData instanceof RepeatingEvent) {
+                            // So It can only come from ChronoView itself? It can't come from anywhere else
+                            // Then we only change the start and end time...
+                            RepeatingEvent eventToHandle = dataProvider.getEventWith(((RepeatingEvent) dropData).getHashID());
+                            if (eventToHandle!= null) {
+                                long durationOfEvent = eventToHandle.getEndTime().getTimeInMillis()
+                                        - eventToHandle.getStartTime().getTimeInMillis();
+                                newEndTime.add(Calendar.MILLISECOND, (int) durationOfEvent);
                                 ((RepeatingEvent) dropData).setStartTime(newStartTime);
                                 ((RepeatingEvent) dropData).setEndTimeWithReturn(newEndTime);
-                                addNewTask(
-                                        dataProvider.findTaskObjectBy(((RepeatingEvent) dropData).getParentID()),
-                                        (RepeatingEvent)dropData
-                                );
+                                // TODO Reposition it so you remove delay
+                                dataProvider.saveRepeatingEvent((RepeatingEvent) dropData);
                             }
                         } else {
+                            // Then we can't handle the drag
                             return false;
                         }
                         break;
@@ -285,17 +339,12 @@ public class ChronoView extends ViewGroup {
         super.draw(canvas);
         setWillNotDraw(false);
 
-        // Can draw on this canvas here because its gonna be static
-        String[] time = getTimeRepresentation();
-        int x = 10;
-        float lineOffset = maxTextSize(time);
-        lineStartMark = x + lineOffset + dpToPixConverter(5);
-        // Drawing:
+        // Drawing of hour text and line separator:
         for (int i = 0; i<24; i++) {
             int y = i * timeUnitSize;
-            canvas.drawText(time[i], x, y, textMarker);
+            canvas.drawText(time[i], 0, y, textMarker);
             canvas.drawLine(lineStartMark , y, canvas.getWidth(), y, lineMarker);
-            canvas.save();
+            //canvas.save(); don't think there is need for this...
         }
     }
     @Override
@@ -367,29 +416,37 @@ public class ChronoView extends ViewGroup {
             if (viewObject instanceof Task_DayView) {
                 Calendar startTime = ((Task_DayView) viewObject).getTaskStartTime();
                 Calendar endTime = ((Task_DayView) viewObject).getTaskEndTime();
-
-                if (startTime.get(Calendar.DAY_OF_YEAR) == dayDisplayed.get(Calendar.DAY_OF_YEAR)) {
+                // this is the problem... We assume its taskObject not repeatingEvent...
+                if (((Task_DayView) viewObject).isRepeatingEvent()) {
+                    // We do laying for repeating event
                     start = getPixelLocationOf(startTime, false);
-                } else { // means that task started before today
-                    start = 0;
-                }
-                if (endTime.get(Calendar.DAY_OF_YEAR) == dayDisplayed.get(Calendar.DAY_OF_YEAR)) {
                     end = getPixelLocationOf(endTime, false);
-                } else { // Means that task doesn't end on this day
-                    end = 24 * timeUnitSize;
+                } else {
+                    // We do layout for taskObject
+                    if (startTime.get(Calendar.DAY_OF_YEAR) == dayDisplayed.get(Calendar.DAY_OF_YEAR)) {
+                        start = getPixelLocationOf(startTime, false);
+                    } else { // means that task started before today
+                        start = 0;
+                    }
+                    if (endTime.get(Calendar.DAY_OF_YEAR) == dayDisplayed.get(Calendar.DAY_OF_YEAR)) {
+                        end = getPixelLocationOf(endTime, false);
+                    } else { // Means that task doesn't end on this day
+                        end = 24 * timeUnitSize;
+                    }
+                    // I need distance for 30 min in pixels
+                    // Displays only minimun time of 30 min
+                    int thirthyMinInPixels = timeUnitSize / 2;
+                    int thirtyMinInMilliseconds = 1800000;
+                    if ((endTime.getTimeInMillis() - startTime.getTimeInMillis()) < thirtyMinInMilliseconds) {
+                        end = start + thirthyMinInPixels;
+                    }
                 }
-                // I need distance for 30 min in pixels
-                // Displays only minimun time of 30 min
-                int thirthyMinInPixels = timeUnitSize / 2;
-                int thirtyMinInMilliseconds = 1800000;
-                if ((endTime.getTimeInMillis() - startTime.getTimeInMillis()) < thirtyMinInMilliseconds ) {
-                    end  = start + thirthyMinInPixels;
-                }
+                // The actual laying procedure...
                 ((Task_DayView) viewObject).myLayout((int) lineStartMark, start, this.getWidth(), end);
             } else {
                 //Assuming its only the TimeDisplayer
                 int top = getPixelLocationOf(Calendar.getInstance(), true);
-                tempTimeDisplayer.layout(20,top, this.getWidth() - 20, top + 15);
+                tempTimeDisplayer.layout((int) lineStartMark, top, this.getWidth() - 5, top + 15);
             }
         }
 

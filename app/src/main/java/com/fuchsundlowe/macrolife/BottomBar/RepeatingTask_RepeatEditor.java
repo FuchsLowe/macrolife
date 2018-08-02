@@ -81,6 +81,8 @@ public class RepeatingTask_RepeatEditor extends LinearLayout {
         RepeatingEvent newEvent = new RepeatingEvent(master.getHashID(), startTime, endTime, day,
                 newHashID, Calendar.getInstance());
         event = newEvent;
+        dataProvider.saveTaskObject(master); // TODO: Last change... does it change stuff
+
         dataProvider.saveRepeatingEvent(event);
 
     }

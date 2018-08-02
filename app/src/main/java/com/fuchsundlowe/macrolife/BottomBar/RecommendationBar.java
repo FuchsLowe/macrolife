@@ -12,6 +12,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import com.fuchsundlowe.macrolife.DataObjects.Constants;
+import com.fuchsundlowe.macrolife.DataObjects.RepeatingEvent;
 import com.fuchsundlowe.macrolife.DataObjects.TaskObject;
 import com.fuchsundlowe.macrolife.EngineClasses.LocalStorage;
 import com.fuchsundlowe.macrolife.Interfaces.DataProviderNewProtocol;
@@ -31,7 +32,7 @@ public class RecommendationBar extends Fragment {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        dataProvider = LocalStorage.getInstance(null);
+        dataProvider = LocalStorage.getInstance(getContext());
     }
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -47,13 +48,15 @@ public class RecommendationBar extends Fragment {
             if (mColumnCount <= 1) {
                 recyclerView.setLayoutManager(new LinearLayoutManager(context));
             } else {
-                recyclerView.setLayoutManager(new GridLayoutManager(context, mColumnCount));
+                GridLayoutManager gridLayoutManager = new GridLayoutManager(context, mColumnCount, GridLayoutManager.HORIZONTAL, false);
+                recyclerView.setLayoutManager(gridLayoutManager);
             }
+            // TODO: This is called on update of dataset... Can I remove the thing from it...
             adapter = new MyTaskRecommendedRecyclerViewAdapter(dataProvider.getDataForRecommendationBar());
             recyclerView.setAdapter(adapter);
         }
         baseView = view;
-        baseView.setBackgroundColor(Color.RED);
+
         defineDragAndDropListeners();
         return view;
     }
@@ -73,7 +76,14 @@ public class RecommendationBar extends Fragment {
         public boolean onDrag(View v, DragEvent event) {
             switch (event.getAction()) {
                 case DragEvent.ACTION_DRAG_STARTED:
-                    if (event.getClipData().getDescription().getLabel() == Constants.TASK_OBJECT) {
+                    if (event.getClipDescription().getLabel().equals(Constants.TASK_OBJECT)
+                            ||
+                            event.getClipDescription().getLabel().equals(Constants.REPEATING_EVENT)) {
+                        // Yes we can accept these values...
+                        /*
+                         * TODO: Establish if we are showing self to the screen, if not, we need to
+                         * present at least some area to enable the task to drop...
+                         */
                         return true;
                     } else {
                         return false;
@@ -85,7 +95,11 @@ public class RecommendationBar extends Fragment {
                 case DragEvent.ACTION_DROP:
                     Object dropData = event.getLocalState();
                     if (dropData instanceof TaskObject) {
+                        ((TaskObject) dropData).setTimeDefined(TaskObject.TimeDefined.noTime);
                         adapter.addTask((TaskObject) dropData);
+                        dataProvider.saveTaskObject((TaskObject) dropData);
+                    } else if (dropData instanceof RepeatingEvent) {
+                        // TODO: So what do we do then? Should we accept them? Or Just show that they aren't welcome?
                     }
                     break;
                 case DragEvent.ACTION_DRAG_EXITED:

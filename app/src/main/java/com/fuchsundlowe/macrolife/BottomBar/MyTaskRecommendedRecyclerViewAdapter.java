@@ -16,13 +16,13 @@ import java.util.ArrayList;
 public class MyTaskRecommendedRecyclerViewAdapter extends RecyclerView.Adapter<MyTaskRecommendedRecyclerViewAdapter.ViewHolder> {
 
     private ArrayList<TaskObject> data;
-
     public MyTaskRecommendedRecyclerViewAdapter(ArrayList<TaskObject> dataToPresent) {
         this.data = dataToPresent;
     }
 
     @Override
     public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+        // So how should this look like?
         View view = LayoutInflater.from(parent.getContext())
                 .inflate(R.layout.fragment_taskrecommended, parent, false);
         return new ViewHolder(view);
@@ -41,14 +41,25 @@ public class MyTaskRecommendedRecyclerViewAdapter extends RecyclerView.Adapter<M
     }
 
     public void addTask(TaskObject taskToAdd) {
+        // Look if we have the taks with the same hashID... means we are just adding same one to ourselves
+        for (TaskObject inHolder : data) {
+            if (inHolder.getHashID() == taskToAdd.getHashID()) {
+                // We don't add it
+                return;
+            }
+        }
         data.add(taskToAdd);
         notifyDataSetChanged();
+    }
+
+    public void removeTask(TaskObject objectToRemove, int adapterPosition) {
+        data.remove(objectToRemove);
+        notifyItemRemoved(adapterPosition);
     }
 
 
     // This class wraps data with view
     public class ViewHolder extends RecyclerView.ViewHolder {
-
         TaskObject data;
         View me;
         TextView toPutNameInto;
@@ -58,17 +69,25 @@ public class MyTaskRecommendedRecyclerViewAdapter extends RecyclerView.Adapter<M
             toPutNameInto = me.findViewById(R.id.taskName_RecomendationTask);
         }
 
+        private TaskObject getDataObject() {
+            return data;
+        }
+
         public void defineMe(TaskObject taskToRepresent) {
             this.data = taskToRepresent;
             toPutNameInto.setText(taskToRepresent.getTaskName());
-            me.setOnClickListener(new View.OnClickListener() {
+            me.setOnLongClickListener(new View.OnLongClickListener() {
                 @Override
-                public void onClick(View v) {
+                public boolean onLongClick(View v) {
+                    // We have a long click...
                     String[] MIME_Type = {ClipDescription.MIMETYPE_TEXT_PLAIN};
-                    ClipData.Item dataItem = new ClipData.Item(String.valueOf(data.getHashID()));
+                    // Sending the height so I could manage the layout better in whoever is accepting it.
+                    ClipData.Item dataItem = new ClipData.Item(String.valueOf(me.getHeight()));
                     ClipData data = new ClipData(Constants.TASK_OBJECT, MIME_Type, dataItem);
                     View.DragShadowBuilder shadowBuilder = new View.DragShadowBuilder(me);
-                    me.startDrag(data,shadowBuilder, data,0);
+                    me.startDrag(data,shadowBuilder, getDataObject(),0);
+                    removeTask(getDataObject(), getAdapterPosition());
+                    return true;
                 }
             });
         }

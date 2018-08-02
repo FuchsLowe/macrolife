@@ -256,30 +256,16 @@ public class RepeatingEventEditor extends ConstraintLayout {
                     switch (((ModButton) v).reportButtonType()) {
                         case delete:
                             // The delete procedure will remove all events based on current displayed mod
-                            // TODO this one should not manage the mod changes... that is done by Database provider
                             if (leftSideHolder.getVisibility() == VISIBLE) {
                                 // means that we have multi-values, xoxo cheat!!!
                                 localStorage.deleteAllRepeatingEvents(editedObject.getHashID(),
                                         TaskObject.Mods.repeatingMultiValues);
-                                editedObject.removeAMod(TaskObject.Mods.repeatingMultiValues);
-                                // If there is repeatingEvent then we will fall back to that...
-                                if (isThereAnyEventForThisMod(TaskObject.Mods.repeating)) {
-                                    editedObject.addMod(TaskObject.Mods.repeating);
-                                } else {
-                                    editedObject.removeAMod(TaskObject.Mods.repeating);
-                                }
-
+                                // DataBase will make changes and update the mod Status of taskObject
                             } else {
                                 // means that we have single repeating value
                                 localStorage.deleteAllRepeatingEvents(editedObject.getHashID(),
                                         TaskObject.Mods.repeating);
-                                editedObject.removeAMod(TaskObject.Mods.repeating);
-                                // If there is repeatingMulti-values we will fall back to that
-                                if (isThereAnyEventForThisMod(TaskObject.Mods.repeatingMultiValues)) {
-                                    editedObject.addMod(TaskObject.Mods.repeatingMultiValues);
-                                } else {
-                                    editedObject.removeAMod(TaskObject.Mods.repeatingMultiValues);
-                                }
+                                // DataBase will make changes and update the mod Status of taskObject
                             }
                             if (editedObject.getRepeatingMod() == null) {
                                 // This task no longer supports repeating mods and shoud therefore

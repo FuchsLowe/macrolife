@@ -14,6 +14,7 @@ import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
+import android.view.DragEvent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -27,6 +28,7 @@ import com.fuchsundlowe.macrolife.EngineClasses.LocalStorage;
 import com.fuchsundlowe.macrolife.Interfaces.DataProviderNewProtocol;
 import com.fuchsundlowe.macrolife.R;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.HashSet;
@@ -45,6 +47,7 @@ public class DayDisplay_DayView extends Fragment {
     private BroadcastReceiver broadcastReceiver;
     private DataProviderNewProtocol dataMaster;
     private Set<Integer> taskIDs;
+    private List<RepeatingEvent> eventHolder;
 
     //Lifecycle Methods:
     @Nullable
@@ -62,6 +65,7 @@ public class DayDisplay_DayView extends Fragment {
         chronoView = new ChronoView(getContext(), dayWeDisplay);
         chronoViewHolder.addView(chronoView);
         taskIDs = new HashSet<>();
+        eventHolder = new ArrayList<>();
 
         // Subscribe to live data:
         dataMaster.getAllEvents().observe(this, new Observer<List<RepeatingEvent>>() {
@@ -75,6 +79,7 @@ public class DayDisplay_DayView extends Fragment {
             @Override
             public void onChanged(@Nullable List<RepeatingEvent> repeatingEvents) {
                 List<RepeatingEvent> toSend = new ArrayList<>();
+                eventHolder = repeatingEvents;
                 for (RepeatingEvent event: repeatingEvents) {
                     if (taskIDs.contains(event.getParentID())) {
                         toSend.add(event);
@@ -91,12 +96,21 @@ public class DayDisplay_DayView extends Fragment {
                 for (TaskObject object : taskObjects) {
                     taskIDs.add(object.getHashID());
                 }
-                chronoView.setData(taskObjects, null);
-
+                List<RepeatingEvent> toSendEvents = new ArrayList<>();
+                if (eventHolder != null) {
+                    for (RepeatingEvent event: eventHolder) {
+                        if (taskIDs.contains(event.getParentID())) {
+                            toSendEvents.add(event);
+                        }
+                    }
+                }
+                chronoView.setData(taskObjects, toSendEvents);
             }
         });
 
         defineLocalBroadcast();
+
+    //    observe();
         return baseView;
     }
     public void defineChronoView(Calendar toDisplay) {
@@ -117,7 +131,6 @@ public class DayDisplay_DayView extends Fragment {
         };
         h.postDelayed(m, 500);
     }
-
     // Methods:
     private void scrollTo(int hour) {
         int scrollAmount;
@@ -146,6 +159,27 @@ public class DayDisplay_DayView extends Fragment {
         intentFilter.addAction(Constants.INTENT_FILTER_NEW_TASK);
         LocalBroadcastManager.getInstance(getContext()).registerReceiver(broadcastReceiver,
                 intentFilter);
+    }
+
+    // TODO: TEST
+    void observe() {
+        if (dataMaster instanceof LocalStorage) {
+            ((LocalStorage) dataMaster).dataBase.newDAO().findTaskObjectWith(6).observe(this, new Observer<TaskObject>() {
+                @Override
+                public void onChanged(@Nullable TaskObject taskObject) {
+                    if (taskObject != null) {
+                        SimpleDateFormat f = new SimpleDateFormat("dd-MM-yyyy 'at' HH:mm");
+                        String toLog =
+                                "\n\n\n" +" AfterSaveReport" +
+                                        "\nTASK: " + taskObject.getHashID() +
+                                        "\nStartTime: " + f.format(taskObject.getTaskStartTime().getTime()) +
+                                        "\nEndTime: " + f.format(taskObject.getTaskEndTime().getTime()) +
+                                        "\n\n\n";
+                        Log.d("A1: ", toLog);
+                    }
+                }
+            });
+        }
     }
 
 }

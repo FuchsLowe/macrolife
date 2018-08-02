@@ -27,10 +27,18 @@ public class TimePickerFragment extends android.support.v4.app.DialogFragment
     public Dialog onCreateDialog(Bundle savedInstanceState) {
         int hour, minute;
         Calendar c;
-        if (taskObject.getTaskStartTime() != null) {
-            c = taskObject.getTaskStartTime();
+        if (isEditiingStartValue) {
+            if (taskObject.getTaskStartTime() != null) {
+                c = taskObject.getTaskStartTime();
+            } else {
+                c = Calendar.getInstance();
+            }
         } else {
-            c = Calendar.getInstance();
+            if (taskObject.getTaskEndTime() != null) {
+                c = taskObject.getTaskEndTime();
+            } else {
+                c= Calendar.getInstance();
+            }
         }
         hour = c.get(Calendar.HOUR_OF_DAY);
         minute = c.get(Calendar.MINUTE);

@@ -79,6 +79,9 @@ public interface NewDAO {
     @Query("SELECT * FROM TASKOBJECT")
     TaskObject[] TEST_taskObjects();
 
+    @Query("SELECT * FROM TASKOBJECT WHERE (hashID == :hashID)")
+    LiveData<TaskObject> findTaskObjectWith(int hashID);
+
 
     // Specialty Queries:
     @Query("SELECT * FROM TaskObject WHERE (TimeDefined == 2 AND ((taskStartTime BETWEEN :dayStart AND :dayEnd) OR " +

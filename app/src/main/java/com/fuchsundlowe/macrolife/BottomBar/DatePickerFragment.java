@@ -22,10 +22,18 @@ public class DatePickerFragment extends DialogFragment
     public Dialog onCreateDialog(Bundle savedInstanceState) {
         int year, month, day;
         Calendar c;
-        if (taskObject.getTaskStartTime() != null) {
-            c = taskObject.getTaskStartTime();
+        if (isEditingStartValue) {
+            if (taskObject.getTaskStartTime() != null) {
+                c = taskObject.getTaskStartTime();
+            } else {
+                c = Calendar.getInstance();
+            }
         } else {
-            c = Calendar.getInstance();
+            if (taskObject.getTaskEndTime() != null) {
+                c = taskObject.getTaskEndTime();
+            } else {
+                c = Calendar.getInstance();
+            }
         }
 
         year = c.get(Calendar.YEAR);

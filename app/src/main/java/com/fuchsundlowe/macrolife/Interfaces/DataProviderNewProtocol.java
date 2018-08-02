@@ -22,6 +22,7 @@ public interface DataProviderNewProtocol {
     LiveData<List<TaskObject>> getTaskThatIntersects(Calendar day);
     LiveData<List<RepeatingEvent>> getEventsThatIntersect(Calendar day);
     List<RepeatingEvent> getEventsBy(int masterID, TaskObject.Mods mod);
+    RepeatingEvent getEventWith(int hashID);
     ComplexGoal getComplexGoalBy(int masterID);
     void deleteTask(TaskObject objectToDelete);
     void saveListObject(ListObject objectToSave);

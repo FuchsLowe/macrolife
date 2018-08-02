@@ -45,10 +45,7 @@ public class ExampleUnitTest {
     public void myTest() {
         defien();
         Set<Integer> bob = new HashSet<>();
-        bob.
 
-
-        String Jacka ="Jackal hasnaj";
     }
 
 

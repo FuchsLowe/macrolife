@@ -28,7 +28,6 @@ public class RecommendationBar extends Fragment {
 
     public RecommendationBar() {
     }
-
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -51,26 +50,23 @@ public class RecommendationBar extends Fragment {
                 GridLayoutManager gridLayoutManager = new GridLayoutManager(context, mColumnCount, GridLayoutManager.HORIZONTAL, false);
                 recyclerView.setLayoutManager(gridLayoutManager);
             }
-            // TODO: This is called on update of dataset... Can I remove the thing from it...
             adapter = new MyTaskRecommendedRecyclerViewAdapter(dataProvider.getDataForRecommendationBar());
             recyclerView.setAdapter(adapter);
+
         }
         baseView = view;
 
         defineDragAndDropListeners();
         return view;
     }
-
     @Override
     public void onDetach() {
         super.onDetach();
         dataProvider = null;
     }
-
     private void defineDragAndDropListeners() {
         baseView.setOnDragListener(new RecommendationBar_DragListener());
     }
-
     public class RecommendationBar_DragListener implements View.OnDragListener {
         @Override
         public boolean onDrag(View v, DragEvent event) {

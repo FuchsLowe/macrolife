@@ -65,11 +65,7 @@ public class LocalStorage implements DataProviderNewProtocol {
     }
 
     // Database Calls:
-    @Override
-    public LiveData<List<TaskObject>> getTasksFor(Calendar day) {
-        // Currently Unsuported?
-        return null;
-    }
+
     @Override // Static return value
     public ComplexGoal findComplexGoal(int byID) {
         if (complexGoalHolder.getValue() != null) {
@@ -90,6 +86,10 @@ public class LocalStorage implements DataProviderNewProtocol {
             }
         }
         return null;
+    }
+    @Override
+    public LiveData<List<TaskObject>>getLiveDataForRecommendationBar(){
+        return dataBase.newDAO().getTasksForRecommendationFetcher();
     }
     public LiveData<List<TaskObject>> getTaskThatIntersects(Calendar day) {
         // Get the long values of start and end of day...

@@ -15,29 +15,44 @@ import java.util.List;
 import java.util.Set;
 
 public interface DataProviderNewProtocol {
-    LiveData<List<TaskObject>> getTasksFor(Calendar day);
-    ComplexGoal findComplexGoal(int byID);
+
+
+
+    // Task Object calls:
     TaskObject findTaskObjectBy(int ID);
-    // tasks either starts, ends or lasts through this day
+    void saveTaskObject(TaskObject task);
+    ArrayList<TaskObject>getDataForRecommendationBar();
+    LiveData<List<TaskObject>>getLiveDataForRecommendationBar();
+    LiveData<TaskObject> getTaskObjectWithCreationTime(Calendar creationTime);
+    void deleteTask(TaskObject objectToDelete);
     LiveData<List<TaskObject>> getTaskThatIntersects(Calendar day);
+
+
+    // Repeating Events:
+    LiveData<List<RepeatingEvent>>getAllEvents();
     LiveData<List<RepeatingEvent>> getEventsThatIntersect(Calendar day);
     List<RepeatingEvent> getEventsBy(int masterID, TaskObject.Mods mod);
     RepeatingEvent getEventWith(int hashID);
-    ComplexGoal getComplexGoalBy(int masterID);
-    void deleteTask(TaskObject objectToDelete);
-    void saveListObject(ListObject objectToSave);
-    void deleteListObject(ListObject objectToDelete);
-    List<ListObject> findListFor(int taskObjectID);
-    void deleteRepeatingEvent(RepeatingEvent eventToDelete);
-    void deleteAllRepeatingEvents(int forMasterID, TaskObject.Mods withMod);
     void saveRepeatingEvent(RepeatingEvent event);
     void reSaveRepeatingEventsFor(int masterHashID);
-    LiveData<List<RepeatingEvent>>getAllEvents();
-    void saveTaskObject(TaskObject task);
-    ArrayList<TaskObject>getDataForRecommendationBar();
+    void deleteAllRepeatingEvents(int forMasterID, TaskObject.Mods withMod);
+    void deleteRepeatingEvent(RepeatingEvent eventToDelete);
+
+
+    // List Objects:
+    List<ListObject> findListFor(int taskObjectID);
+    void saveListObject(ListObject objectToSave);
+    void deleteListObject(ListObject objectToDelete);
+
+
+    // Complex Goals:
+    ComplexGoal getComplexGoalBy(int masterID);
+    ComplexGoal findComplexGoal(int byID);
+
+
+    // Methods:
     boolean isDataBaseOpen();
     void closeDataBase();
-    LiveData<TaskObject> getTaskObjectWithCreationTime(Calendar creationTime);
     int findNextFreeHashIDForTask();
     int findNextFreeHashIDForList();
     int findNextFreeHashIDForEvent();

@@ -96,11 +96,13 @@ public interface NewDAO {
             "(:dayEnd BETWEEN startTime AND endTime)" )
     LiveData<List<RepeatingEvent>> getEventThatIntersects(long dayStart, long dayEnd);
 
-
     @Query("SELECT * FROM TaskObject WHERE (TimeDefined == 1 AND taskStartTime BETWEEN :dayStart AND :dayEnd)")
     LiveData<List<TaskObject>> getReminderTasksForDay(long dayStart, long dayEnd);
 
     @Query("SELECT * FROM TaskObject WHERE (taskCreatedTimeStamp == :timeStamp)")
     LiveData<TaskObject> getTaskObjectWithCreationTime(long timeStamp);
+
+    @Query("SELECT * FROM TaskObject WHERE (timeDefined == 0 AND isTaskCompleted == 0)")
+    LiveData<List<TaskObject>> getTasksForRecommendationFetcher();
 
 }

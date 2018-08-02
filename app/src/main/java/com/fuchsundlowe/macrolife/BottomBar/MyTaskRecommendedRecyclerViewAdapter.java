@@ -83,11 +83,18 @@ public class MyTaskRecommendedRecyclerViewAdapter extends RecyclerView.Adapter<M
                     String[] MIME_Type = {ClipDescription.MIMETYPE_TEXT_PLAIN};
                     // Sending the height so I could manage the layout better in whoever is accepting it.
                     ClipData.Item dataItem = new ClipData.Item(String.valueOf(me.getHeight()));
-                    ClipData data = new ClipData(Constants.TASK_OBJECT, MIME_Type, dataItem);
-                    View.DragShadowBuilder shadowBuilder = new View.DragShadowBuilder(me);
-                    me.startDrag(data,shadowBuilder, getDataObject(),0);
+                    final ClipData data = new ClipData(Constants.TASK_OBJECT, MIME_Type, dataItem);
+                    final  View.DragShadowBuilder shadowBuilder = new View.DragShadowBuilder(me);
+                    me.startDrag(data, shadowBuilder, getDataObject(), 0);
                     removeTask(getDataObject(), getAdapterPosition());
-                    return true;
+                    return false;
+                    /*
+                     * TODO: Possible solution:
+                     * Maybe you can remove the task after it has been confirmed attached to the
+                     * other view...
+                     * Maybe you can send signal to this object that it is no longer the noTime,
+                     * lets give him a date
+                     */
                 }
             });
         }

@@ -262,18 +262,20 @@ public class TaskObject {
         if (timeDefined == TimeDefined.noTime) {
             setTaskStartTime(null);
             setTaskEndTime(null);
+        } else if (timeDefined == TimeDefined.onlyDate) {
+            setTaskEndTime(null);
         }
     }
 
     // Enum that defines the types of checkable statuses that exist
     public enum CheckableStatus {
-        notCheckable, incomplete, completed;
+        notCheckable, incomplete, completed
     }
     public enum TimeDefined {
         noTime, onlyDate, dateAndTime
     }
     // Lists all mods that task can have
     public enum Mods {
-        note, repeating, repeatingMultiValues, list, checkable, dateAndTime, delete;
+        note, repeating, repeatingMultiValues, list, checkable, dateAndTime, delete
     }
 }

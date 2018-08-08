@@ -17,7 +17,7 @@ import com.fuchsundlowe.macrolife.R;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Locale;
-
+// The class that holds DatesDisplay and provides all the functionality of that fragment
 public class DateDisplay_DayView extends Fragment implements View.OnClickListener{
 
 
@@ -82,7 +82,7 @@ public class DateDisplay_DayView extends Fragment implements View.OnClickListene
     }
 
     // Methods:
-    //Called by outside class to fill in the data for the Fragment
+    //Called by outside class to fill in the taskPresented for the Fragment
     public void defineTopBar(DayViewTopFragmentCallback protocol, Calendar weekToDisplay) {
         this.callback = protocol;
         this.weekWeDisplay = weekToDisplay;
@@ -103,19 +103,11 @@ public class DateDisplay_DayView extends Fragment implements View.OnClickListene
      //   while (rolled.get(Calendar.WEEK_OF_YEAR) == weekInfo.get(Calendar.WEEK_OF_YEAR)) {
         for (int i = 1; i<=7; i++) {
 
-            if (rolled.get(Calendar.MONTH) == weekInfo.get(Calendar.MONTH)) {
-                isSelectedMonth = true;
-            } else { isSelectedMonth = false; }
+            isSelectedMonth = rolled.get(Calendar.MONTH) == weekInfo.get(Calendar.MONTH);
 
-            if (rolled.get(Calendar.DAY_OF_YEAR) == weekInfo.get(Calendar.DAY_OF_YEAR)) {
-                isSelected = true;
-            } else { isSelected = false; }
+            isSelected = rolled.get(Calendar.DAY_OF_YEAR) == weekInfo.get(Calendar.DAY_OF_YEAR);
 
-            if (rolled.get(Calendar.DAY_OF_YEAR) == currentDay.get(Calendar.DAY_OF_YEAR)) {
-                isCurrentDay = true;
-            } else {
-                isCurrentDay = false;
-            }
+            isCurrentDay = rolled.get(Calendar.DAY_OF_YEAR) == currentDay.get(Calendar.DAY_OF_YEAR);
             Calendar toPass = (Calendar) rolled.clone();
             switch (firstDay) {
                 case 2:
@@ -236,6 +228,7 @@ public class DateDisplay_DayView extends Fragment implements View.OnClickListene
 
     }
 
+    // Changes the selected day
     public void changeSelection(Calendar newTimeSelected) {
         if (pos1.getTimeValue().get(Calendar.DAY_OF_WEEK) == newTimeSelected.get(Calendar.DAY_OF_WEEK)) {
             pos1.toggleSelected(true);

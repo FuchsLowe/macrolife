@@ -22,14 +22,15 @@ public class DatePickerFragment extends DialogFragment
     public Dialog onCreateDialog(Bundle savedInstanceState) {
         int year, month, day;
         Calendar c;
+        DatePickerDialog datePicker;
         if (isEditingStartValue) {
-            if (taskObject.getTaskStartTime() != null) {
+            if (taskObject.getTaskStartTime() != null && taskObject.getTaskStartTime().getTimeInMillis() > 0) {
                 c = taskObject.getTaskStartTime();
             } else {
                 c = Calendar.getInstance();
             }
         } else {
-            if (taskObject.getTaskEndTime() != null) {
+            if (taskObject.getTaskEndTime() != null && taskObject.getTaskEndTime().getTimeInMillis() > 0) {
                 c = taskObject.getTaskEndTime();
             } else {
                 c = Calendar.getInstance();
@@ -40,7 +41,16 @@ public class DatePickerFragment extends DialogFragment
         month = c.get(Calendar.MONTH);
         day = c.get(Calendar.DAY_OF_MONTH);
         // Create a new instance of DatePickerDialog and return it
-        return new DatePickerDialog(getActivity(), this, year, month, day);
+        datePicker = new DatePickerDialog(protocol.getBaseView().getContext(), this, year, month, day);
+        if (!isEditingStartValue) {
+            // Define minValue to be that of startTime
+            if (taskObject.getTaskStartTime() != null) {
+                Calendar minTime = (Calendar) taskObject.getTaskStartTime().clone();
+                minTime.add(Calendar.MINUTE, 1);
+                datePicker.getDatePicker().setMinDate(minTime.getTimeInMillis());
+            }
+        }
+        return datePicker;
     }
 
     public void defineMe(TaskObject objectManipulated, EditTaskProtocol protocol, boolean isEditingStartValue) {
@@ -54,6 +64,7 @@ public class DatePickerFragment extends DialogFragment
         if (isEditingStartValue) {
             valueEdited = taskObject.getTaskStartTime();
         } else {
+            // Establish if end time comes before Start time
             valueEdited = taskObject.getTaskEndTime();
         }
         valueEdited.set(Calendar.YEAR, year);

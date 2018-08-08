@@ -433,7 +433,7 @@ public class Task_DayView extends FrameLayout {
     }
     // Local Enum:
     private enum ClickLocation{
-        top, center, bottom, none;
+        top, center, bottom, none
     }
 
 

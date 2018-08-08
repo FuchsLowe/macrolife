@@ -228,12 +228,12 @@ public class ComplexTaskActivity extends AppCompatActivity implements ComplexTas
             // Create a Bubble view and ConnectorView adjecent to the current ViewManaged
             globalEdit = true; // Just indicator
             // I need to establish if it should commence bubble creation or cancelation of tail?
-            if (((ComplexTaskChevron)viewManaged).getOutTail() != null) {
+            if (viewManaged.getOutTail() != null) {
                 // means we have a tail already, thus we signal that we can destroy it
-                ((ComplexTaskChevron)viewManaged).requestTailCancelOption();
+                viewManaged.requestTailCancelOption();
             } else {
                 // we don't have outTail and we can create a bubble to make one
-                mBubble = new BubbleView(this, (ComplexTaskChevron) viewManaged,
+                mBubble = new BubbleView(this, viewManaged,
                         BubbleView.ConnectorState.initiated);
                 container.addView(mBubble);
                 // Signal to all Chevrons to redraw themselves for editing.
@@ -305,7 +305,7 @@ public class ComplexTaskActivity extends AppCompatActivity implements ComplexTas
                         break;
                     case 1:
                         chev.setStateFlag(ComplexTaskChevron.ChevronStates.globalEdit,
-                                ((ComplexTaskChevron)viewManaged).getDataID());
+                                viewManaged.getDataID());
                         break;
                 }
             }
@@ -336,9 +336,7 @@ public class ComplexTaskActivity extends AppCompatActivity implements ComplexTas
         if (mBubble != null) {
             Rect hit = new Rect();
             mBubble.getGlobalVisibleRect(hit);
-            if (hit.contains((int) x, (int) y)) {
-                return true;
-            }
+            return hit.contains((int) x, (int) y);
         }
         return false;
     }
@@ -494,7 +492,7 @@ public class ComplexTaskActivity extends AppCompatActivity implements ComplexTas
                             viewManaged.setTranslationX(viewManaged.getTranslationX() + translationX);
                             viewManaged.setTranslationY(viewManaged.getTranslationY() +translationY);
 
-                            ((ComplexTaskChevron) viewManaged).invalidateTails();
+                            viewManaged.invalidateTails();
 
                             // if view goes out of bounds we increase the bounds...
                             if (viewManaged.getX() + viewManaged.getWidth() > container.getWidth()) {
@@ -542,13 +540,13 @@ public class ComplexTaskActivity extends AppCompatActivity implements ComplexTas
                             if (chevronToConnect((int)(currentX),(int) (currentY))) {
                             //if (chevronToConnect(mBubble)) {
                                 if (connectionCandidate != null) {
-                                    ((ComplexTaskChevron) viewManaged).setConnection
+                                    viewManaged.setConnection
                                             (connectionCandidate.getDataID());
                                     // Cancel Bubble
                                     cancelBubble();
                                     // Remove a tail that exists already or shoudl I reuse the existing one?
                                     mTail.reuseTailView(null, connectionCandidate);
-                                    ((ComplexTaskChevron) viewManaged).setOutTail(mTail);
+                                    viewManaged.setOutTail(mTail);
                                     connectionCandidate.addInTail(mTail);
                                     allTails.add(mTail);
                                     mTail = null;
@@ -639,7 +637,7 @@ public class ComplexTaskActivity extends AppCompatActivity implements ComplexTas
                 // We have clicked on view
                 if (viewManaged != null) {
                     if (viewManaged instanceof ComplexTaskChevron) {
-                        bottomBar.editChevronInComplexActivity((ComplexTaskChevron) viewManaged);
+                        bottomBar.editChevronInComplexActivity(viewManaged);
                         signalGlobalEdit(true); // this one calls views to redraw themselves for editing
                     }
                 }

@@ -583,11 +583,7 @@ public class StorageMaster implements DataProviderProtocol {
     }
     // Returns true if a date falls between start and end time
     private boolean checkIfBelongsTimeWise(Calendar startTime, Calendar endTime, Calendar checkTime) {
-        if (checkTime.after(startTime) && checkTime.before(endTime)) {
-            return true;
-        } else {
-            return false;
-        }
+        return checkTime.after(startTime) && checkTime.before(endTime);
     }
     // DatabaseConnector interface methods:
     // A legacy call that is used instead of the LiveData Objects.

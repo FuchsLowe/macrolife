@@ -14,6 +14,8 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Rect;
+import android.os.Handler;
+import android.os.Looper;
 import android.support.annotation.Nullable;
 import android.support.v4.content.LocalBroadcastManager;
 import android.support.v4.view.GestureDetectorCompat;
@@ -178,6 +180,7 @@ public class ChronoView extends ViewGroup {
                 timerLoop = new Timer();
             }
             if (enabled) {
+                final Handler main = new Handler(Looper.getMainLooper());
                 TimerTask timerTask = new TimerTask() {
                     @Override
                     public void run() {
@@ -185,10 +188,16 @@ public class ChronoView extends ViewGroup {
                         if (tempTimeDisplayer == null) {
                            createTempTimerDisplay();
                         }
-                        Calendar toPass = Calendar.getInstance();
+                        final Calendar toPass = Calendar.getInstance();
                         //toPass.set(Calendar.HOUR_OF_DAY, timeOfDay);
-                        tempTimeDisplayer.setY(getPixelLocationOf(toPass,
-                                true));
+                        main.post(new Runnable() {
+                            @Override
+                            public void run() {
+                                tempTimeDisplayer.setY(getPixelLocationOf(toPass,
+                                        true));
+                            }
+                        });
+
                     }
                 };
                 timerLoop.scheduleAtFixedRate(timerTask, 0, TIMER_UPDATE_INTERVAL);

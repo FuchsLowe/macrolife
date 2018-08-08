@@ -396,13 +396,17 @@ public class EditTaskBottomBar extends Fragment implements EditTaskProtocol {
                                     break;
                                 case clear:
                                     // Detect which value to delete
-                                    taskObject.setTimeDefined(TaskObject.TimeDefined.onlyDate);
-                                    // TODO: Should I save?
+                                    if (modSelected == ModButton.SpecialtyButton.startValues) {
+                                        taskObject.setTimeDefined(TaskObject.TimeDefined.noTime);
+                                    } else {
+                                        taskObject.setTimeDefined(TaskObject.TimeDefined.onlyDate);
+                                        taskObject.setTaskEndTime(null);
+                                    }
+                                    dataProvider.saveTaskObject(taskObject);
                                     break;
                                 case delete:
                                     // Should there be warning?
                                     taskObject.setTimeDefined(TaskObject.TimeDefined.noTime);
-                                    // TODO: SHould I Save?
                                     break;
                                 case time:
                                     TimePickerFragment timeFragment = new TimePickerFragment();
@@ -436,7 +440,7 @@ public class EditTaskBottomBar extends Fragment implements EditTaskProtocol {
                 ModButton.SpecialtyButton[] firstRowButtons = {ModButton.SpecialtyButton.date,
                         ModButton.SpecialtyButton.time, ModButton.SpecialtyButton.clear};
                 ModButton.SpecialtyButton[] secondRow = {ModButton.SpecialtyButton.startValues,
-                        ModButton.SpecialtyButton.endValues, ModButton.SpecialtyButton.delete, ModButton.SpecialtyButton.clear};
+                        ModButton.SpecialtyButton.endValues}; //, ModButton.SpecialtyButton.delete, ModButton.SpecialtyButton.clear};
                 int[] paddingAndButtonValues = calculatePaddingAndButtonHeight(firstRowButtons.length, secondRow.length);
 
                 // Creating the first row buttons and adding them along with space for even look

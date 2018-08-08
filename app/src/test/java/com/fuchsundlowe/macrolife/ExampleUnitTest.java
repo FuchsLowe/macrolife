@@ -21,6 +21,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import static java.util.Calendar.YEAR;
+
 /**
  * Example local unit test, which will execute on the development machine (host).
  *
@@ -28,52 +30,60 @@ import java.util.Set;
  */
 public class ExampleUnitTest {
 
-    private ArrayList<TaskObject.Mods> allMods;
-    private ArrayList<TaskObject.Mods> acceptableMods;
-    String mods;
-
-    void defien() {
-        mods = "";
-        allMods = new ArrayList<>();
-        acceptableMods = new ArrayList<>();
-        acceptableMods.add(TaskObject.Mods.repeating);
-        acceptableMods.add(TaskObject.Mods.repeatingMultiValues);
-        acceptableMods.add(TaskObject.Mods.note);
-    }
 
     @Test
     public void myTest() {
-        defien();
-        Set<Integer> bob = new HashSet<>();
+        Calendar timeNow = Calendar.getInstance();
+        Calendar endTime, startTime;
 
-    }
+        int TIMES_TO_REPEAT = 250;
 
-
-    public void addMod(TaskObject.Mods modToAdd) {
-        if (acceptableMods.contains(modToAdd)) {
-            if (!allMods.contains(modToAdd)) {
-                allMods.add(modToAdd);
-
-                // This implementation prevents us from having both mods because they are mutually exclusive
-                if (modToAdd == TaskObject.Mods.repeating) {
-                    removeAMod(TaskObject.Mods.repeatingMultiValues);
-                } else if (modToAdd == TaskObject.Mods.repeatingMultiValues) {
-                    removeAMod(TaskObject.Mods.repeating);
-                }
+        startTime = Calendar.getInstance();
+        endTime = Calendar.getInstance();
+        for (int i = -1; i>-TIMES_TO_REPEAT; i--) {
+            endTime.add(Calendar.WEEK_OF_YEAR, i);
+            if (distanceToMoveWeeks(startTime, endTime) != -1) {
+                throw new AssertionError("Value is wrong for -1");
+            }else {
+                System.out.print("WE PASSED TEST for i = " + i + "\n");
             }
-            updateMods();
+        }
+        endTime = Calendar.getInstance();
+
+        for (int i = 0; i < TIMES_TO_REPEAT; i++) {
+            endTime.add(Calendar.WEEK_OF_YEAR, 0);
+            if (distanceToMoveWeeks(startTime, endTime) != 0) {
+                throw new AssertionError("Value is wrong for 0");
+            }else {
+                System.out.print("WE PASSED TEST for i = " + i + "\n");
+            }
+        }
+
+        endTime = Calendar.getInstance();
+        for (int i = 1; i<TIMES_TO_REPEAT; i++) {
+            endTime.add(Calendar.WEEK_OF_YEAR, i);
+            if (distanceToMoveWeeks(startTime, endTime) != 1) {
+                throw new AssertionError("Value is wrong for 1");
+            } else {
+                System.out.print("WE PASSED TEST for i = " + i + "\n") ;
+            }
         }
     }
-    public void removeAMod(TaskObject.Mods modToRemove) {
-        allMods.remove(modToRemove);
-        updateMods();
-    }
-
-    private void updateMods() {
-        mods = ""; // We clean the mods
-        for (TaskObject.Mods mod : allMods) {
-            mods+= "\n"+ mod.toString();
+    int distanceToMoveWeeks(Calendar currentDate, Calendar newDate) {
+        int toReturn = 0;
+        if (currentDate.get(YEAR) ==  newDate.get(YEAR)) {
+            if (currentDate.get(Calendar.WEEK_OF_YEAR) == newDate.get(Calendar.WEEK_OF_YEAR)) {
+                toReturn= 0;
+            } else if (currentDate.get(Calendar.WEEK_OF_YEAR) > newDate.get(Calendar.WEEK_OF_YEAR)) {
+                toReturn = -1;
+            } else {
+                toReturn = 1;
+            }
+        } else if (currentDate.get(YEAR) > newDate.get(YEAR)) {
+            toReturn = -1;
+        } else {
+            toReturn = 1;
         }
+        return toReturn;
     }
-
 }

@@ -40,9 +40,7 @@ public class CalendarButton extends android.support.v7.widget.AppCompatButton {
         this.isCurrentDay = isCurrentDay;
         this.isSelected = isSelected;
         this.isCurrentMonth = isCurrentMonth;
-        if (timeValue.get(Calendar.DAY_OF_WEEK) == 1 || timeValue.get(Calendar.DAY_OF_WEEK) == 7) {
-            isWeekend = true;
-        } else { isWeekend = false; }
+        isWeekend = timeValue.get(Calendar.DAY_OF_WEEK) == 1 || timeValue.get(Calendar.DAY_OF_WEEK) == 7;
         this.setText(String.valueOf(timeValue.get(Calendar.DAY_OF_MONTH)));
         requestLayout();
     }

@@ -53,12 +53,12 @@ public class PopUpGridAdapter extends BaseAdapter {
             LayoutInflater inflater = (LayoutInflater) mContext.getSystemService(
                     Context.LAYOUT_INFLATER_SERVICE);
             gridCard = inflater.inflate(R.layout.grid_view, null);
-            TextView setName = (TextView) gridCard.findViewById(R.id.taskName_gridCard);
+            TextView setName = gridCard.findViewById(R.id.taskName_gridCard);
             setName.setText(dataHolder.get(position).name);
 
         } else {
             gridCard = convertView;
-            TextView setName = (TextView) gridCard.findViewById(R.id.taskName_gridCard);
+            TextView setName = gridCard.findViewById(R.id.taskName_gridCard);
             setName.setText(dataHolder.get(position).name);
         }
 

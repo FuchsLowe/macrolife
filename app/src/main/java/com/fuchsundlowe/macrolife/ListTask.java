@@ -32,7 +32,7 @@ public class ListTask extends AppCompatActivity {
         data = StorageMaster.getInstance(this);
         masterName = findViewById(R.id.listTask_taskName);
 
-        centerBar = (RecyclerView) findViewById(R.id.listView_centerBar);
+        centerBar = findViewById(R.id.listView_centerBar);
         if (getIntent() != null) {
             masterID = getIntent().getIntExtra(Constants.LIST_VIEW_MASTER_ID, 0);
             defineMasterName();

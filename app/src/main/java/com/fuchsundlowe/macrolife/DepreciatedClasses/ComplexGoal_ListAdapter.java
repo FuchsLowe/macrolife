@@ -68,7 +68,7 @@ public class ComplexGoal_ListAdapter extends RecyclerView.Adapter<ComplexGoal_Li
 
         public ViewHolder(View itemView) {
             super(itemView);
-            textToDisplay = (TextView) itemView.findViewById(R.id.complexgoal_taskname_card);
+            textToDisplay = itemView.findViewById(R.id.complexgoal_taskname_card);
             itemView.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {

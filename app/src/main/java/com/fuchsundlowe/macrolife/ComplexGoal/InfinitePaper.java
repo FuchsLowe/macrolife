@@ -46,8 +46,8 @@ public class InfinitePaper extends ViewGroup implements ScaleInterface {
         measureChildren(widthMeasureSpec, heightMeasureSpec);
 
         Point forMin = getMinSize();
-        forMin.set((int) Math.max(forMin.x, MIN_WIDTH),
-                    (int) Math.max(forMin.y, MIN_HEIGHT));
+        forMin.set(Math.max(forMin.x, MIN_WIDTH),
+                Math.max(forMin.y, MIN_HEIGHT));
 
         setMinimumHeight(forMin.x);
         setMinimumWidth(forMin.y);
@@ -73,10 +73,10 @@ public class InfinitePaper extends ViewGroup implements ScaleInterface {
                    kid = (ComplexTaskChevron) getChildAt(i);
                    if (kid.getX() < 0.5 || kid.getY() <0.5) {
                        kid.layout(
-                               (int) (kid.getXFromData()),
-                               (int) (kid.getYFromData()),
-                               (int) ((kid.getXFromData() + kid.getMeasuredHeight())),
-                               (int) ((kid.getYFromData() + kid.getMeasuredWidth())));
+                               kid.getXFromData(),
+                               kid.getYFromData(),
+                               (kid.getXFromData() + kid.getMeasuredHeight()),
+                               (kid.getYFromData() + kid.getMeasuredWidth()));
                    } else {
                        /* TODO: Does this work?
                        kid.layout(

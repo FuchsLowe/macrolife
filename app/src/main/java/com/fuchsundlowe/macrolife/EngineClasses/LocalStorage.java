@@ -4,7 +4,6 @@ import android.arch.lifecycle.LiveData;
 import android.arch.lifecycle.Observer;
 import android.arch.persistence.room.Room;
 import android.content.Context;
-import android.os.Handler;
 import android.os.Looper;
 import android.support.annotation.Nullable;
 import android.util.Log;
@@ -16,8 +15,6 @@ import com.fuchsundlowe.macrolife.DataObjects.RepeatingEvent;
 import com.fuchsundlowe.macrolife.DataObjects.RoomDataBaseObject;
 import com.fuchsundlowe.macrolife.DataObjects.TaskObject;
 import com.fuchsundlowe.macrolife.Interfaces.DataProviderNewProtocol;
-
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
@@ -35,16 +32,17 @@ import java.util.List;
  *
  * If possible find the cause and replace the faulty system!
  *
- * Looks like depending on the platform or system version the observe forever work on some?
+ * Looks like depending on the platform or system version the observe forever work on some systems,
+ * specifically it worked on Samsung Galaxy S8 but noted it didn't work on Emulators ( used different
+ * Android Software, 22 & 27 but same device, Google Pixel XL )
  */
-
 public class LocalStorage implements DataProviderNewProtocol {
 
     private static LocalStorage self;
     public RoomDataBaseObject dataBase;
-    public LiveData<List<TaskObject>> taskObjectHolder;
+    public LiveData<List<TaskObject>> taskObjectHolder; // TODO: Return to private
     private LiveData<List<ListObject>> listObjectHolder;
-    private LiveData<List<RepeatingEvent>> repeatingEventHolder; // TODO: TEMP, return to private
+    private LiveData<List<RepeatingEvent>> repeatingEventHolder;
     private LiveData<List<ComplexGoal>> complexGoalHolder;
 
 
@@ -64,17 +62,8 @@ public class LocalStorage implements DataProviderNewProtocol {
         defineInMemoryDatabaseCalls();
     }
 
-    // Database Calls:
 
-    @Override // Static return value
-    public ComplexGoal findComplexGoal(int byID) {
-        if (complexGoalHolder.getValue() != null) {
-            for (ComplexGoal goal: complexGoalHolder.getValue()) {
-                if (goal.getHashID() == byID) { return goal; }
-            }
-        }
-        return null;
-    }
+    // TaskObject Goal:
     @Override
     public TaskObject findTaskObjectBy(int ID) {
         List<TaskObject> transformed = taskObjectHolder.getValue();
@@ -91,6 +80,7 @@ public class LocalStorage implements DataProviderNewProtocol {
     public LiveData<List<TaskObject>>getLiveDataForRecommendationBar(){
         return dataBase.newDAO().getTasksForRecommendationFetcher();
     }
+    @Override
     public LiveData<List<TaskObject>> getTaskThatIntersects(Calendar day) {
         // Get the long values of start and end of day...
         long[] results = returnStartAndEndTimesForDay(day);
@@ -98,12 +88,92 @@ public class LocalStorage implements DataProviderNewProtocol {
         return dataBase.newDAO().getTaskThatIntersects(results[0], results[1]);
     }
     @Override
-    public LiveData<List<RepeatingEvent>> getEventsThatIntersect(Calendar day) {
-        // Get the long values of start and end of day...
-        long[] results = returnStartAndEndTimesForDay(day);
-
-        return dataBase.newDAO().getEventThatIntersects(results[0], results[1]);
+    public ArrayList<TaskObject> getDataForRecommendationBar() {
+        if (taskObjectHolder.getValue() != null) {
+            ArrayList<TaskObject> listToReturn = new ArrayList<>();
+            for (TaskObject task : taskObjectHolder.getValue()) {
+                if (task.getIsTaskCompleted() == TaskObject.CheckableStatus.notCheckable &&
+                        task.getTimeDefined() == TaskObject.TimeDefined.noTime) {
+                    listToReturn.add(task);
+                }
+            }
+            return listToReturn;
+        }
+        return null;
     }
+    @Override
+    public LiveData<TaskObject> getTaskObjectWithCreationTime(Calendar creationTime){
+        return dataBase.newDAO().getTaskObjectWithCreationTime(creationTime.getTimeInMillis());
+    }
+    @Override
+    public void saveTaskObject(final TaskObject task) {
+        if (taskObjectHolder.getValue() != null) {
+            for (TaskObject taskObject : taskObjectHolder.getValue()) {
+                if (taskObject.getHashID() == task.getHashID()) {
+                    new Thread(new Runnable() {
+                        @Override
+                        public void run() {
+                            task.setLastTimeModified(Calendar.getInstance());
+                            /* TODO: TEST START:
+                            SimpleDateFormat format = new SimpleDateFormat("dd-MM--YYYY '_' HH:mm");
+                            String start = format.format(task.getTaskStartTime().getTime());
+                            String end = format.format(task.getTaskEndTime().getTime());
+                            long diff = (task.getTaskEndTime().getTimeInMillis() - task.getTaskStartTime().getTimeInMillis()) / 1000 / 60;
+                            Log.d("A1:", "SaveReport: " + task.getTaskName() + "\n START:" + start + "\n END:" + end + "\nDIFF: " + diff);
+                            */
+                            dataBase.newDAO().saveTask(task);
+                        }
+                    }).start();
+                    return;
+                }
+            }
+            new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    Log.d("New Task: ", "" + task.getHashID());
+                    if (task.getTaskName().length() > 0) {
+                        dataBase.newDAO().insertTask(task);
+                    }
+                }
+            }).start();
+        }
+    }
+    @Override
+    public void deleteTask(final TaskObject objectToDelete) {
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                // Delete the children of type Repeating Events
+                ArrayList<RepeatingEvent> eventsToDelete = getAllEventsBy(objectToDelete.getHashID());
+                if (eventsToDelete.size() > 0) {
+                    RepeatingEvent[] tempStorage = new RepeatingEvent[eventsToDelete.size()];
+                    eventsToDelete.toArray(tempStorage);
+                    dataBase.newDAO().removeRepeatingEvent(tempStorage);
+                }
+                dataBase.newDAO().removeTask(objectToDelete);
+            }
+        }).start();
+    }
+    @Override
+    public LiveData<List<TaskObject>> getTasksForRemindersView(Calendar forDay) {
+
+        Calendar dayStartTime = (Calendar) forDay.clone();
+        dayStartTime.set(Calendar.HOUR_OF_DAY, 0);
+        dayStartTime.set(Calendar.MINUTE, 0);
+        dayStartTime.set(Calendar.SECOND, 0);
+        dayStartTime.set(Calendar.MILLISECOND, 0);
+
+        Calendar dayEndTime = (Calendar) forDay.clone();
+        dayEndTime.set(Calendar.HOUR_OF_DAY, 23);
+        dayEndTime.set(Calendar.MINUTE, 59);
+        dayEndTime.set(Calendar.SECOND, 59);
+        dayEndTime.set(Calendar.MILLISECOND, 999);
+
+        return dataBase.newDAO().getReminderTasksForDay(dayStartTime.getTimeInMillis(), dayEndTime.getTimeInMillis());
+    }
+
+
+    // Repeating event:
     @Override
     public List<RepeatingEvent> getEventsBy(int masterID, TaskObject.Mods mod) {
         if (repeatingEventHolder.getValue() != null) {
@@ -137,66 +207,12 @@ public class LocalStorage implements DataProviderNewProtocol {
         return toReturn;
     }
     @Override
-    public ComplexGoal getComplexGoalBy(int masterID) {
-        if (complexGoalHolder.getValue() != null) {
-            for (ComplexGoal goal : complexGoalHolder.getValue()) {
-                if (goal.getHashID() == masterID) {
-                    return goal;
-                }
-            }
+    public LiveData<List<RepeatingEvent>> getEventsThatIntersect(Calendar day) {
+            // Get the long values of start and end of day...
+            long[] results = returnStartAndEndTimesForDay(day);
+
+            return dataBase.newDAO().getEventThatIntersects(results[0], results[1]);
         }
-        return null;
-    }
-    @Override
-    public void deleteTask(final TaskObject objectToDelete) {
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                // Delete the children of type Repeating Events
-                ArrayList<RepeatingEvent> eventsToDelete = getAllEventsBy(objectToDelete.getHashID());
-                if (eventsToDelete.size() > 0) {
-                    RepeatingEvent[] tempStorage = new RepeatingEvent[eventsToDelete.size()];
-                    eventsToDelete.toArray(tempStorage);
-                    dataBase.newDAO().removeRepeatingEvent(tempStorage);
-                }
-                dataBase.newDAO().removeTask(objectToDelete);
-            }
-        }).start();
-    }
-    @Override // If there is one it will update it if not it will create new
-    public void saveListObject(final ListObject objectToSave) {
-        if (listObjectHolder.getValue() != null) {
-            if (objectToSave.getHashID() != 0) {
-                for (final ListObject object : listObjectHolder.getValue()) {
-                    if (object.getHashID() == objectToSave.getHashID()) {
-                        new Thread(new Runnable() {
-                            @Override
-                            public void run() {
-                                objectToSave.setLastTimeModified(Calendar.getInstance());
-                                dataBase.newDAO().saveListObject(objectToSave);
-                            }
-                        }).start();
-                        return;
-                    }
-                }
-            }
-            new Thread(new Runnable() {
-                @Override
-                public void run() {
-                    dataBase.newDAO().insertListObject(objectToSave);
-                }
-            }).start();
-        }
-    }
-    @Override
-    public void deleteListObject(final ListObject objectToDelete) {
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                dataBase.newDAO().removeListObject(objectToDelete);
-            }
-        }).start();
-    }
     @Override
     public RepeatingEvent getEventWith(int hashID) {
         if (repeatingEventHolder.getValue() != null) {
@@ -213,17 +229,51 @@ public class LocalStorage implements DataProviderNewProtocol {
         return dataBase.newDAO().getAllRepeatingEvents();
     }
     @Override
-    public List<ListObject> findListFor(int taskObjectID) {
-        if (listObjectHolder.getValue() != null) {
-            List<ListObject> setToReturn = new ArrayList<>();
-            for (ListObject object : listObjectHolder.getValue()) {
-                if (object.getMasterID() == taskObjectID) {
-                    setToReturn.add(object);
+    public void saveRepeatingEvent(final RepeatingEvent event) {
+        if (repeatingEventHolder.getValue() != null) {
+            for (final RepeatingEvent object : repeatingEventHolder.getValue()) {
+                if (object.getHashID() == event.getHashID()) {
+                    new Thread(new Runnable() {
+                        @Override
+                        public void run() {
+                            event.setLastTimeModified(Calendar.getInstance());
+                            dataBase.newDAO().saveRepeatingEvent(event);
+                        }
+                    }).start();
+                    return;
                 }
             }
-            return setToReturn;
+            new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    dataBase.newDAO().insertRepeatingEvent(event);
+                }
+            }).start();
+
         }
-        return null;
+
+
+    }
+    @Override
+    public void reSaveRepeatingEventsFor(int masterHashID) {
+        // Find them all
+        ArrayList<RepeatingEvent> list = new ArrayList<>();
+        if (repeatingEventHolder.getValue() != null) {
+            for (RepeatingEvent event : repeatingEventHolder.getValue()) {
+                if (event.getParentID() == masterHashID) {
+                    event.setLastTimeModified(Calendar.getInstance());
+                    list.add(event);
+                }
+            }
+            final RepeatingEvent[] toSaveInBulk = new RepeatingEvent[list.size()];
+            list.toArray(toSaveInBulk);
+            new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    dataBase.newDAO().saveRepeatingEvent(toSaveInBulk);
+                }
+            }).start();
+        }
     }
     @Override
     public void deleteRepeatingEvent(final RepeatingEvent eventToDelete) {
@@ -294,140 +344,82 @@ public class LocalStorage implements DataProviderNewProtocol {
             }
         }
     }
+
+
+    // List Objects:
     @Override
-    public void saveRepeatingEvent(final RepeatingEvent event) {
-        if (repeatingEventHolder.getValue() != null) {
-            for (final RepeatingEvent object : repeatingEventHolder.getValue()) {
-                if (object.getHashID() == event.getHashID()) {
-                    new Thread(new Runnable() {
-                        @Override
-                        public void run() {
-                            event.setLastTimeModified(Calendar.getInstance());
-                            dataBase.newDAO().saveRepeatingEvent(event);
-                        }
-                    }).start();
-                    return;
+    public List<ListObject> findListFor(int taskObjectID) {
+        if (listObjectHolder.getValue() != null) {
+            List<ListObject> setToReturn = new ArrayList<>();
+            for (ListObject object : listObjectHolder.getValue()) {
+                if (object.getMasterID() == taskObjectID) {
+                    setToReturn.add(object);
+                }
+            }
+            return setToReturn;
+        }
+        return null;
+    }
+    @Override // If there is one it will update it if not it will create new
+    public void saveListObject(final ListObject objectToSave) {
+        if (listObjectHolder.getValue() != null) {
+            if (objectToSave.getHashID() != 0) {
+                for (final ListObject object : listObjectHolder.getValue()) {
+                    if (object.getHashID() == objectToSave.getHashID()) {
+                        new Thread(new Runnable() {
+                            @Override
+                            public void run() {
+                                objectToSave.setLastTimeModified(Calendar.getInstance());
+                                dataBase.newDAO().saveListObject(objectToSave);
+                            }
+                        }).start();
+                        return;
+                    }
                 }
             }
             new Thread(new Runnable() {
                 @Override
                 public void run() {
-                    dataBase.newDAO().insertRepeatingEvent(event);
-                }
-            }).start();
-
-        }
-
-
-    }
-    @Override
-    public void reSaveRepeatingEventsFor(int masterHashID) {
-        // Find them all
-        ArrayList<RepeatingEvent> list = new ArrayList<>();
-        if (repeatingEventHolder.getValue() != null) {
-            for (RepeatingEvent event : repeatingEventHolder.getValue()) {
-                if (event.getParentID() == masterHashID) {
-                    event.setLastTimeModified(Calendar.getInstance());
-                    list.add(event);
-                }
-            }
-            final RepeatingEvent[] toSaveInBulk = new RepeatingEvent[list.size()];
-            list.toArray(toSaveInBulk);
-            new Thread(new Runnable() {
-                @Override
-                public void run() {
-                    dataBase.newDAO().saveRepeatingEvent(toSaveInBulk);
+                    dataBase.newDAO().insertListObject(objectToSave);
                 }
             }).start();
         }
     }
     @Override
-    public ArrayList<TaskObject> getDataForRecommendationBar() {
-        if (taskObjectHolder.getValue() != null) {
-            ArrayList<TaskObject> listToReturn = new ArrayList<>();
-            for (TaskObject task : taskObjectHolder.getValue()) {
-                if (task.getIsTaskCompleted() == TaskObject.CheckableStatus.notCheckable &&
-                        task.getTimeDefined() == TaskObject.TimeDefined.noTime) {
-                    listToReturn.add(task);
-                }
+    public void deleteListObject(final ListObject objectToDelete) {
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                dataBase.newDAO().removeListObject(objectToDelete);
             }
-            return listToReturn;
+        }).start();
+    }
+
+
+
+    // Complex Goals Objects:
+    @Override
+    public ComplexGoal findComplexGoal(int byID) {
+        if (complexGoalHolder.getValue() != null) {
+            for (ComplexGoal goal: complexGoalHolder.getValue()) {
+                if (goal.getHashID() == byID) { return goal; }
+            }
         }
         return null;
     }
     @Override
-    public void saveTaskObject(final TaskObject task) {
-        if (taskObjectHolder.getValue() != null) {
-            for (TaskObject taskObject : taskObjectHolder.getValue()) {
-                if (taskObject.getHashID() == task.getHashID()) {
-                    new Thread(new Runnable() {
-                        @Override
-                        public void run() {
-                            task.setLastTimeModified(Calendar.getInstance());
-                            /* TODO: TEST START:
-                            SimpleDateFormat format = new SimpleDateFormat("dd-MM--YYYY '_' HH:mm");
-                            String start = format.format(task.getTaskStartTime().getTime());
-                            String end = format.format(task.getTaskEndTime().getTime());
-                            long diff = (task.getTaskEndTime().getTimeInMillis() - task.getTaskStartTime().getTimeInMillis()) / 1000 / 60;
-                            Log.d("A1:", "SaveReport: " + task.getTaskName() + "\n START:" + start + "\n END:" + end + "\nDIFF: " + diff);
-                            */
-                            dataBase.newDAO().saveTask(task);
-                        }
-                    }).start();
-                    return;
+    public ComplexGoal getComplexGoalBy(int masterID) {
+        if (complexGoalHolder.getValue() != null) {
+            for (ComplexGoal goal : complexGoalHolder.getValue()) {
+                if (goal.getHashID() == masterID) {
+                    return goal;
                 }
             }
-            new Thread(new Runnable() {
-                @Override
-                public void run() {
-                    Log.d("New Task: ", "" + task.getHashID());
-                    if (task.getTaskName().length() > 0) {
-                        dataBase.newDAO().insertTask(task);
-                    }
-                }
-            }).start();
         }
+        return null;
     }
-    @Override
-    public LiveData<TaskObject> getTaskObjectWithCreationTime(Calendar creationTime){
-        return dataBase.newDAO().getTaskObjectWithCreationTime(creationTime.getTimeInMillis());
-    }
-    @Override
-    public int findNextFreeHashIDForTask() {
-        if (taskObjectHolder.getValue() != null && taskObjectHolder.getValue().size() > 0) {
-            int biggestID = 0;
-            for (TaskObject task : taskObjectHolder.getValue()) {
-                biggestID = Math.max(biggestID, task.getHashID());
-            }
-            return biggestID +1;
-        } else {
-            return 0;
-        }
-    }
-    @Override
-    public int findNextFreeHashIDForList() {
-        if (listObjectHolder.getValue() != null && listObjectHolder.getValue().size() > 0) {
-            int bigestID = 0;
-            for (ListObject listy : listObjectHolder.getValue()) {
-                bigestID = Math.max(bigestID, listy.getHashID());
-            }
-            return bigestID +1;
-        } else {
-            return 0;
-        }
-    }
-    @Override
-    public int findNextFreeHashIDForEvent() {
-        if (repeatingEventHolder.getValue() != null && repeatingEventHolder.getValue().size() > 0) {
-            int biggestID = 0;
-            for (RepeatingEvent event: repeatingEventHolder.getValue()) {
-                biggestID = Math.max(biggestID, event.getHashID());
-            }
-            return biggestID +1;
-        } else {
-            return 0;
-        }
-    }
+
+
 
     // Method calls:
     private long[] returnStartAndEndTimesForDay(Calendar day) {
@@ -488,7 +480,7 @@ public class LocalStorage implements DataProviderNewProtocol {
         dataBase.close();
    }
     /*
-     *  Returns true if there is at least one event (list, repearting) for this hashID and false if no
+     *  Returns true if there is at least one event (list, repeating) for this hashID and false if no
      *  If used by main thread, it will check in memory implementation, if used outside main thread
      *  will check database directly
      */
@@ -539,8 +531,42 @@ public class LocalStorage implements DataProviderNewProtocol {
         }
         return false;
     }
-
-
+    @Override
+    public int findNextFreeHashIDForTask() {
+        if (taskObjectHolder.getValue() != null && taskObjectHolder.getValue().size() > 0) {
+            int biggestID = 0;
+            for (TaskObject task : taskObjectHolder.getValue()) {
+                biggestID = Math.max(biggestID, task.getHashID());
+            }
+            return biggestID +1;
+        } else {
+            return 0;
+        }
+    }
+    @Override
+    public int findNextFreeHashIDForList() {
+        if (listObjectHolder.getValue() != null && listObjectHolder.getValue().size() > 0) {
+            int bigestID = 0;
+            for (ListObject listy : listObjectHolder.getValue()) {
+                bigestID = Math.max(bigestID, listy.getHashID());
+            }
+            return bigestID +1;
+        } else {
+            return 0;
+        }
+    }
+    @Override
+    public int findNextFreeHashIDForEvent() {
+        if (repeatingEventHolder.getValue() != null && repeatingEventHolder.getValue().size() > 0) {
+            int biggestID = 0;
+            for (RepeatingEvent event: repeatingEventHolder.getValue()) {
+                biggestID = Math.max(biggestID, event.getHashID());
+            }
+            return biggestID +1;
+        } else {
+            return 0;
+        }
+    }
 
    /* TODO: Consistency manager implementation:
     * The goal of this implementation is to in background do consistency check on relationships and
@@ -583,7 +609,11 @@ public class LocalStorage implements DataProviderNewProtocol {
        void syncWithServer() {
 
        }
+       /*
+        * For checkable tasks that are past due, I need to remove checkable attribute and put in
+        * unassigned tasks if after specific time period.
+        */
+       void updateTaskCheckableStatus() {}
    }
-
 
 }

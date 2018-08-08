@@ -58,7 +58,7 @@ public class RepeatingEvent_ListAdapter extends RecyclerView.Adapter<RepeatingEv
 
         public ViewHolder(View v) {
             super(v);
-            name = (TextView) v.findViewById(R.id.repeatinggoal_taskname_card);
+            name = v.findViewById(R.id.repeatinggoal_taskname_card);
         }
 
         public TextView getName() { return name;}

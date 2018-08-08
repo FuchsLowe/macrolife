@@ -26,6 +26,7 @@ public interface DataProviderNewProtocol {
     LiveData<TaskObject> getTaskObjectWithCreationTime(Calendar creationTime);
     void deleteTask(TaskObject objectToDelete);
     LiveData<List<TaskObject>> getTaskThatIntersects(Calendar day);
+    LiveData<List<TaskObject>> getTasksForRemindersView(Calendar forDay);
 
 
     // Repeating Events:

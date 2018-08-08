@@ -56,7 +56,7 @@ public class RegularTask_ListAdapter extends RecyclerView.Adapter<RegularTask_Li
 
         public ViewHolder(View v) {
             super(v);
-            name = (TextView) v.findViewById(R.id.regulartask_taskname_card);
+            name = v.findViewById(R.id.regulartask_taskname_card);
         }
 
         public TextView getName() { return name;}

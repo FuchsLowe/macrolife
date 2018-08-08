@@ -32,11 +32,7 @@ public class TypeConverters {
     }
     @TypeConverter
     public static boolean fromIntToBoolean(int number) {
-        if (number == 1) {
-            return true;
-        } else {
-            return false;
-        }
+        return number == 1;
     }
     @TypeConverter
     public static int fromBooleanToInt(Boolean bool) {

@@ -67,7 +67,6 @@ public class ChronoView extends ViewGroup {
     private int timeUnitSize;
     private int calculatedLineWidth;
     private int calculatedTextSize;
-    private SharedPreferences preferences;
     private Calendar dayDisplayed;
     private Timer timerLoop;
     private View tempTimeDisplayer;
@@ -100,7 +99,7 @@ public class ChronoView extends ViewGroup {
 
         this.setWillNotDraw(false);
 
-        preferences = getContext().getSharedPreferences(Constants.SHARED_PREFERENCES_KEY,
+        SharedPreferences preferences = getContext().getSharedPreferences(Constants.SHARED_PREFERENCES_KEY,
                 Context.MODE_PRIVATE);
         SHOW_HOURS = preferences.getBoolean(Constants.TIME_REPRESENTATION, false);
 

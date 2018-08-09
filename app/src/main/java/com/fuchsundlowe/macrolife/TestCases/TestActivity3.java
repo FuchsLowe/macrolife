@@ -27,20 +27,39 @@ import java.util.Calendar;
 
 public class TestActivity3 extends AppCompatActivity  {
 
-    FrameLayout a, b, c;
+    FrameLayout a;
+
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_test3);
         a= findViewById(R.id.frameLayout_a);
-        b= findViewById(R.id.frameLayout_b);
-        c= findViewById(R.id.frameLayout_c);
+
+        a.setBackgroundColor(Color.BLUE);
+
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
 
         View alpha, beta, gamma;
-        alpha = View.inflate(this, R.layout.task_object_day_view, a);
-        beta = View.inflate(this, R.layout.task_object_day_view, b);
-        gamma = View.inflate(this, R.layout.task_object_day_view, c);
+        alpha = new View(this);
+        alpha.setBackgroundColor(Color.GREEN);
+        a.addView(alpha);
 
+        beta = new View(this);
+        beta.setBackgroundColor(Color.DKGRAY);
+        a.addView(beta);
+
+        alpha.setLayoutParams(new FrameLayout.LayoutParams(40, 40));
+        beta.setLayoutParams(new FrameLayout.LayoutParams(60, 40));
+
+        alpha.setX(25);
+        beta.setX(75);
+
+        beta.animate().translationX(300).setDuration(2700).start();
 
     }
 }

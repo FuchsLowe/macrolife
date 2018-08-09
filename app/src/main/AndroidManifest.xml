@@ -24,11 +24,13 @@
             android:windowSoftInputMode="adjustResize">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
+
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".DayView.DayView"
-            android:screenOrientation="portrait"/>
+        <activity
+            android:name=".DayView.DayView"
+            android:screenOrientation="portrait" />
         <activity
             android:name=".DepreciatedClasses.ListView"
             android:windowSoftInputMode="stateHidden" />
@@ -42,7 +44,8 @@
             android:windowSoftInputMode="adjustResize" />
         <activity android:name=".TestCases.Test4" />
         <activity android:name=".TestCases.TestActivity4" />
-        <activity android:name=".TestCases.Test5"></activity>
+        <activity android:name=".TestCases.Test5" />
+        <activity android:name=".WeekView.WeekView"></activity>
     </application>
 
 </manifest>

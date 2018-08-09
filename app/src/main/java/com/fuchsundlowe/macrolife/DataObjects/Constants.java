@@ -12,7 +12,7 @@ public class Constants {
     public static String LIST_VIEW_MASTER_ID = "Give me that master key";
     public static String FIRST_DAY_OF_WEEK = "Whats the first day of Week";
     public static String SHARED_PREFERENCES_KEY = "This key unlocks the shared preferences";
-    public static String TIME_REPRESENTATION = "Should I show AM/PM or Hours in a day?";
+    public static String TIME_REPRESENTATION = "Should I show Hours as time representation?";
     public static String HOUR_IN_PIXELS = "Looks like a impossible way to think huh?";
     public static String TASK_OBJECT = "TaskObject";
     public static String REPEATING_EVENT = "RepeatingEvent";

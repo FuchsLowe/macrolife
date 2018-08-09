@@ -383,15 +383,6 @@ public class Task_DayView extends FrameLayout {
         ClipData.Item dataItem = new ClipData.Item(height.toString());
         if (repeatingEvent == null) {
             ClipData data = new ClipData(Constants.TASK_OBJECT, MIME_Type, dataItem);
-
-            // TEST: Define before drag op:
-            SimpleDateFormat format = new SimpleDateFormat("yyyy.MM.dd  'at' HH:mm:ss z");
-            String start = format.format(task.getTaskStartTime().getTime());
-            String end = format.format(task.getTaskEndTime().getTime());
-            Log.d("A1: ", "\nBEFORE DRAG: " + "\nSTART: " + start + "\nEND: " + end);
-            Log.d("A2: ", "My Height is: " + this.getHeight());
-            // END TEST
-
             this.startDrag(data, defaultShadowBuilder, this.task, 0);
         } else {
             ClipData data = new ClipData(Constants.REPEATING_EVENT, MIME_Type, dataItem);

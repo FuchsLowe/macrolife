@@ -6,12 +6,10 @@ import android.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-
 import com.fuchsundlowe.macrolife.DataObjects.TaskObject;
 import com.fuchsundlowe.macrolife.EngineClasses.LocalStorage;
 import com.fuchsundlowe.macrolife.Interfaces.DataProviderNewProtocol;
 import com.fuchsundlowe.macrolife.R;
-
 import java.util.Calendar;
 
 /**
@@ -51,6 +49,8 @@ public class WeekDisplay_WeekView extends Fragment {
      *
      *
      */
+
+
     // This class creates time capsules from Tasks
     private TimeCapsule[] createTimeCapsules(TaskObject[] tasks) {
         //TODO: IMPLEMENT!
@@ -65,10 +65,11 @@ public class WeekDisplay_WeekView extends Fragment {
     protected class TimeCapsule {
 
         Calendar startTime, endTime;
-
-        TimeCapsule(Calendar startTime, Calendar endTime) {
+        int hashID;
+        TimeCapsule(Calendar startTime, Calendar endTime, int hashID) {
             this.startTime = startTime;
             this.endTime = endTime;
+            this.hashID = hashID;
         }
     }
 

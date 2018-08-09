@@ -207,6 +207,7 @@ public class LocalStorage implements DataProviderNewProtocol {
         return toReturn;
     }
     @Override
+    @Deprecated // This one doesn't provide right info back
     public LiveData<List<RepeatingEvent>> getEventsThatIntersect(Calendar day) {
             // Get the long values of start and end of day...
             long[] results = returnStartAndEndTimesForDay(day);

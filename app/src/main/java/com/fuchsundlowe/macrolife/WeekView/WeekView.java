@@ -24,4 +24,9 @@ public class WeekView extends AppCompatActivity {
     }
 
     // Todo: Create the PageAdapter class for centralBar
+
+    /*
+     * TODO: Create a broadcast receiver that will receive global edit from task and
+     * present it in bottom bar instead of recomendation fetcher
+     */
 }

@@ -174,10 +174,10 @@ public class LocalStorage implements DataProviderNewProtocol {
 
 
     // Repeating event:
-    @Override
+    @Override // This one only works for repeating and repeatingMulti mods
     public List<RepeatingEvent> getEventsBy(int masterID, TaskObject.Mods mod) {
         if (repeatingEventHolder.getValue() != null) {
-            List<RepeatingEvent> setToSend= new ArrayList<>();
+            List<RepeatingEvent> setToSend = new ArrayList<>();
             if (mod == TaskObject.Mods.repeating) {
                 for (RepeatingEvent event : repeatingEventHolder.getValue()) {
                     if (event.getParentID() == masterID && event.getDayOfWeek() == DayOfWeek.universal) {

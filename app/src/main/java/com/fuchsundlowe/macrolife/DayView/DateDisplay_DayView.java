@@ -9,8 +9,6 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
-
-import com.fuchsundlowe.macrolife.DayView.CalendarButton;
 import com.fuchsundlowe.macrolife.DataObjects.Constants;
 import com.fuchsundlowe.macrolife.Interfaces.DayViewTopFragmentCallback;
 import com.fuchsundlowe.macrolife.R;

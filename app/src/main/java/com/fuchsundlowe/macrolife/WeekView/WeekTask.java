@@ -29,6 +29,7 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.HashMap;
 import java.util.List;
+import com.fuchsundlowe.macrolife.WeekView.DayHolder_WeekView.TimeCapsule;
 
 // A task object used in WeekDisplay
 public class WeekTask extends FrameLayout {
@@ -42,10 +43,10 @@ public class WeekTask extends FrameLayout {
     private LinearLayout timeBar;
     private FrameLayout top_TimeBar, center_TimeBar, bottom_TimeBar;
     private TaskObject taskWePresent;
-    private RepeatingEvent[] events; // Array of events we hold to represent
-    private WeekDisplay_WeekView.TimeCapsule[] timeCapsules;
+    private List<RepeatingEvent> events; // Array of events we hold to represent
+    private List<TimeCapsule> timeCapsules;
     private List<Integer> hashIDRepo;
-    private List<WeekDisplay_WeekView.TimeCapsule> capsToDrawTime;
+    private List<TimeCapsule> capsToDrawTime;
 
     // Public constructors:
     public WeekTask(Context context) {
@@ -92,7 +93,7 @@ public class WeekTask extends FrameLayout {
     }
 
     // The data insertion and interpretation, doesn't filter data...
-    public void defineMe(TaskObject taskObject, @Nullable RepeatingEvent[] events, WeekDisplay_WeekView.TimeCapsule[] timeCapsules) {
+    public void defineMe(TaskObject taskObject, @Nullable List<RepeatingEvent> events, List<TimeCapsule> timeCapsules) {
         this.taskWePresent = taskObject;
         this.events = events;
         this.timeCapsules = timeCapsules;
@@ -171,7 +172,7 @@ public class WeekTask extends FrameLayout {
     // Fills in the hashIDRepo with id's
     void createIDRepository() {
         hashIDRepo = new ArrayList<>();
-        if (events.length > 0) {
+        if (events.size() > 0) {
             // create if from events:
             for (RepeatingEvent event: events) {
                 hashIDRepo.add(event.getHashID());
@@ -182,14 +183,14 @@ public class WeekTask extends FrameLayout {
         }
     }
     // Receives a time capsules, creates views and adds it to dayBar, lights up the bars that are this tasks
-    void addTimeCapsulesInDayBar(WeekDisplay_WeekView.TimeCapsule[] timeCapsules, FrameLayout dayBar,
+    void addTimeCapsulesInDayBar(List<TimeCapsule> timeCapsules, FrameLayout dayBar,
                                  float minuteInAPixel, float textSize) {
         int defaultColor = Color.GRAY;
         int taskColor = Color.GREEN;
         createIDRepository();
         capsToDrawTime = new ArrayList<>(); // this is used to store TimeCapsules whose values we will use to draw time
         // Now define and add a capsule into it
-        for (WeekDisplay_WeekView.TimeCapsule capsule : timeCapsules) {
+        for (TimeCapsule capsule : timeCapsules) {
             View capsuleView = new View(context);
             long durationInMinutes = (capsule.endTime.getTimeInMillis() - capsule.startTime.getTimeInMillis()) / 60000;
             capsuleView.setLayoutParams(new LayoutParams((int) (durationInMinutes * minuteInAPixel),
@@ -229,7 +230,7 @@ public class WeekTask extends FrameLayout {
         universalLayoutParams.gravity = Gravity.CENTER;
 
         // Going through the times
-        for (WeekDisplay_WeekView.TimeCapsule mCapsule : capsToDrawTime) {
+        for (TimeCapsule mCapsule : capsToDrawTime) {
             //Start Time:
             String startTimeFormatted = timeFormatter.format(mCapsule.startTime.getTime());
             TextView startTimeText = new TextView(context);

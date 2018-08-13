@@ -124,7 +124,7 @@ public class TaskObject {
         return this.allMods;
     }
     /*
-     * Returns either repeating or repeatingMultiValues, no other mod
+     * Returns either repeating or repeatingMultiValues, and if it has neither it returns null
      */
     @Nullable
     public Mods getRepeatingMod() {

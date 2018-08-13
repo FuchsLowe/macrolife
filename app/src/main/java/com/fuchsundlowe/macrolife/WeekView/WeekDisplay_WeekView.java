@@ -1,15 +1,14 @@
 package com.fuchsundlowe.macrolife.WeekView;
 
-
 import android.os.Bundle;
-import android.app.Fragment;
+import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import com.fuchsundlowe.macrolife.DataObjects.TaskObject;
 import com.fuchsundlowe.macrolife.EngineClasses.LocalStorage;
 import com.fuchsundlowe.macrolife.Interfaces.DataProviderNewProtocol;
 import com.fuchsundlowe.macrolife.R;
+
 import java.util.Calendar;
 
 /**
@@ -25,7 +24,6 @@ public class WeekDisplay_WeekView extends Fragment {
      * Maybe It can be a Calendar instance that holds the first day of week... Like having it
      * be Monday or Sunday... And then based on that it searches for data and presents it...
      */
-    private final int DAYS_IN_WEEK = 7;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -38,39 +36,20 @@ public class WeekDisplay_WeekView extends Fragment {
     }
 
     /*
-     * TODO: How should I obtain the data for displaying into elements?
-     *
-     * A one stream system where one live data is received and then distributed to containers that
-     * present the tasks further.
-     */
-
-    /*
      * TODO: Define the data insertion class that will re-distribute data to children
      *
-     *
      */
-
-
-    // This class creates time capsules from Tasks
-    private TimeCapsule[] createTimeCapsules(TaskObject[] tasks) {
-        //TODO: IMPLEMENT!
-        return null;
-    };
-
-    /*
-     * A holder class designed to hold instances of start and end times of tasks that will be further
-     * passed as array from WeekDisplay_WeekView to WeekTask for usage in defining the look and feel
-     * of WeekTask instances.
-     */
-    protected class TimeCapsule {
-
-        Calendar startTime, endTime;
-        int hashID;
-        TimeCapsule(Calendar startTime, Calendar endTime, int hashID) {
-            this.startTime = startTime;
-            this.endTime = endTime;
-            this.hashID = hashID;
+    // Calendar is assigned with first day of the week
+    public void defineMe(Calendar weekIRepresent) {
+        int daysInAWeek = 7;
+        for (int i = 0; i < daysInAWeek; i++) {
+            DayHolder_WeekView mDay = new DayHolder_WeekView();
+            // Add it to view hierarchy
+            baseView.addView(mDay);
+            // Assign the appropriate value
+            Calendar dayToInsert = (Calendar) weekIRepresent.clone();
+            dayToInsert.add(Calendar.DAY_OF_WEEK, i);
+            mDay.defineMe(dayToInsert);
         }
     }
-
 }

@@ -172,7 +172,7 @@ public class WeekTask extends FrameLayout {
     // Fills in the hashIDRepo with id's
     void createIDRepository() {
         hashIDRepo = new ArrayList<>();
-        if (events.size() > 0) {
+        if (events != null && events.size() > 0) {
             // create if from events:
             for (RepeatingEvent event: events) {
                 hashIDRepo.add(event.getHashID());

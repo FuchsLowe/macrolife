@@ -7,9 +7,9 @@
     android:layout_height="match_parent"
     tools:context="com.fuchsundlowe.macrolife.TestCases.TestActivity3">
 
-    <RelativeLayout
+    <FrameLayout
         android:id="@+id/frameLayout_a"
-        android:layout_width="188dp"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginEnd="8dp"
         android:layout_marginStart="8dp"
@@ -19,11 +19,6 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent">
 
-        <TextView
-            android:id="@+id/textView2"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="The mid guard serpant" />
-    </RelativeLayout>
+    </FrameLayout>
 
 </android.support.constraint.ConstraintLayout>

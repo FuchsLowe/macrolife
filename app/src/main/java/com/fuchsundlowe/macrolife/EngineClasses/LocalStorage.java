@@ -114,13 +114,6 @@ public class LocalStorage implements DataProviderNewProtocol {
                         @Override
                         public void run() {
                             task.setLastTimeModified(Calendar.getInstance());
-                            /* TODO: TEST START:
-                            SimpleDateFormat format = new SimpleDateFormat("dd-MM--YYYY '_' HH:mm");
-                            String start = format.format(task.getTaskStartTime().getTime());
-                            String end = format.format(task.getTaskEndTime().getTime());
-                            long diff = (task.getTaskEndTime().getTimeInMillis() - task.getTaskStartTime().getTimeInMillis()) / 1000 / 60;
-                            Log.d("A1:", "SaveReport: " + task.getTaskName() + "\n START:" + start + "\n END:" + end + "\nDIFF: " + diff);
-                            */
                             dataBase.newDAO().saveTask(task);
                         }
                     }).start();

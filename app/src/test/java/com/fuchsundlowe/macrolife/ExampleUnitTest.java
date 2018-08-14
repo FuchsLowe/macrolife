@@ -31,9 +31,23 @@ import static java.util.Calendar.YEAR;
  */
 public class ExampleUnitTest {
 
-
     @Test
     public void myTest() {
-    }
+        int toAdd = 6;
+        DateFormat format = DateFormat.getDateInstance(DateFormat.LONG);
+        Calendar day = Calendar.getInstance();
+        day.set(Calendar.DAY_OF_WEEK, -1);
+        print("First day is" + format.format(day.getTime()));
+        day.add(Calendar.DAY_OF_WEEK, toAdd);
+        print("Last Day is" + format.format(day.getTime()));
 
+        Calendar newDay = Calendar.getInstance();
+        newDay.setFirstDayOfWeek(Calendar.MONDAY);
+        print("New day is: " + format.format(newDay.getTime()));
+        newDay.add(Calendar.DAY_OF_WEEK, toAdd);
+        print("New last day is " + format.format(newDay.getTime()));
+    }
+    void print(String val) {
+        System.out.println(val);
+    }
 }

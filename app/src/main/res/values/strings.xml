@@ -25,4 +25,7 @@
     <string name="Saturday_Short">S</string>
     <string name="Sunday_Short">S</string>
 
+    <string name="week">Week number</string>
+    <string name="to">to</string>
+
 </resources>

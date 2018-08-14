@@ -2,6 +2,7 @@ package com.fuchsundlowe.macrolife;
 
 import android.arch.lifecycle.Observer;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.graphics.Color;
 import android.os.Handler;
 import android.support.annotation.Nullable;
@@ -21,6 +22,7 @@ import com.fuchsundlowe.macrolife.EngineClasses.LocalStorage;
 import com.fuchsundlowe.macrolife.Interfaces.DataProviderNewProtocol;
 import com.fuchsundlowe.macrolife.TestCases.TestActivity;
 import com.fuchsundlowe.macrolife.TestCases.TestActivity3;
+import com.fuchsundlowe.macrolife.WeekView.WeekView;
 
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -41,8 +43,9 @@ public class MasterScreen extends AppCompatActivity {
         display.setBackgroundColor(Color.BLACK);
         display.setTextColor(Color.GREEN);
         display.setText("");
-        test3();
+        //test3();
         //toDay(null);
+        toWeekView();
         defineDisplay();
     }
 
@@ -65,6 +68,10 @@ public class MasterScreen extends AppCompatActivity {
     void test3() {
         Intent toTest3 = new Intent(this, TestActivity3.class);
         startActivity(toTest3);
+    }
+    void toWeekView() {
+        Intent week = new Intent(this, WeekView.class);
+        startActivity(week);
     }
 
     @Override

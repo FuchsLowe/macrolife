@@ -3,13 +3,19 @@ package com.fuchsundlowe.macrolife.WeekView;
 
 import android.arch.lifecycle.LifecycleOwner;
 import android.arch.lifecycle.Observer;
+import android.content.Context;
+import android.content.Intent;
 import android.os.Bundle;
 import android.app.Fragment;
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.v4.content.LocalBroadcastManager;
+import android.util.AttributeSet;
 import android.view.DragEvent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 import android.widget.TextView;
@@ -21,6 +27,7 @@ import com.fuchsundlowe.macrolife.EngineClasses.LocalStorage;
 import com.fuchsundlowe.macrolife.Interfaces.DataProviderNewProtocol;
 import com.fuchsundlowe.macrolife.R;
 import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
@@ -28,7 +35,7 @@ import java.util.List;
 /**
  * A simple {@link Fragment} subclass.
  */
-public class DayHolder_WeekView extends Fragment {
+public class DayHolder_WeekView extends FrameLayout {
 
     private ViewGroup baseView;
     private FrameLayout titleBar;
@@ -38,27 +45,50 @@ public class DayHolder_WeekView extends Fragment {
     private DataProviderNewProtocol dataProvider;
     private List<TaskObject> displayedTasks;
 
-    @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                             Bundle savedInstanceState) {
+    public DayHolder_WeekView(@NonNull Context context) {
+        super(context);
+        init();
+    }
+    public DayHolder_WeekView(@NonNull Context context, @Nullable AttributeSet attrs) {
+        super(context, attrs);
+        init();
+    }
+    public DayHolder_WeekView(@NonNull Context context, @Nullable AttributeSet attrs, int defStyleAttr) {
+        super(context, attrs, defStyleAttr);
+        init();
+    }
+    public DayHolder_WeekView(@NonNull Context context, @Nullable AttributeSet attrs, int defStyleAttr, int defStyleRes) {
+        super(context, attrs, defStyleAttr, defStyleRes);
+        init();
+    }
+
+    private void init() {
         // Inflate the layout for this fragment and find views
-        baseView = (ViewGroup) inflater.inflate(R.layout.fragment_day_holder__week_view, container, false);
+        baseView = (ViewGroup) inflate(this.getContext(), R.layout.fragment_day_holder__week_view, this);
         titleBar = baseView.findViewById(R.id.topBar_dayHolder_weekView);
         taskBar = baseView.findViewById(R.id.linearLayout_dayHolder_weekView);
         dayDescription = baseView.findViewById(R.id.dayDescription_dayHolder_weekView);
 
-        dataProvider = LocalStorage.getInstance(container.getContext());
+        Button onClick = findViewById(R.id.createNewTask_dayHolder_weekView);
+        onClick.setOnClickListener(new OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                createNewTask();
+            }
+        });
+
+        dataProvider = LocalStorage.getInstance(this.getContext());
 
         defineDragAndDropListener();
-
-        return baseView;
     }
+
 
     // This is called to insert data
     public void defineMe(Calendar dayIPresent) {
         this.dayThisHolderPresents = dayIPresent;
         // Defining the titleBar first
-        String toPresent = DateFormat.getDateInstance(DateFormat.FULL).format(dayIPresent.getTime());
+        SimpleDateFormat formatter = new SimpleDateFormat("EEEE, dd MMMM");
+        String toPresent = formatter.format(dayIPresent.getTime());
         dayDescription.setText(toPresent);
 
         // Filtering and providing data for WeekTasks and displaying the week tasks in taskBar
@@ -67,7 +97,7 @@ public class DayHolder_WeekView extends Fragment {
         final List<WeekTaskData> dataToPresent = new ArrayList<>();
         // If this doesn't work, then just create a new public method that receives List of task Objects from parent
         // Or discover how fragment can implemmt it, as it makes more sense...
-        dataProvider.getTaskThatIntersects(dayIPresent).observe((LifecycleOwner) this, new Observer<List<TaskObject>>() {
+        dataProvider.getTaskThatIntersects(dayIPresent).observeForever(new Observer<List<TaskObject>>() {
             @Override
             public void onChanged(@Nullable List<TaskObject> objects) {
                 if (objects != null) {
@@ -166,8 +196,6 @@ public class DayHolder_WeekView extends Fragment {
             this.capsules = capsules;
         }
     }
-
-    // TODO: DragAndDropListener:
     /*
      * Drag and drop listener that accepts new data dragged from outside this field...
      * If I drag and discover that I have that one presented I assume drag has failed and I do nothing.
@@ -235,8 +263,30 @@ public class DayHolder_WeekView extends Fragment {
         });
     }
     // A link to click button that creates a new task in this specific day
-    private void createNewTask(View view) {
-        // TODO: Implement sonny!
+    private void createNewTask() {
+        int newHashId = dataProvider.findNextFreeHashIDForTask();
+        String taskName = getContext().getString(R.string.NewTask);
+        TaskObject newTaskWeCreate = new TaskObject(
+                newHashId,
+                0,
+                0,
+                taskName,
+                Calendar.getInstance(),
+                dayThisHolderPresents,
+                null,
+                Calendar.getInstance(),
+                TaskObject.CheckableStatus.notCheckable,
+                "",
+                0,
+                0,
+                "",
+                TaskObject.TimeDefined.onlyDate
+                );
+        dataProvider.saveTaskObject(newTaskWeCreate);
+        LocalBroadcastManager broadcastManager = LocalBroadcastManager.getInstance(getContext());
+        Intent mIntent = new Intent(Constants.INTENT_FILTER_NEW_TASK);
+        // TODO: Do I need to put more data? && Do I need to add it to layout or LiveData Will do its job?
+        mIntent.putExtra(Constants.INTENT_FILTER_FIELD_HASH_ID, newHashId);
+        broadcastManager.sendBroadcast(mIntent);
     }
-
 }

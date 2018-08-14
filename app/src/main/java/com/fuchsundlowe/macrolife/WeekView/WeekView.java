@@ -15,7 +15,6 @@ import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.widget.FrameLayout;
-
 import com.fuchsundlowe.macrolife.BottomBar.EditTaskBottomBar;
 import com.fuchsundlowe.macrolife.BottomBar.RecommendationBar;
 import com.fuchsundlowe.macrolife.DataObjects.Constants;
@@ -24,9 +23,8 @@ import com.fuchsundlowe.macrolife.EngineClasses.LocalStorage;
 import com.fuchsundlowe.macrolife.Interfaces.BottomBarCommunicationProtocol;
 import com.fuchsundlowe.macrolife.Interfaces.DataProviderNewProtocol;
 import com.fuchsundlowe.macrolife.R;
-
 import java.util.Calendar;
-import java.util.Date;
+
 
 public class WeekView extends AppCompatActivity implements BottomBarCommunicationProtocol {
 
@@ -51,8 +49,10 @@ public class WeekView extends AppCompatActivity implements BottomBarCommunicatio
 
         // Creates the page adapter:
         startDay = Calendar.getInstance();
-        // Check if there is savedState first, if not then check if there is intent, and if not,
-        // then the start value is initiated with current time:
+        /*
+         * Check if there is savedState first, if not then check if there is intent, and if not,
+         * then the start value is initiated with current time:
+         */
         if (savedInstanceState != null && savedInstanceState.getLong(Constants.DAY_TO_DISPLAY) > 0) {
             startDay.setTimeInMillis(savedInstanceState.getLong(Constants.DAY_TO_DISPLAY));
         } else {
@@ -74,7 +74,7 @@ public class WeekView extends AppCompatActivity implements BottomBarCommunicatio
      * part. It will load the data from database to create the bottom bar...
      */
     private void defineBroadcastReceiver() {
-        // Defining the action of broadcast reciever, ie what to do when it receives event:
+        // Defining the action of broadcast receiver, ie what to do when it receives event:
         BroadcastReceiver broadcastReceiver = new BroadcastReceiver() {
             @Override
             public void onReceive(Context context, Intent intent) {
@@ -82,6 +82,7 @@ public class WeekView extends AppCompatActivity implements BottomBarCommunicatio
                     // grab the task & insert it into editTask
                     int hashID = intent.getIntExtra(Constants.INTENT_FILTER_FIELD_HASH_ID, -1);
                     TaskObject objectEdited = dataProvider.findTaskObjectBy(hashID);
+
                     if (objectEdited != null) {
                         FragmentTransaction transaction= getSupportFragmentManager().beginTransaction();
                         EditTaskBottomBar editTask = new EditTaskBottomBar();
@@ -91,11 +92,15 @@ public class WeekView extends AppCompatActivity implements BottomBarCommunicatio
                         editTask.defineMe(EditTaskBottomBar.EditTaskState.editTask, objectEdited, self, bottomBar.getWidth());
                     }
                 } else if (intent.getAction().equals(Constants.INTENT_FILTER_NEW_TASK)) {
-                    // So click occurred to create new task... We need to initiate the creation
-
-                    // TODO: Implement!
-
-
+                    // So click occurred to create new task... We need to initiate the edit of it
+                    TaskObject newTask = dataProvider.findTaskObjectBy(intent.getIntExtra(Constants.INTENT_FILTER_FIELD_HASH_ID, -1));
+                    if (newTask != null) {
+                        FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
+                        EditTaskBottomBar taskEditor = new EditTaskBottomBar();
+                        transaction.replace(bottomBar.getId(), taskEditor);
+                        transaction.commit();
+                        taskEditor.defineMe(EditTaskBottomBar.EditTaskState.editTask, newTask, self, bottomBar.getWidth());
+                    }
                 } else if (intent.getAction().equals(Constants.INTENT_FILTER_RECOMENDATION)) {
                     provideRecommendationFetcher();
                 }
@@ -136,7 +141,7 @@ public class WeekView extends AppCompatActivity implements BottomBarCommunicatio
         public Fragment getItem(int position) {
             WeekDisplay_WeekView newFragment = new WeekDisplay_WeekView();
             // Calculate the new week number to present:
-            int offsetFromStart = NUMBER_OF_WEEKS/2 - position;
+            int offsetFromStart = position - NUMBER_OF_WEEKS/2 ;
             Calendar newValueToPresent = (Calendar) startDay.clone();
             newValueToPresent.add(Calendar.WEEK_OF_YEAR, offsetFromStart);
             // Set the date to be the first day of the week:

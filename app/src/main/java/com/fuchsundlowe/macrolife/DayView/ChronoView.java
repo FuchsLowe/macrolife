@@ -4,11 +4,9 @@ package com.fuchsundlowe.macrolife.DayView;
  * Created by macbook on 2/13/18.
  */
 
-import android.content.BroadcastReceiver;
 import android.content.ClipData;
 import android.content.Context;
 import android.content.Intent;
-import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.graphics.Canvas;
 import android.graphics.Color;
@@ -25,8 +23,6 @@ import android.view.GestureDetector;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.LinearLayout;
-import android.widget.ScrollView;
 
 import com.fuchsundlowe.macrolife.DataObjects.Constants;
 import com.fuchsundlowe.macrolife.DataObjects.DayOfWeek;
@@ -35,7 +31,6 @@ import com.fuchsundlowe.macrolife.DataObjects.TaskObject;
 import com.fuchsundlowe.macrolife.EngineClasses.LocalStorage;
 import com.fuchsundlowe.macrolife.Interfaces.DataProviderNewProtocol;
 
-import java.sql.PreparedStatement;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -337,7 +332,7 @@ public class ChronoView extends ViewGroup {
         if (manager == null) {
             manager = LocalBroadcastManager.getInstance(getContext());
         }
-        Intent intent = new Intent(Constants.INTENT_FILTER_RECOMENDATION);
+        Intent intent = new Intent(Constants.INTENT_FILTER_RECOMMENDATION);
         manager.sendBroadcastSync(intent);
     }
 

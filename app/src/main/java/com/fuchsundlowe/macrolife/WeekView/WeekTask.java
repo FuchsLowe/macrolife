@@ -6,9 +6,12 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Color;
+import android.os.Handler;
+import android.os.Looper;
 import android.support.annotation.Nullable;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
@@ -29,6 +32,8 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.HashMap;
 import java.util.List;
+
+
 import com.fuchsundlowe.macrolife.WeekView.DayHolder_WeekView.TimeCapsule;
 
 // A task object used in WeekDisplay
@@ -150,23 +155,29 @@ public class WeekTask extends FrameLayout {
     private void defineTimeBar() {
 
         // Create the bar
-        float textSize = taskName.getTextSize() * 0.8f;
-        int xCoordinate = (int) (this.getWidth() * 0.05f);
+        final float textSize = taskName.getMaxHeight() * 0.8f; //
+        int xCoordinate = (int) (this.getWidth() * 0.05f); // todo: width is zero
         int yCoordinate = (int) textSize + 1 + dpToPixConverter(3);
 
         // Defining the dayBar
-        int barSize = (int) (center_TimeBar.getWidth() * 0.9f);
-        FrameLayout dayBar = new FrameLayout(context);
-        dayBar.setLayoutParams(new FrameLayout.LayoutParams(barSize, (int) (textSize * 0.7f)));
+        final FrameLayout dayBar = new FrameLayout(context);
+        dayBar.setLayoutParams(new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, dpToPixConverter(7)));
+        dayBar.setBackgroundColor(Color.LTGRAY);
         center_TimeBar.addView(dayBar);
         center_TimeBar.setTranslationX(xCoordinate);
         center_TimeBar.setTranslationY(yCoordinate);
         // TODO: Round the corners of dayBar
 
         // Filing dayBar with TimeCapsules
-        int minutesInADay = 1440;
-        float minuteInAPixel = dayBar.getWidth() / minutesInADay; // defines the pixel size of each minute
-        addTimeCapsulesInDayBar(timeCapsules, dayBar, minuteInAPixel, textSize);
+
+        new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                addTimeCapsulesInDayBar(timeCapsules, dayBar, textSize);
+                Log.d("E2", "Time capsule was called");
+            }
+        }, 300);
+        //addTimeCapsulesInDayBar(timeCapsules, dayBar, minuteInAPixel, textSize);
 
     }
     // Fills in the hashIDRepo with id's
@@ -184,9 +195,11 @@ public class WeekTask extends FrameLayout {
     }
     // Receives a time capsules, creates views and adds it to dayBar, lights up the bars that are this tasks
     void addTimeCapsulesInDayBar(List<TimeCapsule> timeCapsules, FrameLayout dayBar,
-                                 float minuteInAPixel, float textSize) {
-        int defaultColor = Color.GRAY;
+                                 float textSize) {
+        int defaultColor = Color.BLUE;
         int taskColor = Color.GREEN;
+        float minutesInADay = 1440;
+        float minuteInAPixel = dayBar.getWidth() / minutesInADay; // defines the pixel size of each minute
         createIDRepository();
         capsToDrawTime = new ArrayList<>(); // this is used to store TimeCapsules whose values we will use to draw time
         // Now define and add a capsule into it
@@ -195,17 +208,18 @@ public class WeekTask extends FrameLayout {
             long durationInMinutes = (capsule.endTime.getTimeInMillis() - capsule.startTime.getTimeInMillis()) / 60000;
             capsuleView.setLayoutParams(new LayoutParams((int) (durationInMinutes * minuteInAPixel),
                     ViewGroup.LayoutParams.MATCH_PARENT));
-            dayBar.addView(capsuleView);
-            int xCoordinate = (int) (minuteOfDay(capsule.startTime) * minuteInAPixel);
-            capsuleView.setTranslationX(xCoordinate);
+
             // Determine if this one belongs to chosen ones
             if (hashIDRepo.contains(capsule.hashID)) {
                 capsToDrawTime.add(capsule);
+                capsuleView.setTranslationZ(5);
                 capsuleView.setBackgroundColor(taskColor);
-                // TODO: Maybe I need to put these in front of others...
             } else {
                 capsuleView.setBackgroundColor(defaultColor);
             }
+            dayBar.addView(capsuleView);
+            int xCoordinate = (int) (minuteOfDay(capsule.startTime) * minuteInAPixel);
+            capsuleView.setTranslationX(xCoordinate);
         }
         // Now we only need to draw the Time
         drawTaskTimes(minuteInAPixel, taskColor, textSize);

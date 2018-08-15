@@ -6,6 +6,7 @@ import android.arch.persistence.room.Ignore;
 import android.arch.persistence.room.PrimaryKey;
 import android.support.annotation.Nullable;
 
+import java.io.Serializable;
 import java.sql.Time;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -13,7 +14,7 @@ import java.util.List;
 
 // A fundamental Data Type for this App Local storage
 @Entity
-public class TaskObject {
+public class TaskObject implements Serializable {
     @PrimaryKey(autoGenerate = true)
     private int hashID; // Passing 0 will make system auto-generate a key when data is formed...
     private int parentGoal; // if this goal is a part of ComplexGoal, this would be ID of that master
@@ -210,6 +211,7 @@ public class TaskObject {
                 // We can save:
                 this.taskEndTime = taskEndTime;
             }
+            timeDefined =TimeDefined.dateAndTime;
         } else {
             // We can't set the time, because we don't have start time
             this.taskEndTime = null;

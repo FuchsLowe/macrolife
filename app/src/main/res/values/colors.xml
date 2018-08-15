@@ -1,4 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <color name="ORANGE_DEFAULT">#FFEF6C00</color>
+    <color name="legacy_primary">#3e3e3e</color>
+    <color name="legacy_primary_dark">#423434</color>
 </resources>

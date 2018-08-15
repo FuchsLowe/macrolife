@@ -11,6 +11,7 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.DragEvent;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -82,91 +83,88 @@ public class DayHolder_WeekView extends FrameLayout {
         defineDragAndDropListener();
     }
 
+    // This is called to insert Data
+    public void dataInsertion(List<TaskObject>tasksToPresent) {
+        // Filtering data:
+        if (tasksToPresent != null) {
+            taskBar.removeAllViews();
+            List<TimeCapsule> capsules = new ArrayList<>(); // holder of all the capsules
+            List<WeekTaskData> dataToPresent = new ArrayList<>();
+            // Now we work for displaying tasks:
+            displayedTasks = tasksToPresent;
+            for (TaskObject task : tasksToPresent) {
+                if (task.getRepeatingMod() == null) {
+                    // means this task has no rep events
+                    // Create a capsule
+                    TimeCapsule capsule = new TimeCapsule(
+                            task.getTaskStartTime(),
+                            task.getTaskEndTime(),
+                            task.getHashID()
+                    );
+                    capsules.add(capsule);
+                    // Create WeeksTaskData entry
+                    WeekTaskData data = new WeekTaskData(task, null, capsules);
+                    dataToPresent.add(data);
+                } else {
+                    // this consists of repeating events as well
+                    // Find the matching events with mod and ultimately create WeekData
+                    List<RepeatingEvent> companionEvents = new ArrayList<>();
+                    if (task.getRepeatingMod() == TaskObject.Mods.repeating) {
+                        // means repeats only one value:
+                        companionEvents.addAll(dataProvider.getEventsBy(task.getHashID(), TaskObject.Mods.repeating));
+                        // now create capsule for each event:
+                        for (RepeatingEvent event: companionEvents) {
+                            TimeCapsule capsule = new TimeCapsule(
+                                    event.getStartTime(),
+                                    event.getEndTime(),
+                                    event.getHashID()
+                            );
+                            capsules.add(capsule);
+                        }
+                    } else {
+                        // means repeats multi values... Filter only for this day
+                        for (RepeatingEvent event: dataProvider.getEventsBy(task.getHashID(),
+                                TaskObject.Mods.repeatingMultiValues)) {
+                            if (event.getDayOfWeek().getValue() == dayThisHolderPresents.get(Calendar.DAY_OF_YEAR)) {
+                                // if we have the same day we only add it as companion:
+                                companionEvents.add(event);
+                                // create a capsule:
+                                TimeCapsule capsule = new TimeCapsule(
+                                        event.getStartTime(),
+                                        event.getEndTime(),
+                                        event.getHashID()
+                                );
+                                capsules.add(capsule);
+                            }
+                        }
+                    }
+                    /* Now we create WeekTaskData and add it, if there are companion events to
+                     * go with it, because we don't want to present a repeating event task object
+                     * by mistake of not having companion events to follow it.
+                     */
+                    if (companionEvents.size() > 0) {
+                        WeekTaskData data = new WeekTaskData(task, companionEvents, capsules);
+                        dataToPresent.add(data);
+                    }
+                }
+            }
+
+            // Now we create WeekTasks and assign them data
+            for (WeekTaskData data : dataToPresent) {
+                WeekTask task = new WeekTask(baseView.getContext());
+                taskBar.addView(task); // todo: i can measure size of task Bar
+                task.defineMe(data.object, data.events, data.capsules);
+            }
+        }
+    }
 
     // This is called to insert data
-    public void defineMe(Calendar dayIPresent) {
+    public void defineMe(final Calendar dayIPresent) {
         this.dayThisHolderPresents = dayIPresent;
         // Defining the titleBar first
         SimpleDateFormat formatter = new SimpleDateFormat("EEEE, dd MMMM");
         String toPresent = formatter.format(dayIPresent.getTime());
         dayDescription.setText(toPresent);
-
-        // Filtering and providing data for WeekTasks and displaying the week tasks in taskBar
-
-        final List<TimeCapsule> capsules = new ArrayList<>(); // holder of all the capsules
-        final List<WeekTaskData> dataToPresent = new ArrayList<>();
-        // If this doesn't work, then just create a new public method that receives List of task Objects from parent
-        // Or discover how fragment can implemmt it, as it makes more sense...
-        dataProvider.getTaskThatIntersects(dayIPresent).observeForever(new Observer<List<TaskObject>>() {
-            @Override
-            public void onChanged(@Nullable List<TaskObject> objects) {
-                if (objects != null) {
-                    displayedTasks = objects;
-                    for (TaskObject task : objects) {
-                        if (task.getRepeatingMod() == null) {
-                            // means this task has no rep events
-                            // Create a capsule
-                            TimeCapsule capsule = new TimeCapsule(
-                                    task.getTaskStartTime(),
-                                    task.getTaskEndTime(),
-                                    task.getHashID()
-                            );
-                            capsules.add(capsule);
-                            // Create WeeksTaskData entry
-                            WeekTaskData data = new WeekTaskData(task, null, capsules);
-                            dataToPresent.add(data);
-                        } else {
-                            // this consists of repeating events as well
-                            // Find the matching events with mod and ultimately create WeekData
-                            List<RepeatingEvent> companionEvents = new ArrayList<>();
-                            if (task.getRepeatingMod() == TaskObject.Mods.repeating) {
-                                // means repeats only one value:
-                                companionEvents.addAll(dataProvider.getEventsBy(task.getHashID(), TaskObject.Mods.repeating));
-                                // now create capsule for each event:
-                                for (RepeatingEvent event: companionEvents) {
-                                    TimeCapsule capsule = new TimeCapsule(
-                                            event.getStartTime(),
-                                            event.getEndTime(),
-                                            event.getHashID()
-                                            );
-                                    capsules.add(capsule);
-                                }
-                            } else {
-                                // means repeats multi values... Filter only for this day
-                                for (RepeatingEvent event: dataProvider.getEventsBy(task.getHashID(),
-                                        TaskObject.Mods.repeatingMultiValues)) {
-                                    if (event.getDayOfWeek().getValue() == dayThisHolderPresents.get(Calendar.DAY_OF_YEAR)) {
-                                        // if we have the same day we only add it as companion:
-                                        companionEvents.add(event);
-                                        // create a capsule:
-                                        TimeCapsule capsule = new TimeCapsule(
-                                                event.getStartTime(),
-                                                event.getEndTime(),
-                                                event.getHashID()
-                                        );
-                                        capsules.add(capsule);
-                                    }
-                                }
-                            }
-                            /* Now we create WeekTaskData and add it, if there are companion events to
-                             * go with it, because we don't want to present a repeating event task object
-                             * by mistake of not having companion events to follow it.
-                             */
-                            if (companionEvents.size() > 0) {
-                                WeekTaskData data = new WeekTaskData(task, companionEvents, capsules);
-                                dataToPresent.add(data);
-                            }
-                        }
-                    }
-                    //Now we create WeekTasks and assign them data
-                    for (WeekTaskData data : dataToPresent) {
-                        WeekTask task = new WeekTask(baseView.getContext());
-                        taskBar.addView(task);
-                        task.defineMe(data.object, data.events, data.capsules);
-                    }
-                }
-            }
-        });
     }
     /*
      * A holder class designed to hold instances of start and end times of tasks that will be further
@@ -283,10 +281,11 @@ public class DayHolder_WeekView extends FrameLayout {
                 TaskObject.TimeDefined.onlyDate
                 );
         dataProvider.saveTaskObject(newTaskWeCreate);
+        Log.d("E2", "Saved object with id:" + newHashId);
         LocalBroadcastManager broadcastManager = LocalBroadcastManager.getInstance(getContext());
         Intent mIntent = new Intent(Constants.INTENT_FILTER_NEW_TASK);
-        // TODO: Do I need to put more data? && Do I need to add it to layout or LiveData Will do its job?
         mIntent.putExtra(Constants.INTENT_FILTER_FIELD_HASH_ID, newHashId);
+        mIntent.putExtra(Constants.TASK_OBJECT, newTaskWeCreate);
         broadcastManager.sendBroadcast(mIntent);
     }
 }

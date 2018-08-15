@@ -3,7 +3,8 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="wrap_content">
+    android:layout_height="wrap_content"
+    android:background="@drawable/rounded_background">
 
     <CheckBox
         android:id="@+id/checkBox_weekTask"
@@ -37,7 +38,8 @@
         android:text="TextView"
         app:layout_constraintBottom_toBottomOf="@+id/checkBox_weekTask"
         app:layout_constraintStart_toEndOf="@+id/divider5"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.0" />
 
     <TextView
         android:id="@+id/masterTaskName_weekTask"

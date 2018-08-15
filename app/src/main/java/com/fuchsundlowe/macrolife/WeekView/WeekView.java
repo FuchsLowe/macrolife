@@ -14,6 +14,7 @@ import android.support.v4.view.PagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.view.View;
 import android.widget.FrameLayout;
 import com.fuchsundlowe.macrolife.BottomBar.EditTaskBottomBar;
 import com.fuchsundlowe.macrolife.BottomBar.RecommendationBar;
@@ -93,7 +94,7 @@ public class WeekView extends AppCompatActivity implements BottomBarCommunicatio
                     }
                 } else if (intent.getAction().equals(Constants.INTENT_FILTER_NEW_TASK)) {
                     // So click occurred to create new task... We need to initiate the edit of it
-                    TaskObject newTask = dataProvider.findTaskObjectBy(intent.getIntExtra(Constants.INTENT_FILTER_FIELD_HASH_ID, -1));
+                    TaskObject newTask = (TaskObject) intent.getSerializableExtra(Constants.TASK_OBJECT);
                     if (newTask != null) {
                         FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
                         EditTaskBottomBar taskEditor = new EditTaskBottomBar();
@@ -101,7 +102,7 @@ public class WeekView extends AppCompatActivity implements BottomBarCommunicatio
                         transaction.commit();
                         taskEditor.defineMe(EditTaskBottomBar.EditTaskState.editTask, newTask, self, bottomBar.getWidth());
                     }
-                } else if (intent.getAction().equals(Constants.INTENT_FILTER_RECOMENDATION)) {
+                } else if (intent.getAction().equals(Constants.INTENT_FILTER_RECOMMENDATION)) {
                     provideRecommendationFetcher();
                 }
             }
@@ -110,7 +111,7 @@ public class WeekView extends AppCompatActivity implements BottomBarCommunicatio
         IntentFilter intentFilter = new IntentFilter();
         intentFilter.addAction(Constants.INTENT_FILTER_NEW_TASK);
         intentFilter.addAction(Constants.INTENT_FILTER_GLOBAL_EDIT);
-        intentFilter.addAction(Constants.INTENT_FILTER_RECOMENDATION);
+        intentFilter.addAction(Constants.INTENT_FILTER_RECOMMENDATION);
         // Registering receiver with filters:
         LocalBroadcastManager.getInstance(this).registerReceiver(broadcastReceiver, intentFilter);
     }
@@ -129,7 +130,7 @@ public class WeekView extends AppCompatActivity implements BottomBarCommunicatio
         dataProvider.deleteTask(objectToDelete);
         provideRecommendationFetcher();
     }
-
+    // Page Adapter in charge of presenting WeekDisplays:
     private class CentralPageAdapter extends FragmentStatePagerAdapter {
         final int NUMBER_OF_WEEKS = 104;
 

@@ -2,6 +2,7 @@ package com.fuchsundlowe.macrolife.EngineClasses;
 
 import android.arch.lifecycle.LiveData;
 import android.arch.lifecycle.Observer;
+import android.arch.persistence.room.Query;
 import android.arch.persistence.room.Room;
 import android.content.Context;
 import android.os.Looper;
@@ -81,11 +82,18 @@ public class LocalStorage implements DataProviderNewProtocol {
         return dataBase.newDAO().getTasksForRecommendationFetcher();
     }
     @Override
-    public LiveData<List<TaskObject>> getTaskThatIntersects(Calendar day) {
+    public LiveData<List<TaskObject>> getTaskThatIntersects(Calendar day) { // Need to add timeDefined attribute
         // Get the long values of start and end of day...
         long[] results = returnStartAndEndTimesForDay(day);
 
         return dataBase.newDAO().getTaskThatIntersects(results[0], results[1]);
+    }
+    @Override
+    public LiveData<List<TaskObject>>getTasksForWeekView(Calendar forDay) {
+        // Get the long values of start and end of day...
+        long[] results = returnStartAndEndTimesForDay(forDay);
+
+        return dataBase.newDAO().getTaskThatIntersectsDayWithAnyTimeValue(results[0], results[1]);
     }
     @Override
     public ArrayList<TaskObject> getDataForRecommendationBar() {

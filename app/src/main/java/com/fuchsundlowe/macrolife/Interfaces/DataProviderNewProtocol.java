@@ -8,11 +8,9 @@ import com.fuchsundlowe.macrolife.DataObjects.ComplexGoal;
 import com.fuchsundlowe.macrolife.DataObjects.ListObject;
 import com.fuchsundlowe.macrolife.DataObjects.RepeatingEvent;
 import com.fuchsundlowe.macrolife.DataObjects.TaskObject;
-
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
-import java.util.Set;
 
 public interface DataProviderNewProtocol {
 
@@ -24,6 +22,7 @@ public interface DataProviderNewProtocol {
     ArrayList<TaskObject>getDataForRecommendationBar();
     LiveData<List<TaskObject>>getLiveDataForRecommendationBar();
     LiveData<TaskObject> getTaskObjectWithCreationTime(Calendar creationTime);
+    LiveData<List<TaskObject>>getTasksForWeekView(Calendar forDay);
     void deleteTask(TaskObject objectToDelete);
     LiveData<List<TaskObject>> getTaskThatIntersects(Calendar day);
     LiveData<List<TaskObject>> getTasksForRemindersView(Calendar forDay);

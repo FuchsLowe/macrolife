@@ -20,8 +20,10 @@ import com.fuchsundlowe.macrolife.DayView.DayView;
 import com.fuchsundlowe.macrolife.DepreciatedClasses.ListView;
 import com.fuchsundlowe.macrolife.EngineClasses.LocalStorage;
 import com.fuchsundlowe.macrolife.Interfaces.DataProviderNewProtocol;
+import com.fuchsundlowe.macrolife.TestCases.Test4;
 import com.fuchsundlowe.macrolife.TestCases.TestActivity;
 import com.fuchsundlowe.macrolife.TestCases.TestActivity3;
+import com.fuchsundlowe.macrolife.TestCases.TestActivity4;
 import com.fuchsundlowe.macrolife.WeekView.WeekView;
 
 import java.util.ArrayList;
@@ -58,7 +60,7 @@ public class MasterScreen extends AppCompatActivity {
         startActivity(toList);
     }
     public void toTest(View view) {
-        Intent toTest = new Intent(this, TestActivity.class);
+        Intent toTest = new Intent(this, Test4.class);
         startActivity(toTest);
     }
     public void test2() {

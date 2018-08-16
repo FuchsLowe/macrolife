@@ -52,6 +52,7 @@ public class WeekTask extends FrameLayout {
     private List<TimeCapsule> timeCapsules;
     private List<Integer> hashIDRepo;
     private List<TimeCapsule> capsToDrawTime;
+    private DayHolderCommunicationInterface parentProtocol;
 
     // Public constructors:
     public WeekTask(Context context) {
@@ -98,10 +99,13 @@ public class WeekTask extends FrameLayout {
     }
 
     // The data insertion and interpretation, doesn't filter data...
-    public void defineMe(TaskObject taskObject, @Nullable List<RepeatingEvent> events, List<TimeCapsule> timeCapsules) {
+    public void defineMe(TaskObject taskObject, @Nullable List<RepeatingEvent> events,
+                         List<TimeCapsule> timeCapsules, DayHolderCommunicationInterface protocol) {
+
         this.taskWePresent = taskObject;
         this.events = events;
         this.timeCapsules = timeCapsules;
+        this.parentProtocol = protocol;
 
         // Assigning values to fields:
         switch (taskObject.getIsTaskCompleted()) {
@@ -147,7 +151,7 @@ public class WeekTask extends FrameLayout {
             timeBar.setVisibility(VISIBLE);
             defineTimeBar();
         } else {
-            timeBar.setVisibility(INVISIBLE); // TODO: Should Gone be Better?
+            timeBar.setVisibility(GONE);
         }
 
     }
@@ -174,11 +178,9 @@ public class WeekTask extends FrameLayout {
             @Override
             public void run() {
                 addTimeCapsulesInDayBar(timeCapsules, dayBar, textSize);
-                Log.d("E2", "Time capsule was called");
             }
         }, 300);
         //addTimeCapsulesInDayBar(timeCapsules, dayBar, minuteInAPixel, textSize);
-
     }
     // Fills in the hashIDRepo with id's
     void createIDRepository() {
@@ -206,7 +208,24 @@ public class WeekTask extends FrameLayout {
         for (TimeCapsule capsule : timeCapsules) {
             View capsuleView = new View(context);
             long durationInMinutes = (capsule.endTime.getTimeInMillis() - capsule.startTime.getTimeInMillis()) / 60000;
-            capsuleView.setLayoutParams(new LayoutParams((int) (durationInMinutes * minuteInAPixel),
+            int timeToPresent;
+            // If end time doesn't belong to today's day then we use max value instead of timeValue
+            Log.d("E3", "TaskDay: " + capsule.endTime.get(Calendar.DAY_OF_YEAR) +" HoldersDay: "+ parentProtocol.getDayHoldersDay().get(Calendar.DAY_OF_YEAR));
+            if (capsule.endTime.get(Calendar.DAY_OF_YEAR) != parentProtocol.getDayHoldersDay().get(Calendar.DAY_OF_YEAR)) {
+                timeToPresent = dayBar.getWidth();
+            } else {
+                // But if task has started on other day than today... then this would be off...
+                if (capsule.startTime.get(Calendar.DAY_OF_YEAR) != parentProtocol.getDayHoldersDay().get(Calendar.DAY_OF_YEAR)) {
+                    Calendar startTimeOfDay = (Calendar) capsule.endTime.clone();
+                    startTimeOfDay.set(Calendar.HOUR_OF_DAY, 0);
+                    startTimeOfDay.set(Calendar.MINUTE, 0);
+                    durationInMinutes = (capsule.endTime.getTimeInMillis() - startTimeOfDay.getTimeInMillis()) / 60000;
+                    timeToPresent = (int) (durationInMinutes * minuteInAPixel);
+                } else {
+                    timeToPresent = (int) (durationInMinutes * minuteInAPixel);
+                }
+            }
+            capsuleView.setLayoutParams(new LayoutParams(timeToPresent,
                     ViewGroup.LayoutParams.MATCH_PARENT));
 
             // Determine if this one belongs to chosen ones
@@ -218,11 +237,19 @@ public class WeekTask extends FrameLayout {
                 capsuleView.setBackgroundColor(defaultColor);
             }
             dayBar.addView(capsuleView);
-            int xCoordinate = (int) (minuteOfDay(capsule.startTime) * minuteInAPixel);
-            capsuleView.setTranslationX(xCoordinate);
+            // If it starts on same day as this we represent, then we use that as our start point, else
+            // we start from 0
+            int xCoordinate;
+            if (capsule.startTime.get(Calendar.DAY_OF_YEAR) == parentProtocol.getDayHoldersDay().get(Calendar.DAY_OF_YEAR)) {
+                xCoordinate = (int) (minuteOfDay(capsule.startTime) * minuteInAPixel);
+            } else {
+                xCoordinate = 0;
+            }
+            capsuleView.animate().x(xCoordinate).setDuration(2000).setStartDelay(2000).start();
+            //capsuleView.setX(xCoordinate);
         }
         // Now we only need to draw the Time
-        drawTaskTimes(minuteInAPixel, taskColor, textSize);
+        //drawTaskTimes(minuteInAPixel, taskColor, textSize);
     }
     // This function draws the task times above and optionally below the the task times
     void drawTaskTimes(float minuteInPixels, int colorForText, float sizeOfText) {

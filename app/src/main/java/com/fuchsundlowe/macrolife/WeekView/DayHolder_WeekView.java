@@ -7,6 +7,8 @@ import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.app.Fragment;
+import android.os.Handler;
+import android.os.Looper;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.content.LocalBroadcastManager;
@@ -36,7 +38,7 @@ import java.util.List;
 /**
  * A simple {@link Fragment} subclass.
  */
-public class DayHolder_WeekView extends FrameLayout {
+public class DayHolder_WeekView extends FrameLayout implements DayHolderCommunicationInterface {
 
     private ViewGroup baseView;
     private FrameLayout titleBar;
@@ -85,6 +87,7 @@ public class DayHolder_WeekView extends FrameLayout {
 
     // This is called to insert Data
     public void dataInsertion(List<TaskObject>tasksToPresent) {
+        Log.d("E4", "Number of Views inserted:" + tasksToPresent.size() +  "\nfor day: " + dayThisHolderPresents.get(Calendar.DAY_OF_MONTH));
         // Filtering data:
         if (tasksToPresent != null) {
             taskBar.removeAllViews();
@@ -96,12 +99,15 @@ public class DayHolder_WeekView extends FrameLayout {
                 if (task.getRepeatingMod() == null) {
                     // means this task has no rep events
                     // Create a capsule
-                    TimeCapsule capsule = new TimeCapsule(
-                            task.getTaskStartTime(),
-                            task.getTaskEndTime(),
-                            task.getHashID()
-                    );
-                    capsules.add(capsule);
+                    if (task.getTimeDefined() == TaskObject.TimeDefined.dateAndTime) {
+                        // because capsules display only tasks with time frame defined.
+                        TimeCapsule capsule = new TimeCapsule(
+                                task.getTaskStartTime(),
+                                task.getTaskEndTime(),
+                                task.getHashID()
+                        );
+                        capsules.add(capsule);
+                    }
                     // Create WeeksTaskData entry
                     WeekTaskData data = new WeekTaskData(task, null, capsules);
                     dataToPresent.add(data);
@@ -148,31 +154,67 @@ public class DayHolder_WeekView extends FrameLayout {
                     }
                 }
             }
-
+            // Sorting the data so we First show tasks with dateOnly and afterwards the tasks in
+            // chronological order:
+            dataToPresent = bubbleSort(dataToPresent);
             // Now we create WeekTasks and assign them data
             for (WeekTaskData data : dataToPresent) {
                 WeekTask task = new WeekTask(baseView.getContext());
-                taskBar.addView(task); // todo: i can measure size of task Bar
-                task.defineMe(data.object, data.events, data.capsules);
+                taskBar.addView(task);
+                task.defineMe(data.object, data.events, data.capsules, this);
             }
         }
     }
+    // Sorting by dateOnly Firts and then in chronological order other dates by start time
+    private List<WeekTaskData> bubbleSort( List<WeekTaskData> dataToSort) {
+        /*
+         * Looking for ones that have onlyDate and no time to set
+         * them at the beginning of the the array
+         */
 
+        List<WeekTaskData> holderArray = new ArrayList<>();
+        for (WeekTaskData data: dataToSort) {
+            if (data.object.getTimeDefined() == TaskObject.TimeDefined.onlyDate) {
+                holderArray.add(data);
+            }
+        }
+        dataToSort.removeAll(holderArray);
+        // Now we set the tasks by their start times... considering repeating events as well
+        WeekTaskData temp;
+        boolean swapped;
+        for (int i = 0; i<dataToSort.size() -1; i++) {
+           swapped = false;
+           for (int j = 0; j < dataToSort.size() - i - 1; j++) {
+               // The logic:
+               Calendar val1 = dataToSort.get(j).earliestStartTime();
+               Calendar val2 = dataToSort.get(j+1).earliestStartTime();
+               if (val2.before(val1)) {
+                   temp = dataToSort.get(j);
+                   dataToSort.set(j, dataToSort.get(j +1));
+                   dataToSort.set(j+1, temp);
+                   swapped = true;
+               }
+           }
+           if (!swapped) break;
+        }
+        holderArray.addAll(dataToSort);
+        return holderArray;
+    }
     // This is called to insert data
     public void defineMe(final Calendar dayIPresent) {
         this.dayThisHolderPresents = dayIPresent;
         // Defining the titleBar first
-        SimpleDateFormat formatter = new SimpleDateFormat("EEEE, dd MMMM");
-        String toPresent = formatter.format(dayIPresent.getTime());
+        final SimpleDateFormat formatter = new SimpleDateFormat("EEEE, dd MMMM");
+        final String toPresent = formatter.format(dayIPresent.getTime());
         dayDescription.setText(toPresent);
     }
+
     /*
      * A holder class designed to hold instances of start and end times of tasks that will be further
      * passed as array from WeekDisplay_WeekView to WeekTask for usage in defining the look and feel
      * of WeekTask instances.
      */
     protected class TimeCapsule {
-
         Calendar startTime, endTime;
         int hashID;
         TimeCapsule(Calendar startTime, Calendar endTime, int hashID) {
@@ -193,6 +235,21 @@ public class DayHolder_WeekView extends FrameLayout {
             this.events = events;
             this.capsules = capsules;
         }
+
+        // If there are events it will return the one with earliest start time,if not it will return taskStartTime
+        Calendar earliestStartTime() {
+            if (events!= null && events.size() > 0) {
+                Calendar earliestEvent = events.get(0).getStartTime();
+                for (RepeatingEvent event: events) {
+                    if (event.getStartTime().before(earliestEvent)) {
+                        earliestEvent = event.getStartTime();
+                    }
+                }
+                return earliestEvent;
+            } else {
+                return object.getTaskStartTime();
+            }
+        }
     }
     /*
      * Drag and drop listener that accepts new data dragged from outside this field...
@@ -201,7 +258,7 @@ public class DayHolder_WeekView extends FrameLayout {
      *
      * It should just save it and when it gets live-data update it will redraw everything... by default
      *
-     * consider corruption issues of the data format... so find the task and just change the day
+     * Consider corruption issues of the data format... so find the task and just change the day
      */
     private void defineDragAndDropListener() {
         baseView.setOnDragListener(new View.OnDragListener() {
@@ -281,11 +338,16 @@ public class DayHolder_WeekView extends FrameLayout {
                 TaskObject.TimeDefined.onlyDate
                 );
         dataProvider.saveTaskObject(newTaskWeCreate);
-        Log.d("E2", "Saved object with id:" + newHashId);
         LocalBroadcastManager broadcastManager = LocalBroadcastManager.getInstance(getContext());
         Intent mIntent = new Intent(Constants.INTENT_FILTER_NEW_TASK);
         mIntent.putExtra(Constants.INTENT_FILTER_FIELD_HASH_ID, newHashId);
         mIntent.putExtra(Constants.TASK_OBJECT, newTaskWeCreate);
         broadcastManager.sendBroadcast(mIntent);
+    }
+
+    // DayHolderCommunicationInterface implementation:
+    @Override
+    public Calendar getDayHoldersDay() {
+        return dayThisHolderPresents;
     }
 }

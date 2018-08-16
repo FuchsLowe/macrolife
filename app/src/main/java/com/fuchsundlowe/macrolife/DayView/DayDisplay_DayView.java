@@ -133,9 +133,6 @@ public class DayDisplay_DayView extends Fragment {
             }
         };
         h.postDelayed(m, 500);
-        // TODO Test:
-        SimpleDateFormat f = new SimpleDateFormat("dd-MM-YYYY 'at' HH:mm");
-        //Log.d("C2:", "DayView is Displaying day: " + f.format(dayWeDisplay.getTime()));
     }
 
     // Methods:

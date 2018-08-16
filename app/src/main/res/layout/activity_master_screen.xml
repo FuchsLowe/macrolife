@@ -20,8 +20,8 @@
         android:id="@+id/toList"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:onClick="toList"
-        android:text="ListView" />
+        android:onClick="toWeek"
+        android:text="WeekView" />
 
     <Button
         android:id="@+id/toTest"

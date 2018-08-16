@@ -14,7 +14,6 @@ import android.support.v4.view.PagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.view.View;
 import android.widget.FrameLayout;
 import com.fuchsundlowe.macrolife.BottomBar.EditTaskBottomBar;
 import com.fuchsundlowe.macrolife.BottomBar.RecommendationBar;
@@ -120,7 +119,9 @@ public class WeekView extends AppCompatActivity implements BottomBarCommunicatio
         FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
         RecommendationBar recommendationBar = new RecommendationBar();
         transaction.replace(bottomBar.getId(), recommendationBar);
-        transaction.commit();
+        if (!isFinishing()) {
+            transaction.commit();
+        }
     }
 
     // Bottom Bar Communication Protocol Implementation:

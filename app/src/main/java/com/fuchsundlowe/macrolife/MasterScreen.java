@@ -55,8 +55,8 @@ public class MasterScreen extends AppCompatActivity {
         Intent toDay = new Intent(this, DayView.class);
         startActivity(toDay);
     }
-    public void toList(View view) {
-        Intent toList = new Intent(this, ListView.class);
+    public void toWeek(View view) {
+        Intent toList = new Intent(this, WeekView.class);
         startActivity(toList);
     }
     public void toTest(View view) {

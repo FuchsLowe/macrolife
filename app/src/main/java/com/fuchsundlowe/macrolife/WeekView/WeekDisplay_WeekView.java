@@ -69,6 +69,7 @@ public class WeekDisplay_WeekView extends Fragment {
     // Used to create appropriate calendar events and pass them to children:
     private void initiateData() {
         int daysInAWeek = 7;
+        listLayout.removeAllViews();
         for (int i = 0; i < daysInAWeek; i++) {
             final DayHolder_WeekView mDay = new DayHolder_WeekView(baseView.getContext());
             // Add it to view hierarchy

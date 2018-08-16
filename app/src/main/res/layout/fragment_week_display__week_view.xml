@@ -59,7 +59,7 @@
 
         <LinearLayout
             android:id="@+id/listView_weekDisplay"
-            android:layout_width="328dp"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
             tools:layout_editor_absoluteX="8dp"

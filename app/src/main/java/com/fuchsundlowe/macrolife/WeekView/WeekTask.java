@@ -177,7 +177,7 @@ public class WeekTask extends FrameLayout {
         new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
             @Override
             public void run() {
-                addTimeCapsulesInDayBar(timeCapsules, dayBar, textSize);
+                addTimeCapsulesInDayBar(timeCapsules, dayBar);
             }
         }, 300);
         //addTimeCapsulesInDayBar(timeCapsules, dayBar, minuteInAPixel, textSize);
@@ -196,8 +196,7 @@ public class WeekTask extends FrameLayout {
         }
     }
     // Receives a time capsules, creates views and adds it to dayBar, lights up the bars that are this tasks
-    void addTimeCapsulesInDayBar(List<TimeCapsule> timeCapsules, FrameLayout dayBar,
-                                 float textSize) {
+    private void addTimeCapsulesInDayBar(List<TimeCapsule> timeCapsules, FrameLayout dayBar) {
         int defaultColor = Color.BLUE;
         int taskColor = Color.GREEN;
         float minutesInADay = 1440;
@@ -249,10 +248,67 @@ public class WeekTask extends FrameLayout {
             //capsuleView.setX(xCoordinate);
         }
         // Now we only need to draw the Time
-        //drawTaskTimes(minuteInAPixel, taskColor, textSize);
+        treeTimesRepresentation();
+    }
+    // Makes 3 text views and places them into bottom container with respect of local time representation
+    private void treeTimesRepresentation() {
+        // Establish what type of system we use based on preference:
+        SharedPreferences preferences = getContext().getSharedPreferences(Constants.SHARED_PREFERENCES_KEY,
+                Context.MODE_PRIVATE);
+        String[] timeValues;
+        if (preferences.getBoolean(Constants.TIME_REPRESENTATION, false)) {
+            // if true, showing hours as time rep
+            timeValues = new String[]{"6", "12", "18"};
+        } else {
+            // showing it as PM/AM
+            timeValues = new String[]{"6", "12", "6"};
+        }
+        // We Define the TextViews:
+        int textColor = Color.CYAN;
+        TextView morning, noon, evening;
+
+        morning = new TextView(getContext());
+        morning.setTextColor(textColor);
+        morning.setTextSize(getResources().getDimension(R.dimen.week_view_time));
+
+        noon =  new TextView(getContext());
+        noon.setTextColor(textColor);
+        noon.setTextSize(getResources().getDimension(R.dimen.week_view_time));
+
+        evening =  new TextView(getContext());
+        evening.setTextColor(textColor);
+        evening.setTextSize(getResources().getDimension(R.dimen.week_view_time));
+
+        // We add text:
+        morning.setText(timeValues[0]);
+        noon.setText(timeValues[1]);
+        evening.setText(timeValues[2]);
+
+        // Now we measure the text size:
+        int mLenght, nLenght, eLenght;
+        int oneHour = bottom_TimeBar.getWidth() / 24;
+
+        morning.measure(0,0);
+        mLenght = morning.getMeasuredWidth();
+
+        noon.measure(0,0);
+        nLenght = noon.getMeasuredWidth();
+
+        evening.measure(0,0);
+        eLenght = evening.getMeasuredWidth();
+
+        // Now we add them and position them
+        bottom_TimeBar.addView(morning);
+        morning.setX(6 * oneHour - mLenght/2);
+
+        bottom_TimeBar.addView(noon);
+        noon.setX(12 * oneHour - nLenght/2);
+
+        bottom_TimeBar.addView(evening);
+        evening.setX(18 * oneHour - eLenght/2);
     }
     // This function draws the task times above and optionally below the the task times
-    void drawTaskTimes(float minuteInPixels, int colorForText, float sizeOfText) {
+    private void drawTaskTimes(float minuteInPixels, int colorForText, float sizeOfText) {
         SharedPreferences preferences = getContext().getSharedPreferences(Constants.SHARED_PREFERENCES_KEY,
                 Context.MODE_PRIVATE);
 
@@ -308,7 +364,7 @@ public class WeekTask extends FrameLayout {
 
     }
     // From Calendar returns the minute of the day; EX: 1:30 AM is 90th min...
-    int minuteOfDay(Calendar time) {
+    private int minuteOfDay(Calendar time) {
         return time.get(Calendar.HOUR_OF_DAY) * 60 + time.get(Calendar.MINUTE);
     }
 
@@ -327,7 +383,7 @@ public class WeekTask extends FrameLayout {
         ClipData data = new ClipData(Constants.TASK_OBJECT, MIME_Type, dataItem);
         startDrag(data, defaultShadowBuilder, taskWePresent, 0);
     }
-    void defineClickFunctions() {
+    private void defineClickFunctions() {
         // Make on Click Listener for edit
         setOnClickListener(new OnClickListener() {
             @Override

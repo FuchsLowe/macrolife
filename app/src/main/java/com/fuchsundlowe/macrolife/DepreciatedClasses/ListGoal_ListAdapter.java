@@ -1,15 +1,13 @@
 package com.fuchsundlowe.macrolife.DepreciatedClasses;
 
 import android.content.Context;
-import android.content.Intent;
 import android.support.annotation.NonNull;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
-import com.fuchsundlowe.macrolife.DataObjects.Constants;
-import com.fuchsundlowe.macrolife.ListTask;
+
 import com.fuchsundlowe.macrolife.R;
 
 import java.util.List;
@@ -81,9 +79,7 @@ public class ListGoal_ListAdapter extends RecyclerView.Adapter<ListGoal_ListAdap
         public TextView getName() { return name;}
 
         void shootIntent() {
-            Intent toDetailedListTask = new Intent(mContext, ListTask.class);
-            toDetailedListTask.putExtra(Constants.LIST_VIEW_MASTER_ID, masterID);
-            mContext.startActivity(toDetailedListTask);
+
         }
     }
 

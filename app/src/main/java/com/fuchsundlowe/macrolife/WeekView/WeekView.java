@@ -63,6 +63,7 @@ public class WeekView extends AppCompatActivity implements BottomBarCommunicatio
         SharedPreferences preferences = this.getSharedPreferences(Constants.SHARED_PREFERENCES_KEY, MODE_PRIVATE);
         int firstDayOfWeek = preferences.getInt(Constants.FIRST_DAY_OF_WEEK, 1);
         startDay.setFirstDayOfWeek(firstDayOfWeek);
+        // Page adapter implementation:
         PagerAdapter mAdapter = new CentralPageAdapter(getSupportFragmentManager());
         centralBar.setAdapter(mAdapter);
         centralBar.setCurrentItem(52); // drop it in the middle as we should have 2 yrs worth of scrolling

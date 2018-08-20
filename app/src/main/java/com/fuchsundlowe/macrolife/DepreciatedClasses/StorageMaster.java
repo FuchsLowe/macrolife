@@ -5,9 +5,7 @@ import android.arch.lifecycle.LiveData;
 import android.arch.lifecycle.Observer;
 import android.content.Context;
 import android.support.annotation.Nullable;
-
 import com.fuchsundlowe.macrolife.DataObjects.*;
-
 import java.util.Calendar;
 import java.util.HashSet;
 import java.util.List;
@@ -85,20 +83,6 @@ public class StorageMaster implements DataProviderProtocol {
 
             }
         }).start();
-    }
-    @Override
-    public Set<ComplexGoal> getComplexGoalsByDay(Calendar day) {
-        Set<ComplexGoal> tempSet = new HashSet<>();
-        day.set(Calendar.HOUR_OF_DAY, 0);
-        day.set(Calendar.MINUTE, 0);
-        for (ComplexGoal goal: getComplexGoals().getValue()) {
-            if (checkIfBelongsTimeWise(goal.getTaskStartTime(), goal.getTaskEndTime(), day) ) {
-                tempSet.add(goal);
-            }
-
-        }
-
-        return tempSet;
     }
     public boolean amIStored(ComplexGoal object) {
         int myID = object.getHashID();

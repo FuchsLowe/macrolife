@@ -24,7 +24,6 @@ import java.util.Set;
 public interface DataProviderProtocol {
 
     void deleteObject(ComplexGoal object);
-    Set<ComplexGoal> getComplexGoalsByDay(Calendar day);
     void updateObject(ComplexGoal object);
     void insertObject(ComplexGoal object);
     void subscribeObserver_ComplexGoal(LifecycleOwner lifecycleOwner, Observer<List<ComplexGoal>> observer);

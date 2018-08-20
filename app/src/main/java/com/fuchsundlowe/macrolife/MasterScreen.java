@@ -2,7 +2,6 @@ package com.fuchsundlowe.macrolife;
 
 import android.arch.lifecycle.Observer;
 import android.content.Intent;
-import android.content.IntentFilter;
 import android.graphics.Color;
 import android.os.Handler;
 import android.support.annotation.Nullable;
@@ -10,22 +9,16 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.TextView;
-import android.widget.Toast;
-
 import com.fuchsundlowe.macrolife.ComplexGoal.ComplexTaskActivity;
 import com.fuchsundlowe.macrolife.DataObjects.DayOfWeek;
 import com.fuchsundlowe.macrolife.DataObjects.RepeatingEvent;
 import com.fuchsundlowe.macrolife.DataObjects.TaskObject;
 import com.fuchsundlowe.macrolife.DayView.DayView;
-import com.fuchsundlowe.macrolife.DepreciatedClasses.ListView;
 import com.fuchsundlowe.macrolife.EngineClasses.LocalStorage;
 import com.fuchsundlowe.macrolife.Interfaces.DataProviderNewProtocol;
 import com.fuchsundlowe.macrolife.TestCases.Test4;
-import com.fuchsundlowe.macrolife.TestCases.TestActivity;
 import com.fuchsundlowe.macrolife.TestCases.TestActivity3;
-import com.fuchsundlowe.macrolife.TestCases.TestActivity4;
 import com.fuchsundlowe.macrolife.WeekView.WeekView;
-
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
@@ -47,7 +40,8 @@ public class MasterScreen extends AppCompatActivity {
         display.setText("");
         //test3();
         //toDay(null);
-        toWeekView();
+        //toWeekView();
+        toListView(null);
         defineDisplay();
     }
 
@@ -74,6 +68,11 @@ public class MasterScreen extends AppCompatActivity {
     void toWeekView() {
         Intent week = new Intent(this, WeekView.class);
         startActivity(week);
+    }
+
+    public void toListView(View view) {
+        Intent list = new Intent(this, com.fuchsundlowe.macrolife.ListView.ListView.class);
+        startActivity(list);
     }
 
     @Override

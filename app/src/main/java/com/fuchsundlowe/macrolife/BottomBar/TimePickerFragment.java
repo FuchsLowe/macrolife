@@ -3,6 +3,7 @@ package com.fuchsundlowe.macrolife.BottomBar;
 import android.app.Dialog;
 import android.app.TimePickerDialog;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.text.format.DateFormat;
 import android.widget.TimePicker;
 
@@ -19,6 +20,7 @@ public class TimePickerFragment extends android.support.v4.app.DialogFragment
     private boolean isEditingStartValue;
 
 
+    @NonNull
     @Override
     public Dialog onCreateDialog(Bundle savedInstanceState) {
         int hour, minute;
@@ -58,6 +60,7 @@ public class TimePickerFragment extends android.support.v4.app.DialogFragment
         } else {
             valueEdited = taskObject.getTaskEndTime();
         }
+        // Todo: This is known to throw the error because sometimes the valueEdited is null...
         valueEdited.set(Calendar.HOUR_OF_DAY, hourOfDay);
         valueEdited.set(Calendar.MINUTE, minute);
         if (!isEditingStartValue) {

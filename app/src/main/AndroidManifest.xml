@@ -21,8 +21,8 @@
         <activity
             android:name=".MasterScreen"
             android:screenOrientation="portrait"
-            android:windowSoftInputMode="adjustResize"
-            android:theme="@style/Base.Theme.AppCompat.Light.DarkActionBar">
+            android:theme="@style/Base.Theme.AppCompat.Light.DarkActionBar"
+            android:windowSoftInputMode="adjustResize">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
@@ -32,11 +32,7 @@
         <activity
             android:name=".DayView.DayView"
             android:screenOrientation="portrait" />
-        <activity
-            android:name=".DepreciatedClasses.ListView"
-            android:windowSoftInputMode="stateHidden" />
         <activity android:name=".TestCases.TestActivity" />
-        <activity android:name=".ListTask" />
         <activity android:name=".TestCases.TestActivity2" />
         <activity android:name=".TestCases.TestActivity3" />
         <activity
@@ -46,7 +42,8 @@
         <activity android:name=".TestCases.Test4" />
         <activity android:name=".TestCases.TestActivity4" />
         <activity android:name=".TestCases.Test5" />
-        <activity android:name=".WeekView.WeekView"></activity>
+        <activity android:name=".WeekView.WeekView" />
+        <activity android:name=".ListView.ListView"></activity>
     </application>
 
 </manifest>

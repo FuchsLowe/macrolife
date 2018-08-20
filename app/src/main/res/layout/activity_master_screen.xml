@@ -34,8 +34,8 @@
         android:id="@+id/delete_db"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:onClick="create_rep_event"
-        android:text="create_rep_event" />
+        android:onClick="toListView"
+        android:text="ListView" />
 
     <Button
         android:id="@+id/clear_repeatingEvents"

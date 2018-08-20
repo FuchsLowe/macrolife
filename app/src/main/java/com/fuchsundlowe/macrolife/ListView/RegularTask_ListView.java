@@ -1,12 +1,14 @@
 package com.fuchsundlowe.macrolife.ListView;
 
 import android.content.Context;
+import android.media.Image;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.util.AttributeSet;
 import android.view.View;
 import android.widget.CheckBox;
 import android.widget.FrameLayout;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
@@ -16,6 +18,9 @@ import com.fuchsundlowe.macrolife.EngineClasses.LocalStorage;
 import com.fuchsundlowe.macrolife.Interfaces.DataProviderNewProtocol;
 import com.fuchsundlowe.macrolife.R;
 
+import java.util.HashMap;
+
+// A class that manages the regular task representation in listView...
 public class RegularTask_ListView extends FrameLayout {
 
     private View baseView;
@@ -54,6 +59,7 @@ public class RegularTask_ListView extends FrameLayout {
         masterTaskName = baseView.findViewById(R.id.masterTask_listView);
         timeText = baseView.findViewById(R.id.dateText_listView);
         box = baseView.findViewById(R.id.checkBox_listView);
+        // TODO: Define box click listener to reflect changes...
         modHolder = baseView.findViewById(R.id.modHolder_listView);
     }
     // The task is defined by values specified by the Task
@@ -63,10 +69,61 @@ public class RegularTask_ListView extends FrameLayout {
         taskName.setText(task.getTaskName());
 
         // Establishing the master task if there is one:
-        if (task.getParentGoal() > 0) {
-
+        if (task.getComplexGoalID() > 0) {
+            ComplexGoal parentGoal = dataMaster.findComplexGoal(task.getComplexGoalID());
+            if (parentGoal != null) {
+                // means we have found its parent goal:
+                masterTaskName.setText(parentGoal.getTaskName());
+            } else {
+                // no such goal exists:
+                masterTaskName.setVisibility(GONE);
+                task.setComplexGoalID(-1);
+            }
         }
 
+        // establishing if task is checkable or not
+        switch (task.getIsTaskCompleted()) {
+            case completed:
+                box.setChecked(true);
+                break;
+            case incomplete:
+                box.setChecked(false);
+                break;
+            case notCheckable:
+                box.setVisibility(GONE);
+                break;
+        }
+
+        // Defining the mods...
+        HashMap<TaskObject.Mods, ImageView> modMap = new HashMap<>();
+        modMap.put(TaskObject.Mods.note, (ImageView) baseView.findViewById(R.id.noteMod_listViewTask));
+        modMap.put(TaskObject.Mods.list, (ImageView) baseView.findViewById(R.id.listMod_listViewTask));
+        modMap.put(TaskObject.Mods.repeating, (ImageView) baseView.findViewById(R.id.repeatOneMod_listViewTask));
+        modMap.put(TaskObject.Mods.repeatingMultiValues, (ImageView) baseView.findViewById(R.id.repeatMulti_listViewTask));
+        for (TaskObject.Mods mod : task.getAllMods()) {
+            modMap.get(mod).setVisibility(VISIBLE);
+        }
+
+        // switch states
+
+
+    }
+    private taskState determineTaskState() {
+        /*
+         * Completed sate:
+         * Task is checked
+         * Task is not checkable and passed (endTime)
+         *
+         * Overdue state:
+         * incomplete but passed time
+         *
+         * in progress:
+         * current time is between start and end time
+         *
+         * incomplete:
+         * Everything else
+         */
+        return taskState.incomplete;
     }
 
     /* Task Time state:
@@ -82,4 +139,8 @@ public class RegularTask_ListView extends FrameLayout {
 
     // On click:
 
+    protected enum taskState {
+        completed, overdue, incomplete
+        // TODO: Should I have in progress?
+    }
 }

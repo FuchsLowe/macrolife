@@ -1,13 +1,11 @@
 package com.fuchsundlowe.macrolife.DataObjects;
 
 import android.arch.persistence.room.Entity;
-import android.arch.persistence.room.ForeignKey;
 import android.arch.persistence.room.Ignore;
 import android.arch.persistence.room.PrimaryKey;
 import android.support.annotation.Nullable;
 
 import java.io.Serializable;
-import java.sql.Time;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
@@ -17,7 +15,7 @@ import java.util.List;
 public class TaskObject implements Serializable {
     @PrimaryKey(autoGenerate = true)
     private int hashID; // Passing 0 will make system auto-generate a key when data is formed...
-    private int parentGoal; // if this goal is a part of ComplexGoal, this would be ID of that master
+    private int complexGoalID; // if this goal is a part of ComplexGoal, this would be ID of that master
     private int subGoalMaster; // reference to a optional next in hierarchy goal
     private String taskName;
     private Calendar taskCreatedTimeStamp; // set once, never changes
@@ -43,13 +41,13 @@ public class TaskObject implements Serializable {
     private ArrayList<Mods> acceptableMods;
 
     // Constructor:
-    public TaskObject(int hashID, int parentGoal, int subGoalMaster, String taskName,
+    public TaskObject(int hashID, int complexGoalID, int subGoalMaster, String taskName,
                       Calendar taskCreatedTimeStamp, Calendar taskStartTime, Calendar taskEndTime,
                       Calendar lastTimeModified, CheckableStatus isTaskCompleted, String note,
                       int mX, int mY, String mods, TimeDefined timeDefined) {
 
         this.hashID = hashID;
-        this.parentGoal = parentGoal;
+        this.complexGoalID = complexGoalID;
         this.subGoalMaster = subGoalMaster;
         this.taskName = taskName;
         this.taskCreatedTimeStamp = taskCreatedTimeStamp;
@@ -144,11 +142,11 @@ public class TaskObject implements Serializable {
         this.hashID = hashID;
     }
 
-    public int getParentGoal() {
-        return parentGoal;
+    public int getComplexGoalID() {
+        return complexGoalID;
     }
-    public void setParentGoal(int parentGoal) {
-        this.parentGoal = parentGoal;
+    public void setComplexGoalID(int complexGoalID) {
+        this.complexGoalID = complexGoalID;
     }
 
     public int getSubGoalMaster() {

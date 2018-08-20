@@ -6,19 +6,12 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Color;
-import android.os.Handler;
-import android.os.Looper;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
-import android.support.constraint.ConstraintLayout;
 import android.support.v4.content.LocalBroadcastManager;
 import android.support.v4.view.GestureDetectorCompat;
-import android.support.v7.widget.CardView;
-import android.text.Layout;
 import android.util.AttributeSet;
-import android.util.Log;
 import android.view.GestureDetector;
-import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
@@ -38,10 +31,7 @@ import com.fuchsundlowe.macrolife.EngineClasses.LocalStorage;
 import com.fuchsundlowe.macrolife.Interfaces.DataProviderNewProtocol;
 import com.fuchsundlowe.macrolife.R;
 
-import java.text.SimpleDateFormat;
 import java.util.Calendar;
-import java.util.Timer;
-import java.util.TimerTask;
 
 
 // A custom view Class that creates a taskView intended for usage in DayView's Chrono-View
@@ -273,9 +263,9 @@ public class Task_DayView extends FrameLayout {
             }
             return;
         }
-        if (task.getParentGoal() > 0) { // make sure there is one
+        if (task.getComplexGoalID() > 0) { // make sure there is one
             // TODO: Does auto-increment start from 1 or 0?
-            ComplexGoal result = storageMaster.findComplexGoal(task.getParentGoal());
+            ComplexGoal result = storageMaster.findComplexGoal(task.getComplexGoalID());
             if (result != null) {
                 masterTaskName.setText(result.getTaskName());
             }

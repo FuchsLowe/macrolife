@@ -123,8 +123,8 @@ public class WeekTask extends FrameLayout {
         }
         taskName.setText(taskObject.getTaskName());
         // We check if it has master if not, then we skip this
-        if (taskObject.getParentGoal() > 0) {
-            ComplexGoal masterGoal = dataMaster.getComplexGoalBy(taskObject.getParentGoal());
+        if (taskObject.getComplexGoalID() > 0) {
+            ComplexGoal masterGoal = dataMaster.getComplexGoalBy(taskObject.getComplexGoalID());
             if (masterGoal != null) {
                 masterTaskName.setVisibility(VISIBLE);
                 masterTaskName.setText(masterGoal.getTaskName());

@@ -30,7 +30,7 @@
     <LinearLayout
         android:id="@+id/modHolder_listView"
         android:layout_width="0dp"
-        android:layout_height="36dp"
+        android:layout_height="28dp"
         android:layout_marginBottom="8dp"
         android:layout_marginEnd="8dp"
         android:layout_marginStart="8dp"
@@ -41,7 +41,40 @@
         app:layout_constraintHorizontal_bias="1.0"
         app:layout_constraintStart_toEndOf="@+id/constraintLayout"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.0"></LinearLayout>
+        app:layout_constraintVertical_bias="0.0">
+
+        <ImageView
+            android:id="@+id/noteMod_listViewTask"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:visibility="gone"
+            app:srcCompat="@drawable/note_add_24px" />
+
+        <ImageView
+            android:id="@+id/listMod_listViewTask"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:visibility="gone"
+            app:srcCompat="@drawable/list_alt_24px" />
+
+        <ImageView
+            android:id="@+id/repeatOneMod_listViewTask"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:visibility="gone"
+            app:srcCompat="@drawable/repeat_24px" />
+
+        <ImageView
+            android:id="@+id/repeatMulti_listViewTask"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:visibility="gone"
+            app:srcCompat="@drawable/repeat_one_24px" />
+    </LinearLayout>
 
     <android.support.constraint.ConstraintLayout
         android:id="@+id/constraintLayout"

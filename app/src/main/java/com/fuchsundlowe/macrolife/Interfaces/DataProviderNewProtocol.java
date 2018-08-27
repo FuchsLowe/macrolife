@@ -31,11 +31,10 @@ public interface DataProviderNewProtocol {
     // Repeating Events:
     LiveData<List<RepeatingEvent>>getAllEvents();
     LiveData<List<RepeatingEvent>> getEventsThatIntersect(Calendar day);
-    List<RepeatingEvent> getEventsBy(int masterID, TaskObject.Mods mod);
     RepeatingEvent getEventWith(int hashID);
     void saveRepeatingEvent(RepeatingEvent event);
     void reSaveRepeatingEventsFor(int masterHashID);
-    void deleteAllRepeatingEvents(int forMasterID, TaskObject.Mods withMod);
+    void deleteAllRepeatingEvents(int forMasterID);
     void deleteRepeatingEvent(RepeatingEvent eventToDelete);
 
 

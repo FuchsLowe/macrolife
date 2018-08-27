@@ -1,5 +1,6 @@
 package com.fuchsundlowe.macrolife.DataObjects;
 
+import android.arch.lifecycle.MutableLiveData;
 import android.arch.persistence.room.Entity;
 import android.arch.persistence.room.Ignore;
 import android.arch.persistence.room.PrimaryKey;
@@ -26,6 +27,7 @@ public class TaskObject implements Serializable {
     private TimeDefined timeDefined;
     private String note;
     private String mods;
+    private String repeatDescriptor; // field used to save repeating event patterns
     private int mX, mY; // for location on the screen of Complex Activity
     /*
      * AllMods is enum based holder that manages insertion, removal and retrieval of mods from string
@@ -40,11 +42,29 @@ public class TaskObject implements Serializable {
     @Ignore
     private ArrayList<Mods> acceptableMods;
 
-    // Constructor:
+    /*
+     *          TODO: Implementing the BottomBar position value and repeating Descriptor
+     *
+     *          note: BottomBar position:
+     *          How can I manage the position of the bottom bar?
+     *          It smells like I need to define a array somewhere that would arrange the positon of
+     *          values in some order. As well, it needs to persist the changes made to UI.
+     *
+     *
+     *          note: Repeating Descriptor:
+     *          So does it matter for me to save the pattern in the first place?
+     *          When will it be retrived? To present the dates? When asked about the nature of
+     *          repeating events? That can be retrived by database call as well...
+     *
+     *
+     */
+
+
+    // Mark Constructor:
     public TaskObject(int hashID, int complexGoalID, int subGoalMaster, String taskName,
                       Calendar taskCreatedTimeStamp, Calendar taskStartTime, Calendar taskEndTime,
                       Calendar lastTimeModified, CheckableStatus isTaskCompleted, String note,
-                      int mX, int mY, String mods, TimeDefined timeDefined) {
+                      int mX, int mY, String mods, TimeDefined timeDefined, String repeatDescriptor) {
 
         this.hashID = hashID;
         this.complexGoalID = complexGoalID;
@@ -60,18 +80,19 @@ public class TaskObject implements Serializable {
         this.mY = mY;
         this.mods = mods;
         this.timeDefined = timeDefined;
+        this.repeatDescriptor = repeatDescriptor;
 
         acceptableMods = new ArrayList<>();
         acceptableMods.add(Mods.note);
         acceptableMods.add(Mods.repeating);
         acceptableMods.add(Mods.list);
-        acceptableMods.add(Mods.repeatingMultiValues);
 
         allMods = new ArrayList<>(4);
         defineMods();
     }
 
-    // Methods:
+
+    // Mark: Methods:
     private void defineMods() {
         String[] modsSplit = this.mods.split("\n");
         for (String mod: modsSplit) {
@@ -81,9 +102,6 @@ public class TaskObject implements Serializable {
                     break;
                 case "repeating":
                     addMod(Mods.repeating);
-                    break;
-                case "repeatingMultiValues":
-                    addMod(Mods.repeatingMultiValues);
                     break;
                 case "list":
                     addMod(Mods.list);
@@ -97,13 +115,6 @@ public class TaskObject implements Serializable {
         if (acceptableMods.contains(modToAdd)) {
             if (!allMods.contains(modToAdd)) {
                 allMods.add(modToAdd);
-
-                // This implementation prevents us from having both mods because they are mutually exclusive
-                if (modToAdd == TaskObject.Mods.repeating) {
-                    removeAMod(TaskObject.Mods.repeatingMultiValues);
-                } else if (modToAdd == TaskObject.Mods.repeatingMultiValues) {
-                    removeAMod(TaskObject.Mods.repeating);
-                }
             }
             updateMods();
         }
@@ -122,19 +133,12 @@ public class TaskObject implements Serializable {
     public List<Mods> getAllMods() {
         return this.allMods;
     }
-    /*
-     * Returns either repeating or repeatingMultiValues, and if it has neither it returns null
-     */
-    @Nullable
-    public Mods getRepeatingMod() {
-        if (allMods.contains(Mods.repeating)) {
-            return Mods.repeating;
-        } else if (allMods.contains(Mods.repeatingMultiValues)){
-            return Mods.repeatingMultiValues;
-        }
-        return null;
+
+    public boolean isThisRepeatingEvent() {
+        return allMods.contains(Mods.repeating);
     }
-    // Generic Getters and Setters:
+
+    // Mark: Generic Getters and Setters:
     public int getHashID() {
         return hashID;
     }
@@ -267,15 +271,29 @@ public class TaskObject implements Serializable {
         }
     }
 
-    // Enum that defines the types of checkable statuses that exist
+    public String getRepeatDescriptor() {
+        return repeatDescriptor;
+    }
+    // passing a null will delete the repeating value
+    public void setRepeatDescriptor(String repeatDescriptor) {
+        if (repeatDescriptor != null) {
+            this.repeatDescriptor = repeatDescriptor;
+            addMod(Mods.repeating);
+        } else {
+            removeAMod(Mods.repeating);
+        }
+    }
+
+
+    // Mark: Enum that defines the types of checkable statuses that exist
     public enum CheckableStatus {
         notCheckable, incomplete, completed
     }
     public enum TimeDefined {
         noTime, onlyDate, dateAndTime
     }
-    // Lists all mods that task can have
+    // Mark: Lists all mods that task can have
     public enum Mods {
-        note, repeating, repeatingMultiValues, list, checkable, dateAndTime, delete
+        note, repeating, list, checkable, dateAndTime, delete
     }
 }

@@ -143,29 +143,15 @@ public class CronoViewFor_RepeatEditor extends ViewGroup {
         longPressDetector.onTouchEvent(event);
         return true;
     }
-    public void populateViewWithTasks(TaskObject taskMaster, DayOfWeek dayDisplayed) {
+    // This is called to initiate the view with values
+    public void defineMe(TaskObject taskMaster) {
         objectPresented = taskMaster;
-        this.dayDisplayed = dayDisplayed;
         removeAllViews();
+        /*
+         * We grab the description and we parse it into RepeatingTasks...
+         */
 
-        if (dayDisplayed == DayOfWeek.universal) {
-            events = dataProvider.getEventsBy(taskMaster.getHashID(), TaskObject.Mods.repeating);
-            if (events != null && events.size() > 0) {
-                for (RepeatingEvent event: events) {
-                    RepeatingTask_RepeatEditor taskWrapper = new RepeatingTask_RepeatEditor(getContext());
-                    taskWrapper.defineMe(taskMaster, event);
-                    addView(taskWrapper);
-                }
-            }
-        } else {
-            events = dataProvider.getEventsBy(taskMaster.getHashID(), TaskObject.Mods.repeatingMultiValues);
-            ArrayList<RepeatingEvent> dataToDisplay = filterAvailableTasksBy(dayDisplayed);
-            for (RepeatingEvent event: dataToDisplay) {
-                RepeatingTask_RepeatEditor taskWrapper = new RepeatingTask_RepeatEditor(getContext());
-                taskWrapper.defineMe(taskMaster, event);
-                addView(taskWrapper);
-            }
-        }
+
     }
 
     @Override
@@ -193,17 +179,6 @@ public class CronoViewFor_RepeatEditor extends ViewGroup {
     }
 
     // Methods:
-    private ArrayList<RepeatingEvent> filterAvailableTasksBy(DayOfWeek day) {
-        ArrayList<RepeatingEvent> dataToReturn = new ArrayList<>();
-        if (events != null) {
-            for (RepeatingEvent event: events) {
-                if (event.getDayOfWeek() == day) {
-                    dataToReturn.add(event);
-                }
-            }
-        }
-        return dataToReturn;
-    }
     private int dpToPixConverter(float dp) {
         float scale = getContext().getResources().getDisplayMetrics().density;
         return (int) (dp * scale * 0.5f);

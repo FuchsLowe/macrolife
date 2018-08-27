@@ -13,7 +13,7 @@ import static android.arch.persistence.room.ForeignKey.CASCADE;
 
 /**
  * Created by macbook on 1/30/18.
- * A simple holder that doesn't inherit from DataMaster class
+ * A simple holder for repeating events
  */
 @Entity
 public class RepeatingEvent {
@@ -23,20 +23,20 @@ public class RepeatingEvent {
     private Calendar startTime;
     private Calendar endTime;
     private Calendar lastTimeModified;
-    private DayOfWeek dayOfWeek;
     @PrimaryKey(autoGenerate = true)
     private int hashID;
     private CheckableStatus isTaskCompleted;
 
     public RepeatingEvent(int parentID, Calendar startTime,
-                          Calendar endTime, DayOfWeek dayOfWeek, int hashID, Calendar lastTimeModified) {
+                          Calendar endTime, int hashID, Calendar lastTimeModified,
+                          CheckableStatus completionStatus) {
 
         this.parentID = parentID;
-        this.dayOfWeek = dayOfWeek;
         this.startTime = startTime;
         this.endTime = endTime;
         this.lastTimeModified = lastTimeModified;
         this.hashID = hashID;
+        this.isTaskCompleted = completionStatus;
     }
 
     // Methods:
@@ -81,12 +81,6 @@ public class RepeatingEvent {
     @Deprecated
     public void setEndTime(Calendar endTime) {
         this.endTime = endTime;
-    }
-    public DayOfWeek getDayOfWeek() {
-        return this.dayOfWeek;
-    }
-    public void setDayOfWeek(DayOfWeek day) {
-        this.dayOfWeek = day;
     }
 
     public Calendar getLastTimeModified() {

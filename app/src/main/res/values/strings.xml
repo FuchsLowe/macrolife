@@ -27,5 +27,11 @@
 
     <string name="week">Week number</string>
     <string name="to">to</string>
+    <!--This is used for representing the repeat type in repeatEventEditor, for use in bottom Adapter-->
+    <string name="daily">Daily</string>
+    <string name="weekCustom">Custom week</string>
+    <string name="twoWeeks">Every 2 weeks</string>
+    <string name="monthly">Monthly</string>
+    <string name="yearly">Yearly</string>
 
 </resources>

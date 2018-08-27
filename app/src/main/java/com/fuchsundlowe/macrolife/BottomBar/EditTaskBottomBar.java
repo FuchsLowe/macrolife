@@ -1,12 +1,16 @@
 package com.fuchsundlowe.macrolife.BottomBar;
 
+import android.content.BroadcastReceiver;
 import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.constraint.ConstraintLayout;
 import android.support.v4.app.Fragment;
+import android.support.v4.content.LocalBroadcastManager;
 import android.util.DisplayMetrics;
 import android.view.Gravity;
 import android.view.KeyEvent;
@@ -15,10 +19,13 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.inputmethod.EditorInfo;
 import android.widget.Button;
+import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 import android.widget.PopupWindow;
 import android.widget.Space;
 import android.widget.TextView;
+
+import com.fuchsundlowe.macrolife.DataObjects.Constants;
 import com.fuchsundlowe.macrolife.DataObjects.RepeatingEvent;
 import com.fuchsundlowe.macrolife.DataObjects.TaskObject;
 import com.fuchsundlowe.macrolife.EngineClasses.LocalStorage;
@@ -33,7 +40,7 @@ import java.util.HashMap;
 
 import static com.fuchsundlowe.macrolife.BottomBar.EditTaskBottomBar.EditTaskState.editTask;
 
-// This class manages the Bottom Bar in edit task or creating a new task...
+// This class manages the Bottom Bar in edit task or creating a new task... Holder of 3 Layouts
 public class EditTaskBottomBar extends Fragment implements EditTaskProtocol {
 
     //Variables and instances:
@@ -53,6 +60,8 @@ public class EditTaskBottomBar extends Fragment implements EditTaskProtocol {
     private EditTaskState state;
     private EditingView_BottomBar editView;
     private int sizeOfParent;
+    private Calendar startValue, endValue;
+    private HashMap<ModButton.SpecialtyButton, ModButton> bottomBarButtons;
 
     // Lifecycle:
     @Nullable
@@ -86,6 +95,7 @@ public class EditTaskBottomBar extends Fragment implements EditTaskProtocol {
     public void onStart() {
         super.onStart();
         setState(state);
+        registerEventPickerBroadcastReceiver();
     }
 
     // Editing of object appearance:
@@ -252,7 +262,7 @@ public class EditTaskBottomBar extends Fragment implements EditTaskProtocol {
     private TaskObject createNewTask(String taskName) {
         TaskObject newTask = new TaskObject(0, 0, 0, taskName, Calendar.getInstance(),
                 null, null, Calendar.getInstance(), TaskObject.CheckableStatus.notCheckable,
-                null, 0, 0, null, TaskObject.TimeDefined.noTime);
+                null, 0, 0, null, TaskObject.TimeDefined.noTime, "");
         return newTask;
     }
     private int dpToPixConverter(float dp) {
@@ -310,7 +320,47 @@ public class EditTaskBottomBar extends Fragment implements EditTaskProtocol {
         int[] toReturn =  {maxCalculatedButtonSize, paddingRowOne, paddingRowTwo};
         return toReturn;
     }
-
+    // Register broadcast receiver for events from EventDatePicker
+    private void registerEventPickerBroadcastReceiver() {
+        LocalBroadcastManager manager = LocalBroadcastManager.getInstance(baseView.getContext());
+        IntentFilter filter = new IntentFilter();
+        filter.addAction(Constants.START_VALUE_DONE);
+        filter.addAction(Constants.END_VALUE_DONE);
+        filter.addAction(Constants.TYPE_DEFINED);
+        manager.registerReceiver(new BroadcastReceiver() {
+            // note: This is the part that coordinates the appearance of the bottomBarButtons:
+            @Override
+            public void onReceive(Context context, Intent intent) {
+                if (intent.getAction().equals(Constants.START_VALUE_DONE)) {
+                    // the startValue is defined:
+                    if (bottomBarButtons != null) {
+                        // We select it to indicate that we have defined that value
+                        bottomBarButtons.get(ModButton.SpecialtyButton.startValues).setSpecialtyState(true);
+                        bottomBarButtons.get(ModButton.SpecialtyButton.endValues).setUnavailable(true);
+                    }
+                } else if (intent.getAction().equals(Constants.END_VALUE_DONE)) {
+                    // the endValue is defined:
+                    if (bottomBarButtons != null) {
+                        // We select it to indicate that we have defined that value
+                        bottomBarButtons.get(ModButton.SpecialtyButton.endValues).setSpecialtyState(true);
+                        //if the save button didn't appear so far, now we can present it:
+                        if (bottomBarButtons.get(ModButton.SpecialtyButton.repeating).getSpecialtyState()) {
+                            bottomBarButtons.get(ModButton.SpecialtyButton.save).setVisibility(View.VISIBLE);
+                        }
+                    }
+                } else if (intent.getAction().equals(Constants.TYPE_DEFINED)) {
+                    if (bottomBarButtons != null) {
+                        // We select it to indicate that we have defined that value
+                        bottomBarButtons.get(ModButton.SpecialtyButton.repeating).setSpecialtyState(true);
+                        //if the save button didn't appear so far, now we can present it:
+                        if (bottomBarButtons.get(ModButton.SpecialtyButton.endValues).getSpecialtyState()) {
+                            bottomBarButtons.get(ModButton.SpecialtyButton.save).setVisibility(View.VISIBLE);
+                        }
+                    }
+                }
+            }
+        }, filter);
+    }
 
     //EditTaskProtocol implementation:
     @Override
@@ -325,19 +375,87 @@ public class EditTaskBottomBar extends Fragment implements EditTaskProtocol {
         /* We Respond on mod click
          * If its one of the mods the task can have we
          */
-        int screenHeight = getResources().getDisplayMetrics().heightPixels;
+        final int screenHeight = getResources().getDisplayMetrics().heightPixels;
         switch (mod) {
             case repeating:
+                /*
+                 * New Implementation:
+                 * So present the list of buttons and manage their functionality
+                 * If called the type, report with repeating editor
+                 */
                 dynamicArea.removeAllViews();
-                RepeatingEventEditor editor = new RepeatingEventEditor(getContext(), this);
-                float howMuchShouldIOccupyScreen = 0.8f;
-                ConstraintLayout.LayoutParams param = new ConstraintLayout.LayoutParams(
-                        ViewGroup.LayoutParams.MATCH_PARENT,
-                        (int)(screenHeight * howMuchShouldIOccupyScreen)
-                );
-                editor.setLayoutParams(param);
-                dynamicArea.addView(editor);
-                editor.defineMe(taskObject);
+                // Defining the buttons and inserting layout:
+                View base = inflater.inflate(R.layout.repeating_event_base, dynamicArea, true);
+                bottomBarButtons = new HashMap<>();
+                bottomBarButtons.put(ModButton.SpecialtyButton.repeating, (ModButton) base.findViewById(R.id.type_editorBase));
+                bottomBarButtons.put(ModButton.SpecialtyButton.save, (ModButton) base.findViewById(R.id.save_editorBase));
+                bottomBarButtons.put(ModButton.SpecialtyButton.startValues, (ModButton) base.findViewById(R.id.startTime_editorBase));
+                bottomBarButtons.put(ModButton.SpecialtyButton.endValues, (ModButton) base.findViewById(R.id.endTime_editorBase));
+                bottomBarButtons.put(ModButton.SpecialtyButton.delete, (ModButton) base.findViewById(R.id.delete_editorBase));
+
+                // Click listener:
+                View.OnClickListener listener =  new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        if (v instanceof ModButton) {
+                            switch (((ModButton) v).reportButtonType()) {
+                                case startValues:
+                                    // Present the date
+                                    EventDatePicker dateFragment = new EventDatePicker();
+                                    startValue = (Calendar)taskObject.getTaskStartTime().clone();
+                                    dateFragment.defineMe(startValue, null, getContext());
+                                    dateFragment.show(self.requireFragmentManager(), "DateFragment");
+                                    break;
+                                case endValues:
+                                    // Present the date
+                                    EventDatePicker datePicker = new EventDatePicker();
+                                    endValue = (Calendar) taskObject.getTaskEndTime().clone();
+                                    datePicker.defineMe(endValue, startValue, getContext());
+                                    datePicker.show(self.requireFragmentManager(), "DateFragment");
+                                    break;
+                                case repeating:
+                                    // Produce Editor
+                                    dynamicArea.removeAllViews();
+                                    RepeatingEventEditor editor = new RepeatingEventEditor(getContext(), self);
+                                    float howMuchShouldIOccupyScreen = 0.8f;
+                                    ConstraintLayout.LayoutParams param = new ConstraintLayout.LayoutParams(
+                                            ViewGroup.LayoutParams.MATCH_PARENT,
+                                            (int)(screenHeight * howMuchShouldIOccupyScreen)
+                                    );
+                                    editor.setLayoutParams(param);
+                                    dynamicArea.addView(editor);
+                                    editor.defineMe(taskObject);
+                                    break;
+                                case save:
+                                    // Save new implementation
+                                    
+                                    break;
+                                case delete:
+                                    /*
+                                     * if the task has not set yet set the end time, then it
+                                     * can be recovered... So goal is to retrive the prior state
+                                     * if possible
+                                     */
+                                    if (!taskObject.isThisRepeatingEvent()) {
+                                        startValue = null;
+                                        endValue = null;
+                                        modDone();
+                                    } else {
+                                        // delete the other repeating events if any for this masterHash:
+                                        dataProvider.deleteAllRepeatingEvents(taskObject.getHashID());
+                                        taskObject.removeAMod(TaskObject.Mods.repeating);
+                                        dataProvider.saveTaskObject(taskObject);
+                                        modDone();
+                                    }
+                                    break;
+                            }
+                        }
+                    }
+                };
+
+                for (ModButton button: bottomBarButtons.values()) {
+                    button.defineMe(listener);
+                }
                 modAreaOne.setVisibility(View.GONE);
                 modAreaTwo.setVisibility(View.GONE);
                 break;

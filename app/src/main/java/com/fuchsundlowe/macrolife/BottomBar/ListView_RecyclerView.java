@@ -18,7 +18,7 @@ import com.fuchsundlowe.macrolife.R;
 
 import java.util.ArrayList;
 import java.util.List;
-
+// A recycler view which is a part of ListView
 public class ListView_RecyclerView extends RecyclerView {
 
     private LayoutManager layoutManager;

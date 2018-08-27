@@ -3,26 +3,29 @@ package com.fuchsundlowe.macrolife.BottomBar;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.graphics.Point;
-import android.media.Image;
-import android.os.Looper;
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.constraint.ConstraintLayout;
-import android.support.constraint.Constraints;
+import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentManager;
+import android.support.v4.app.FragmentStatePagerAdapter;
 import android.support.v4.content.LocalBroadcastManager;
-import android.util.Log;
+import android.support.v4.view.PagerAdapter;
+import android.support.v4.view.ViewPager;
+import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Button;
+import android.widget.FrameLayout;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ScrollView;
-import android.widget.Space;
 import android.widget.TextView;
 
 import com.fuchsundlowe.macrolife.DataObjects.Constants;
 import com.fuchsundlowe.macrolife.DataObjects.DayOfWeek;
+import com.fuchsundlowe.macrolife.DataObjects.RepeatingEvent;
 import com.fuchsundlowe.macrolife.DataObjects.TaskObject;
 import com.fuchsundlowe.macrolife.EngineClasses.LocalStorage;
 import com.fuchsundlowe.macrolife.Interfaces.DataProviderNewProtocol;
@@ -31,217 +34,204 @@ import com.fuchsundlowe.macrolife.R;
 import java.util.Calendar;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Timer;
-import java.util.TimerTask;
-import java.util.logging.Handler;
 
 // This is the master presenter of the Repeating events
-public class RepeatingEventEditor extends ConstraintLayout {
+public class RepeatingEventEditor extends ConstraintLayout{
 
-    private LinearLayout leftSideHolder;
+    // Base View:
+    private ViewGroup baseView, editorHolder, buttonBar;
+    private HashMap<ModButton.SpecialtyButton, ModButton> bottomBarButtons;
+    // Implementation for repeating event editor:
+    // Top Bar:
+    private ImageButton saveButton, deleteButton;
     private TextView taskName;
+    // Reminder Bar:
+    private FrameLayout reminderBarHolder;
+    // Left Side holder:
+    private LinearLayout leftSideHolder;
+    private HashMap<Integer, SideButton_RepeatEditor> weekButtons;
+    // Central Bar - Representing the chronoView:
     private CronoViewFor_RepeatEditor dayView;
     private ScrollView dayViewHolder;
-    private ConstraintLayout bottomBarHolder;
+    // Bottom Bar Holder;
+    private ViewPager bottomBarHolder;
+    // Other variables:
     private LayoutInflater inflater;
-    private ConstraintLayout baseView;
-    private LinearLayout modsHolder;
-    private HashMap<TaskObject.Mods, ImageView> imageButtonModsHolder;
     private TaskObject editedObject;
     private DataProviderNewProtocol localStorage;
-    private int leftHolderWidthByPercentageOfTotalWidth = 10;
-    private HashMap<Integer, SideButton_RepeatEditor> weekButtons;
     private SharedPreferences preferences;
     private OnClickListener buttonClickListener;
-    private int MIN_PADDING_BETWEEN_BUTTONS = 10;
-    private int MAX_BUTTON_SIZE = 40;
     private EditTaskProtocol protocol;
+    private Calendar startTime, endTime;
+    private RepeatType currentType;
+    private RepeatingEventEditor self;
 
 
     public RepeatingEventEditor(Context context, EditTaskProtocol protocol) {
         super(context);
         this.protocol = protocol;
+        this.self = this;
 
         inflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+        baseView = (ViewGroup) inflater.inflate(R.layout.re, this, true); // Not this...
+        editorHolder = baseView.findViewById(R.id.editorHolder_repeatingBase); // holds the editor View
+        buttonBar = baseView.findViewById(R.id.buttonBar_repeatingBase); // holds the button bar
 
-        baseView = (ConstraintLayout) inflater.inflate(R.layout.repeating_event_editor, this, true);
-
-        bottomBarHolder = baseView.findViewById(R.id.bottomBar_RepeatEditor);
-
-        dayViewHolder = baseView.findViewById(R.id.DayViewHolder_RepeatEditor);
+        // Adding the editorView to the editor holder but hiding it at initial presentation
+        ConstraintLayout editorView = (ConstraintLayout) inflater.inflate(R.layout.repeating_event_editor, this, false);
+        editorHolder.addView(editorView);
+        // Two buttons that sit at the top of editorView and the TextView displaying the task name:
+        taskName = editorView.findViewById(R.id.taskName_RepeatEditor);
+        saveButton = editorView.findViewById(R.id.save_editorBase);
+        deleteButton = editorView.findViewById(R.id.delete_editorBase);
+        // Holder for the ChronoView implementation
+        dayViewHolder = editorView.findViewById(R.id.DayViewHolder_RepeatEditor);
         dayView = new CronoViewFor_RepeatEditor(getContext());
         dayViewHolder.addView(dayView);
+        leftSideHolder = editorView.findViewById(R.id.leftSideHolder_RepeatEditor);
+        editorView.setVisibility(GONE);
+        // Bottom bar holder, presenter of type of the repeating event:
+        bottomBarHolder = editorView.findViewById(R.id.bottomBar_RepeatEditor);
+        defineViewPager();
+        //defineBottomBarButtonHolder();
 
-        modsHolder = baseView.findViewById(R.id.modsHolder_eventEditor);
-        imageButtonModsHolder = new HashMap<>();
-        imageButtonModsHolder.put(TaskObject.Mods.note, (ImageView) findViewById(R.id.modNote_eventEditor));
-        imageButtonModsHolder.put(TaskObject.Mods.list, (ImageView) findViewById(R.id.modList_eventEditor));
-        imageButtonModsHolder.put(TaskObject.Mods.repeating, (ImageView) findViewById(R.id.modUniversal_repeatEditor));
-        imageButtonModsHolder.put(TaskObject.Mods.repeatingMultiValues, (ImageView) findViewById(R.id.modMultiValues_repeatEditor));
-
-        taskName = baseView.findViewById(R.id.taskName_RepeatEditor);
-
-        leftSideHolder = baseView.findViewById(R.id.leftSideHolder_RepeatEditor);
-
-        weekButtons = new HashMap<>();
-
+        // Other implementations:
         localStorage = LocalStorage.getInstance(context);
-
-        MIN_PADDING_BETWEEN_BUTTONS = dpToPixConverter(MIN_PADDING_BETWEEN_BUTTONS);
-        MAX_BUTTON_SIZE = dpToPixConverter(MAX_BUTTON_SIZE);
-
+        weekButtons = new HashMap<>();
         defineButtonClickListener();
 
     }
-
     // Methods:
+    private void defineBottomBarButtonHolder() {
+        // TODO: REMOVE?
+        bottomBarButtons = new HashMap<>();
+        bottomBarButtons.put(ModButton.SpecialtyButton.repeating, (ModButton) findViewById(R.id.type_editorBase));
+        bottomBarButtons.put(ModButton.SpecialtyButton.save, (ModButton) findViewById(R.id.save_editorBase));
+        bottomBarButtons.put(ModButton.SpecialtyButton.startValues, (ModButton) findViewById(R.id.startTime_editorBase));
+        bottomBarButtons.put(ModButton.SpecialtyButton.endValues, (ModButton) findViewById(R.id.endTime_editorBase));
+        bottomBarButtons.put(ModButton.SpecialtyButton.delete, (ModButton) findViewById(R.id.delete_editorBase));
 
-    // This class manages receving of data and infuses fields and methods with it, as layouting
+        for (ModButton button: bottomBarButtons.values()) {
+            button.defineMe(null);
+        }
+    }
+    private void defineViewPager() {
+        final SimplePageAdapter adapter = new SimplePageAdapter();
+        bottomBarHolder.setAdapter(adapter);
+        bottomBarHolder.setCurrentItem(0);
+        // Listener so we could record the changes made...
+        bottomBarHolder.setOnPageChangeListener(new ViewPager.OnPageChangeListener() {
+            @Override
+            public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {
+
+            }
+
+            @Override
+            public void onPageSelected(int position) {
+                currentType = adapter.presentingType[position];
+                if (currentType == RepeatType.customWeek) {
+                    leftSideHolder.setVisibility(VISIBLE);
+                } else if (leftSideHolder.getVisibility() == VISIBLE) {
+                    leftSideHolder.setVisibility(GONE);
+                }
+            }
+
+            @Override
+            public void onPageScrollStateChanged(int state) {
+
+            }
+        });
+    }
+
+
+    // Simple adapter that should present the TypePresenter instead of Fragment
+    private class SimplePageAdapter extends PagerAdapter {
+
+        final RepeatType[] presentingType;
+
+        SimplePageAdapter() {
+            presentingType = new RepeatType[]{RepeatType.everyDay, RepeatType.customWeek, RepeatType.twoWeeks,
+                    RepeatType.monthly, RepeatType.yearly};
+        }
+
+        View getView(int position, ViewPager pager) {
+            View frag = inflater.inflate(R.layout.type_presenter, bottomBarHolder);
+            if (frag instanceof TypePresenter) {
+                ((TypePresenter) frag).defineMe(presentingType[position]);
+            }
+            return frag;
+        }
+
+        @Override
+        public int getCount() {
+            return presentingType.length;
+        }
+
+        @Override
+        public boolean isViewFromObject(@NonNull View view, @NonNull Object object) {
+            return view == object;
+        }
+
+        @NonNull
+        @Override
+        public Object instantiateItem(@NonNull ViewGroup container, int position) {
+            ViewPager pager = (ViewPager) container;
+            View view = getView(position, pager);
+
+            pager.addView(view);
+
+            return view;
+        }
+    }
+    // This function manages receiving of data and infuses fields and methods with it
     public void defineMe(TaskObject objectWeEdit) {
+        // TODO: Change!
         editedObject = objectWeEdit;
         taskName.setText(objectWeEdit.getTaskName());
-        TaskObject.Mods repeatingModWeHave = objectWeEdit.getRepeatingMod();
-        //If task is set with single/repeating
-         if (repeatingModWeHave == null  ) {
-            leftSideHolder.setVisibility(GONE);
-            dayView.populateViewWithTasks(objectWeEdit, DayOfWeek.universal);
-        } else if (repeatingModWeHave == TaskObject.Mods.repeating){
-            defineLeftSideHolder(true);
-            dayView.populateViewWithTasks(objectWeEdit, DayOfWeek.universal);
-        } else if (repeatingModWeHave == TaskObject.Mods.repeatingMultiValues) {
-            defineLeftSideHolder(false);
-            dayView.populateViewWithTasks(objectWeEdit, DayOfWeek.monday);
-        }
-        defineBottomButtons();
-        defineMods();
-    }
-    /*
-     * Determines if side bar is required, makes it visible or invisible depending on implementation
-     * and defines buttons as days depending on users preference for the first day of week
-     */
-    private void defineLeftSideHolder(boolean isUniversal) {
-        if (isUniversal) { // meaning that there is no need for side to define specific day
-            leftSideHolder.setVisibility(GONE);
+        // So first I need to define how many buttons do I need to display...
+        if (!editedObject.isThisRepeatingEvent()) {
+            // we only have 4 buttons to present
+            bottomBarButtons.get(ModButton.SpecialtyButton.save).setVisibility(GONE);
         } else {
-            leftSideHolder.setVisibility(VISIBLE);
+            bottomBarButtons.get(ModButton.SpecialtyButton.startValues).setSpecialtyState(true);
+            bottomBarButtons.get(ModButton.SpecialtyButton.endValues).setSpecialtyState(true);
+            bottomBarButtons.get(ModButton.SpecialtyButton.type).setSpecialtyState(true);
+            startTime = objectWeEdit.getTaskStartTime();
+            endTime = objectWeEdit.getTaskEndTime();
+        }
+        defineLeftSideHolder();
+    }
 
-            // grab buttons
-            weekButtons.put(0, (SideButton_RepeatEditor) leftSideHolder.findViewById(R.id.sideButton_1));
-            weekButtons.put(1, (SideButton_RepeatEditor) leftSideHolder.findViewById(R.id.sideButton_2));
-            weekButtons.put(2, (SideButton_RepeatEditor) leftSideHolder.findViewById(R.id.sideButton_3));
-            weekButtons.put(3, (SideButton_RepeatEditor) leftSideHolder.findViewById(R.id.sideButton_4));
-            weekButtons.put(4, (SideButton_RepeatEditor) leftSideHolder.findViewById(R.id.sideButton_5));
-            weekButtons.put(5, (SideButton_RepeatEditor) leftSideHolder.findViewById(R.id.sideButton_6));
-            weekButtons.put(6, (SideButton_RepeatEditor) leftSideHolder.findViewById(R.id.sideButton_7));
+    //Presents or removes the left side of the bar.
+    private void defineLeftSideHolder() {
+        // grab buttons
+        weekButtons.put(0, (SideButton_RepeatEditor) leftSideHolder.findViewById(R.id.sideButton_1));
+        weekButtons.put(1, (SideButton_RepeatEditor) leftSideHolder.findViewById(R.id.sideButton_2));
+        weekButtons.put(2, (SideButton_RepeatEditor) leftSideHolder.findViewById(R.id.sideButton_3));
+        weekButtons.put(3, (SideButton_RepeatEditor) leftSideHolder.findViewById(R.id.sideButton_4));
+        weekButtons.put(4, (SideButton_RepeatEditor) leftSideHolder.findViewById(R.id.sideButton_5));
+        weekButtons.put(5, (SideButton_RepeatEditor) leftSideHolder.findViewById(R.id.sideButton_6));
+        weekButtons.put(6, (SideButton_RepeatEditor) leftSideHolder.findViewById(R.id.sideButton_7));
 
-            preferences = getContext().getSharedPreferences(Constants.SHARED_PREFERENCES_KEY, Context.MODE_PRIVATE);
-            int firstDayOfWeek = preferences.getInt(Constants.FIRST_DAY_OF_WEEK,
-                    Calendar.getInstance().getFirstDayOfWeek());
+        preferences = getContext().getSharedPreferences(Constants.SHARED_PREFERENCES_KEY, Context.MODE_PRIVATE);
+        int firstDayOfWeek = preferences.getInt(Constants.FIRST_DAY_OF_WEEK,
+                Calendar.getInstance().getFirstDayOfWeek());
 
-            DayOfWeek[] daysOfWeek;
-            switch (firstDayOfWeek) {
-                case 1: // US - Sunday first day of week
-                    daysOfWeek = Constants.AMERICAN_WEEK_DAYS;
-                    break;
-                default: // Europe - Monday first day of week
-                    daysOfWeek = Constants.EUROPEAN_WEEK_DAYS;
-                    break;
-            }
-            // Assigning phase
-            for (int i = 0; i < 7; i++) {
-                weekButtons.get(i).defineMe(daysOfWeek[i], buttonClickListener);
-            }
+        DayOfWeek[] daysOfWeek;
+        switch (firstDayOfWeek) {
+            case 1: // US - Sunday first day of week
+                daysOfWeek = Constants.AMERICAN_WEEK_DAYS;
+                break;
+            default: // Europe - Monday first day of week
+                daysOfWeek = Constants.EUROPEAN_WEEK_DAYS;
+                break;
+        }
+        // Assigning phase
+        for (int i = 0; i < 7; i++) {
+            weekButtons.get(i).defineMe(daysOfWeek[i], buttonClickListener);
         }
     }
-    private void defineBottomButtons() {
-        // I only need to assign them values, nothing about positioning. Its defined statically!
-        ModButton one = bottomBarHolder.findViewById(R.id.modButton_1_repatingEventEditor);
-        one.defineMe(ModButton.SpecialtyButton.delete, buttonClickListener);
 
-        ModButton two = bottomBarHolder.findViewById(R.id.modButton_2_repatingEventEditor);
-
-        two.defineMe(ModButton.SpecialtyButton.universal, buttonClickListener);
-        if (editedObject.getRepeatingMod() != null &&
-                editedObject.getRepeatingMod() == TaskObject.Mods.repeatingMultiValues) {
-            two.defineMe(ModButton.SpecialtyButton.complex, buttonClickListener);
-        } else {
-            // produce single value
-            two.defineMe(ModButton.SpecialtyButton.universal, buttonClickListener);
-        }
-        ModButton three = bottomBarHolder.findViewById(R.id.modButton_3_repatingEventEditor);
-        three.defineMe(ModButton.SpecialtyButton.save, buttonClickListener);
-    }
-    // Mod Displayer that sets mods selected state depending on the set of mods in editedTask
-    private void defineMods() {
-        List<TaskObject.Mods> modsTaskHave = editedObject.getAllMods();
-        // Make those mods we need to implement visible and those we don't gone
-        for (TaskObject.Mods mod : imageButtonModsHolder.keySet()) {
-            if (modsTaskHave.contains(mod)) {
-                imageButtonModsHolder.get(mod).setVisibility(VISIBLE);
-            } else {
-                imageButtonModsHolder.get(mod).setVisibility(GONE);
-            }
-        }
-    }
-    @Deprecated
-    private void switchBetweenMods(boolean goingToMultiValues) {
-        List<TaskObject.Mods> mods = editedObject.getAllMods();
-        if (mods.contains(TaskObject.Mods.note)) {
-            imageButtonModsHolder.get(TaskObject.Mods.note).setVisibility(VISIBLE);
-        } else {
-            imageButtonModsHolder.get(TaskObject.Mods.note).setVisibility(GONE);
-        }
-
-        if (mods.contains(TaskObject.Mods.list)) {
-            imageButtonModsHolder.get(TaskObject.Mods.list).setVisibility(VISIBLE);
-        } else {
-            imageButtonModsHolder.get(TaskObject.Mods.list).setVisibility(GONE);
-        }
-        if (goingToMultiValues) {
-            leftSideHolder.setVisibility(VISIBLE);
-            imageButtonModsHolder.get(TaskObject.Mods.repeating).setVisibility(GONE);
-            editedObject.removeAMod(TaskObject.Mods.repeating);
-
-            if (isThereAnyEventForThisMod(TaskObject.Mods.repeatingMultiValues)) {
-                imageButtonModsHolder.get(TaskObject.Mods.repeatingMultiValues).setVisibility(VISIBLE);
-                editedObject.addMod(TaskObject.Mods.repeatingMultiValues);
-                dayView.populateViewWithTasks(editedObject, DayOfWeek.monday);
-            } else {
-                imageButtonModsHolder.get(TaskObject.Mods.repeatingMultiValues).setVisibility(GONE);
-                editedObject.removeAMod(TaskObject.Mods.repeatingMultiValues);
-            }
-        } else {
-            leftSideHolder.setVisibility(INVISIBLE);
-            imageButtonModsHolder.get(TaskObject.Mods.repeatingMultiValues).setVisibility(GONE);
-            editedObject.removeAMod(TaskObject.Mods.repeatingMultiValues);
-
-            if (isThereAnyEventForThisMod(TaskObject.Mods.repeating)) {
-                imageButtonModsHolder.get(TaskObject.Mods.repeating).setVisibility(VISIBLE);
-                editedObject.addMod(TaskObject.Mods.repeating);
-                dayView.populateViewWithTasks(editedObject, DayOfWeek.universal);
-            } else {
-                imageButtonModsHolder.get(TaskObject.Mods.repeating).setVisibility(GONE);
-                editedObject.removeAMod(TaskObject.Mods.repeating);
-            }
-        }
-
-    }
-    @Deprecated
-    private Point calculatePaddingAndButtonHeight(int numberOfButtonsInRow) {
-        // This function calculates padding between buttons in row only considering one padding parameter
-        // that is the padding of the left side
-        // Fist value is padding, second is button Size
-
-        int maxCalculatedButtonSize = (bottomBarHolder.getWidth() -
-                ((numberOfButtonsInRow + 1) * MIN_PADDING_BETWEEN_BUTTONS)) / numberOfButtonsInRow;
-        int buttonSize = Math.min(MAX_BUTTON_SIZE, maxCalculatedButtonSize);
-        int screenSize =(int) (getResources().getDisplayMetrics().widthPixels * 0.90f); // Temp solution, should get real size
-
-        Point toReturn = new Point((screenSize - (buttonSize * numberOfButtonsInRow)) /
-                (numberOfButtonsInRow + 1), buttonSize);
-
-        return toReturn;
-    }
     private int dpToPixConverter(float dp) {
         float scale = getContext().getResources().getDisplayMetrics().density;
         return (int) (dp * scale * 0.5f);
@@ -251,99 +241,56 @@ public class RepeatingEventEditor extends ConstraintLayout {
             @Override
             public void onClick(View v) {
                 if (v instanceof SideButton_RepeatEditor) {
-                    dayView.populateViewWithTasks(editedObject, ((SideButton_RepeatEditor) v).dayOfWeek);
+                    // this is called by side button
                 } else if (v instanceof ModButton) {
                     switch (((ModButton) v).reportButtonType()) {
+                        case startValues:
+                            // Produce the Date Calendar with starting the values
+                            com.fuchsundlowe.macrolife.BottomBar.DatePickerFragment dateFragment =
+                                    new com.fuchsundlowe.macrolife.BottomBar.DatePickerFragment();
+                            dateFragment.defineMe(editedObject, protocol,true);
+                            dateFragment.show(getContext().requireFragmentManager(), "DateFragment");
+                            break;
+                        case endValues:
+                            // Produce the Date Calendar
+                            break;
                         case delete:
-                            // The delete procedure will remove all events based on current displayed mod
-                            if (leftSideHolder.getVisibility() == VISIBLE) {
-                                // means that we have multi-values, xoxo cheat!!!
-                                localStorage.deleteAllRepeatingEvents(editedObject.getHashID(),
-                                        TaskObject.Mods.repeatingMultiValues);
-                                // DataBase will make changes and update the mod Status of taskObject
-                            } else {
-                                // means that we have single repeating value
-                                localStorage.deleteAllRepeatingEvents(editedObject.getHashID(),
-                                        TaskObject.Mods.repeating);
-                                // DataBase will make changes and update the mod Status of taskObject
-                            }
-                            if (editedObject.getRepeatingMod() == null) {
-                                // This task no longer supports repeating mods and shoud therefore
-                                // be moved to unassigedn tasks
-                                editedObject.setTimeDefined(TaskObject.TimeDefined.noTime);
-                            } else {
-                                TaskObject.Mods mos = editedObject.getRepeatingMod();
-                            }
-                            localStorage.saveTaskObject(editedObject);
-                            protocol.modDone();
+                            // Remove all repeating tasks and make this taskObject
                             break;
                         case save:
-                            // Save self and collapse to edit
-
-                            // Goal here is to establish what should be fall back to?
-                            if (leftSideHolder.getVisibility() == VISIBLE) {
-                                if (isThereAnyEventForThisMod(TaskObject.Mods.repeatingMultiValues)) {
-                                    editedObject.addMod(TaskObject.Mods.repeatingMultiValues);
-                                } else {
-                                    editedObject.removeAMod(TaskObject.Mods.repeatingMultiValues);
-                                    editedObject.removeAMod(TaskObject.Mods.repeating);
-                                }
-                            } else {
-                                if (isThereAnyEventForThisMod(TaskObject.Mods.repeating)) {
-                                    editedObject.addMod(TaskObject.Mods.repeating);
-                                } else {
-                                    editedObject.removeAMod(TaskObject.Mods.repeating);
-                                    editedObject.removeAMod(TaskObject.Mods.repeatingMultiValues);
-                                }
-                            }
-                            // TODO: Consider order of saving here! Task Object or re-save events?
-                            localStorage.saveTaskObject(editedObject);
+                            // Delete existing events and re-create tasks...
                             protocol.modDone();
-                            // Request the ChronoView To Re-update itself
-                            /*
-                             * Reasoning to use this method is to prevent delay between the data being
-                             * updated and reported via Live data as well as inability to effectively
-                             * communicate between this class and ChronoView in reasonable manner
-                             * NOTE: Currently not being used<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-                             */
-                            LocalBroadcastManager manager = LocalBroadcastManager.getInstance(getContext());
-                            Intent reportChangesInModToContext = new Intent(Constants.INTENT_FILTER_CHANGE_IN_MOD);
-                            reportChangesInModToContext.putExtra(Constants.INTENT_FILTER_FIELD_HASH_ID, editedObject.getHashID());
-                            TaskObject.Mods currentMod = editedObject.getRepeatingMod();
-                            if (currentMod == null) {
-                                reportChangesInModToContext.putExtra(Constants.INTENT_FILTER_FIELD_MOD_TYPE, 0);
-                            } else if (currentMod == TaskObject.Mods.repeating) {
-                                reportChangesInModToContext.putExtra(Constants.INTENT_FILTER_FIELD_MOD_TYPE, 1);
-                            } else if (currentMod == TaskObject.Mods.repeatingMultiValues) {
-                                reportChangesInModToContext.putExtra(Constants.INTENT_FILTER_FIELD_MOD_TYPE, 2);
-
-                            }
-
                             /*
                              * I am re-saving the children knowingly that there are no changes made
                              * to them, but rather to signal change in ChrnoView
+                             * TODO: This migth not be needed, because we will re-create the new tasks
                              */
                             localStorage.reSaveRepeatingEventsFor(editedObject.getHashID());
-
                             break;
-                        case complex:
-                            ((ModButton) v).toggleButton();
-                            editedObject.addMod(TaskObject.Mods.repeating);
-                            defineMe(editedObject);
-                            //switchBetweenMods(false);
-                            break;
-                        case universal:
-                            ((ModButton) v).toggleButton();
-                            editedObject.addMod(TaskObject.Mods.repeatingMultiValues);
-                            defineMe(editedObject);
-                            //switchBetweenMods(true);
+                        case repeating:
+                            // TODO: Implement! Produce the event
                             break;
                     }
                 }
             }
         };
+        // Save Button Implementation:
+        saveButton.setOnClickListener(new OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                // Todo: Implement
+            }
+        });
+        deleteButton.setOnClickListener(new OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                // Todo: implement!
+            }
+        });
     }
-    private boolean isThereAnyEventForThisMod(TaskObject.Mods mod) {
-        return localStorage.getEventsBy(editedObject.getHashID(), mod).size() > 0;
+    public enum RepeatType {
+        everyDay, customWeek, twoWeeks, monthly, yearly
     }
+
+
 }

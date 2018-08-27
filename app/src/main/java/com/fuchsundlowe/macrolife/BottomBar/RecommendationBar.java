@@ -31,6 +31,10 @@ import java.util.List;
 
 
 public class RecommendationBar extends Fragment {
+    /*
+     * TODO: This needs to present the tasks in specific order defined by the
+     * the listView....
+     */
 
     private DataProviderNewProtocol dataProvider;
     private MyTaskRecommendedRecyclerViewAdapter adapter;

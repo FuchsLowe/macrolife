@@ -82,20 +82,7 @@ public class MasterScreen extends AppCompatActivity {
             dataBaseMaster.closeDataBase();
         }
     }
-    public void create_rep_event(View view) {
-        RepeatingEvent event = new RepeatingEvent(
-                dataBaseMaster.findNextFreeHashIDForTask() -1, null, null, DayOfWeek.thursday, dataBaseMaster.findNextFreeHashIDForEvent(), Calendar.getInstance()
-        );
-        dataBaseMaster.saveRepeatingEvent(event);
 
-        Handler h = new Handler(getMainLooper());
-        h.postDelayed(new Runnable() {
-            @Override
-            public void run() {
-                defineDisplay();
-            }
-        }, 750);
-    }
 
     void defineDisplay() {
         o = new ArrayList<>();
@@ -131,12 +118,11 @@ public class MasterScreen extends AppCompatActivity {
             print("TASK: " + obj.getTaskName() +" ID: " + obj.getHashID()+ " mods:" + obj.getAllMods());
         }
         for (RepeatingEvent ev : e) {
-            print("EVENT: " + ev.getHashID() + " ID: "+ ev.getParentID() + " " + ev.getDayOfWeek());
+            print("EVENT: " + ev.getHashID() + " ID: "+ ev.getParentID());
         }
     }
 
     public void remove_events(View view) {
-        dataBaseMaster.deleteAllRepeatingEvents(dataBaseMaster.findNextFreeHashIDForTask() -1, TaskObject.Mods.repeatingMultiValues);
     }
 
     void print(String val) {

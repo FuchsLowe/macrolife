@@ -31,7 +31,7 @@ public class RepeatingTask_RepeatEditor extends LinearLayout {
     //private View baseView;
     private TextView tittle;
     private TaskObject master;
-    private RepeatingEvent event;
+
     private DataProviderNewProtocol dataProvider;
 
     // Default Init's:
@@ -67,23 +67,29 @@ public class RepeatingTask_RepeatEditor extends LinearLayout {
         });
 
     }
-    public void defineMe(TaskObject master, RepeatingEvent event) {
+    // Used when initiating the task with existing values...
+    public void defineMe(TaskObject master) {
         this.master = master;
-        this.event = event;
+
         tittle.setText(master.getTaskName());
     }
+    // Used for creating the task anew.
     public void createMe(TaskObject master, Calendar startTime, com.fuchsundlowe.macrolife.DataObjects.DayOfWeek day) {
         this.master = master;
         tittle.setText(master.getTaskName());
         Calendar endTime = (Calendar) startTime.clone();
         endTime.add(Calendar.MINUTE, 30);
         int newHashID = dataProvider.findNextFreeHashIDForEvent();
-        RepeatingEvent newEvent = new RepeatingEvent(master.getHashID(), startTime, endTime, day,
-                newHashID, Calendar.getInstance());
-        event = newEvent;
-        dataProvider.saveTaskObject(master); // TODO: Last change... does it change stuff
+        TaskObject.CheckableStatus status;
+        if (master.getIsTaskCompleted() == TaskObject.CheckableStatus.notCheckable) {
+            status = TaskObject.CheckableStatus.notCheckable;
+        } else {
+            status = TaskObject.CheckableStatus.incomplete;
+        }
+        RepeatingEvent newEvent = new RepeatingEvent(master.getHashID(), startTime, endTime,
+                newHashID, Calendar.getInstance(), status);
 
-        dataProvider.saveRepeatingEvent(event);
+        dataProvider.saveTaskObject(master);
 
     }
 

@@ -30,5 +30,8 @@ public class Constants {
     public static DayOfWeek[] EUROPEAN_WEEK_DAYS = {DayOfWeek.monday,
             DayOfWeek.tuesday, DayOfWeek.wednesday, DayOfWeek.thursday, DayOfWeek.friday,
             DayOfWeek.saturday, DayOfWeek.sunday};
-
+    // These two are used for reporting setting the values in Calendars for start and end respectively:
+    public static String START_VALUE_DONE = "Reporting that startValue is initiated";
+    public static String END_VALUE_DONE = "Report that endValue is initiated";
+    public static String TYPE_DEFINED = "Reporting that type is defined";
 }

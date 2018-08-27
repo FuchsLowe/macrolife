@@ -71,5 +71,6 @@ public class DatePickerFragment extends DialogFragment
         valueEdited.set(Calendar.MONTH, month);
         valueEdited.set(Calendar.DAY_OF_MONTH, day);
         protocol.saveTask(taskObject, null);
+
     }
 }

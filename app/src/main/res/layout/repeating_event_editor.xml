@@ -1,36 +1,21 @@
 <?xml version="1.0" encoding="utf-8"?>
-<android.support.constraint.ConstraintLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    android:animateLayoutChanges="true"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
-
-    <TextView
-        android:id="@+id/taskName_RepeatEditor"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginBottom="8dp"
-        android:layout_marginStart="8dp"
-        android:text="TextView"
-        app:layout_constraintBottom_toBottomOf="@+id/modsHolder_eventEditor"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+    android:layout_height="match_parent"
+    android:animateLayoutChanges="true">
 
     <LinearLayout
         android:id="@+id/leftSideHolder_RepeatEditor"
         android:layout_width="40dp"
         android:layout_height="0dp"
         android:layout_marginBottom="8dp"
-        android:layout_marginStart="8dp"
-        android:layout_marginTop="8dp"
         android:orientation="vertical"
         android:visibility="visible"
         app:layout_constraintBottom_toTopOf="@+id/bottomBar_RepeatEditor"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="@+id/divider3"
-        app:layout_constraintVertical_bias="1.0">
+        app:layout_constraintTop_toBottomOf="@+id/reminderBar_repeatingEditor">
 
         <com.fuchsundlowe.macrolife.BottomBar.SideButton_RepeatEditor
             android:id="@+id/sideButton_1"
@@ -88,121 +73,85 @@
         android:layout_width="0dp"
         android:layout_height="0dp"
         android:layout_marginBottom="8dp"
-        android:layout_marginEnd="8dp"
-        android:layout_marginStart="8dp"
-        android:layout_marginTop="8dp"
         app:layout_constraintBottom_toTopOf="@+id/bottomBar_RepeatEditor"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toEndOf="@+id/leftSideHolder_RepeatEditor"
-        app:layout_constraintTop_toBottomOf="@+id/divider3" />
+        app:layout_constraintTop_toBottomOf="@+id/reminderBar_repeatingEditor" />
 
-    <android.support.constraint.ConstraintLayout
+    <android.support.v4.view.ViewPager
         android:id="@+id/bottomBar_RepeatEditor"
         android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginBottom="8dp"
-        android:layout_marginEnd="8dp"
-        android:layout_marginStart="8dp"
+        android:layout_height="24dp"
+        android:layout_marginBottom="2dp"
+        android:layout_marginEnd="1dp"
         android:orientation="horizontal"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="1.0"
         app:layout_constraintStart_toStartOf="parent">
 
-        <com.fuchsundlowe.macrolife.BottomBar.ModButton
-            android:id="@+id/modButton_1_repatingEventEditor"
-            android:layout_width="9mm"
-            android:layout_height="9mm"
-            android:layout_marginBottom="8dp"
-            android:layout_marginTop="8dp"
-            android:layout_weight="0"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toStartOf="@+id/modButton_2_repatingEventEditor"
-            app:layout_constraintHorizontal_bias="0.5"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-            app:srcCompat="@drawable/clear_24px" />
+    </android.support.v4.view.ViewPager>
 
-        <com.fuchsundlowe.macrolife.BottomBar.ModButton
-            android:id="@+id/modButton_2_repatingEventEditor"
-            android:layout_width="9mm"
-            android:layout_height="9mm"
-            android:layout_marginBottom="8dp"
-            android:layout_marginTop="8dp"
-            android:layout_weight="0"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toStartOf="@+id/modButton_3_repatingEventEditor"
-            app:layout_constraintHorizontal_bias="0.5"
-            app:layout_constraintStart_toEndOf="@+id/modButton_1_repatingEventEditor"
-            app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintVertical_bias="0.666"
-            app:srcCompat="@drawable/clear_24px" />
-
-        <com.fuchsundlowe.macrolife.BottomBar.ModButton
-            android:id="@+id/modButton_3_repatingEventEditor"
-            android:layout_width="9mm"
-            android:layout_height="9mm"
-            android:layout_marginBottom="8dp"
-            android:layout_marginTop="8dp"
-            android:layout_weight="0"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintHorizontal_bias="0.5"
-            app:layout_constraintStart_toEndOf="@+id/modButton_2_repatingEventEditor"
-            app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintVertical_bias="0.666"
-            app:srcCompat="@drawable/clear_24px" />
-    </android.support.constraint.ConstraintLayout>
-
-    <View
-        android:id="@+id/divider3"
-        android:layout_width="0dp"
-        android:layout_height="1dp"
-        android:background="?android:attr/listDivider"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/modsHolder_eventEditor" />
-
-    <LinearLayout
-        android:id="@+id/modsHolder_eventEditor"
+    <FrameLayout
+        android:id="@+id/reminderBar_repeatingEditor"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginStart="8dp"
-        android:gravity="right"
-        android:orientation="horizontal"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toEndOf="@+id/taskName_RepeatEditor"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/frameLayout">
+
+    </FrameLayout>
+
+    <android.support.constraint.ConstraintLayout
+        android:id="@+id/frameLayout"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="8dp"
+        android:layout_marginStart="8dp"
+        android:layout_marginTop="8dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent">
 
-        <ImageView
-            android:id="@+id/modNote_eventEditor"
-            android:layout_width="8mm"
-            android:layout_height="8mm"
-            android:layout_weight="0"
-            android:src="@drawable/note_add_24px"
-            />
+        <TextView
+            android:id="@+id/taskName_RepeatEditor"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="8dp"
+            android:layout_marginEnd="8dp"
+            android:layout_marginStart="8dp"
+            android:layout_marginTop="8dp"
+            android:text="TextView"
+            android:textSize="18sp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toStartOf="@+id/saveEvent_repeatingEditor"
+            app:layout_constraintStart_toEndOf="@+id/deleteEvent_repeatingEditor"
+            app:layout_constraintTop_toTopOf="parent" />
 
-        <ImageView
-            android:id="@+id/modList_eventEditor"
-            android:layout_width="8mm"
-            android:layout_height="8mm"
-            android:layout_weight="0"
-            android:src="@drawable/list_alt_24px"
-         />
+        <ImageButton
+            android:id="@+id/deleteEvent_repeatingEditor"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:layout_marginBottom="8dp"
+            android:layout_marginStart="8dp"
+            android:layout_marginTop="8dp"
+            android:text="Button"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
 
-        <ImageView
-            android:id="@+id/modUniversal_repeatEditor"
-            android:layout_width="8mm"
-            android:layout_height="8mm"
-            android:layout_weight="0"
-            android:src="@drawable/repeat_one_24px"
-            />
-
-        <ImageView
-            android:id="@+id/modMultiValues_repeatEditor"
-            android:layout_width="8mm"
-            android:layout_height="8mm"
-            android:layout_weight="0"
-            android:src="@drawable/repeat_24px"/>
-    </LinearLayout>
+        <ImageButton
+            android:id="@+id/saveEvent_repeatingEditor"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:layout_marginBottom="8dp"
+            android:layout_marginEnd="8dp"
+            android:layout_marginTop="8dp"
+            android:text="Button"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+    </android.support.constraint.ConstraintLayout>
 
 </android.support.constraint.ConstraintLayout>

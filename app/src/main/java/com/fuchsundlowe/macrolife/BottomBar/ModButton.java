@@ -1,15 +1,13 @@
 package com.fuchsundlowe.macrolife.BottomBar;
 
 import android.content.Context;
-import android.support.annotation.Nullable;
 import android.util.AttributeSet;
 import android.view.View;
-
 import com.fuchsundlowe.macrolife.DataObjects.TaskObject;
 import com.fuchsundlowe.macrolife.Interfaces.EditTaskProtocol;
 import com.fuchsundlowe.macrolife.R;
 
-import static com.fuchsundlowe.macrolife.BottomBar.ModButton.SpecialtyButton.complex;
+
 /*
  * Defines button to be used in EditTaskBottomBar to show Mods
  */
@@ -70,10 +68,12 @@ public class ModButton extends android.support.v7.widget.AppCompatImageButton {
         this.setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(View v) {
-
                 protocol.clickOnMod(definedMod);
             }
         });
+    }
+    public void defineMe(OnClickListener listener) {
+        setOnClickListener(listener);
     }
     public void defineMe(SpecialtyButton buttonType, OnClickListener listener) {
         this.buttonType = buttonType;
@@ -81,8 +81,8 @@ public class ModButton extends android.support.v7.widget.AppCompatImageButton {
 
         // Defining the button icon:
         switch (buttonType) {
-            case universal:
-                setImageResource(R.drawable.repeat_one_24px);
+            case repeating:
+                setImageResource(R.drawable.repeat_24px);
                 break;
             case save:
                 setImageResource(R.drawable.save_24px);
@@ -105,35 +105,32 @@ public class ModButton extends android.support.v7.widget.AppCompatImageButton {
             case endValues:
                 setImageResource(R.drawable.end_24px);
                 break;
-            case complex:
-                setImageResource(R.drawable.repeat_24px);
-                break;
+            case type:
+                // TODO: Implement
         }
     }
 
+    public void setSpecialtyState(boolean setSelected) {
+        // TODO: Implement!
+    }
+    // True for selected, false for not
+    public boolean getSpecialtyState() {
+        // TODO: Implement!
+        return false;
+    }
+    public void setUnavailable(boolean isAvailable){
+        // TODO: Implement!
+    }
 
-    // Methods:
-    public void setModActive(boolean isActive) {
-        // Define how you will set the mod to be active color...
-    }
-    public void toggleButton() {
-        // TODO: Switch the image
-        switch (buttonType) {
-            case universal:
-                setImageResource(R.drawable.repeat_one_24px);
-                buttonType = SpecialtyButton.universal;
-                break;
-            case complex:
-                setImageResource(R.drawable.repeat_24px);
-                buttonType = complex;
-        }
-    }
+
+
     public SpecialtyButton reportButtonType() {
         return this.buttonType;
     }
     public enum SpecialtyButton {
-        delete, save, universal, complex,
+        delete, save, repeating, type,
         startValues, endValues, date, time, clear
     }
+
 
 }

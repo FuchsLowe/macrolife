@@ -22,6 +22,7 @@ import com.fuchsundlowe.macrolife.R;
 import java.util.Calendar;
 /*
  * This class hold the ListViewer for BottomBar implementation
+ * This is used when user is editing the list content of the task...
  */
 public class ListView_CompleteMod extends FrameLayout {
 

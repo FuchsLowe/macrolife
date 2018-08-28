@@ -125,10 +125,15 @@ public class LocalStorage implements DataProviderNewProtocol {
                             dataBase.newDAO().saveTask(task);
                             // If task is set as repeatable object, delete existing repEvents and institute new ones
                             if (task.isThisRepeatingEvent()) {
-                                // Removing the existing repeating events:
-                                deleteAllRepeatingEvents(task.getHashID());
-                                // Inserting new Values:
-                                dataBase.newDAO().insertRepeatingEvent(composeRepeatingEvents(task));
+                                // Establish if this task has the same value in descriptor as stored one...
+                                if (!dataBase.newDAO().findTaskObject(
+                                        task.getHashID()).getRepeatDescriptor().equals(task.getRepeatDescriptor())) {
+                                    // Removing the existing repeating events:
+                                    deleteAllRepeatingEvents(task.getHashID());
+                                    // Inserting new Values:
+                                    dataBase.newDAO().insertRepeatingEvent(composeRepeatingEvents(task));
+                                }
+                               // Otherwise descriptor is same and we don't have to compose new RepeatingEvents
                             }
                         }
                     }).start();
@@ -163,7 +168,7 @@ public class LocalStorage implements DataProviderNewProtocol {
         for (Integer i = 0; i<results.length; i++) {
             if (i == 0) {
                 // Declaring type:
-                type = new Integer(results[i]);
+                type = Integer.valueOf(results[i]);
             } else {
                 // Create New start and end value:
                 start = object.getTaskStartTime();
@@ -518,7 +523,22 @@ public class LocalStorage implements DataProviderNewProtocol {
     public void deleteAllRepeatingEvents(final int forMasterID) {
         dataBase.newDAO().removeRepeatingEvent((RepeatingEvent[]) getAllEventsBy(forMasterID).toArray());
     }
+    @Override
+    public LiveData<List<RepeatingEvent>> getEventsForRemindersView(Calendar forDay) {
+        Calendar dayStartTime = (Calendar) forDay.clone();
+        dayStartTime.set(Calendar.HOUR_OF_DAY, 0);
+        dayStartTime.set(Calendar.MINUTE, 0);
+        dayStartTime.set(Calendar.SECOND, 0);
+        dayStartTime.set(Calendar.MILLISECOND, 0);
 
+        Calendar dayEndTime = (Calendar) forDay.clone();
+        dayEndTime.set(Calendar.HOUR_OF_DAY, 23);
+        dayEndTime.set(Calendar.MINUTE, 59);
+        dayEndTime.set(Calendar.SECOND, 59);
+        dayEndTime.set(Calendar.MILLISECOND, 999);
+
+        return dataBase.newDAO().getReminderEventsForDay(dayStartTime.getTimeInMillis(), dayEndTime.getTimeInMillis());
+    }
 
     // List Objects:
     @Override

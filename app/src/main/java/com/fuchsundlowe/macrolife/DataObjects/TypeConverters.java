@@ -1,6 +1,9 @@
 package com.fuchsundlowe.macrolife.DataObjects;
 
 import android.arch.persistence.room.TypeConverter;
+
+import com.fuchsundlowe.macrolife.BottomBar.RepeatingEventEditor;
+
 import java.util.Calendar;
 import java.util.Date;
 
@@ -133,5 +136,36 @@ public class TypeConverters {
             case 2: return TaskObject.TimeDefined.dateAndTime;
             default: return TaskObject.TimeDefined.noTime;
         }
+    }
+
+    @TypeConverter
+    public static RepeatingEventEditor.RepeatType intToType(int value) {
+        switch (value) {
+            case 2:
+                return RepeatingEventEditor.RepeatType.customWeek;
+            case 3:
+                return RepeatingEventEditor.RepeatType.twoWeeks;
+            case 4:
+                return RepeatingEventEditor.RepeatType.monthly;
+            case 5:
+                return RepeatingEventEditor.RepeatType.yearly;
+            default:return RepeatingEventEditor.RepeatType.everyDay;
+        }
+    }
+    @TypeConverter
+    public static int fromTypeToInt(RepeatingEventEditor.RepeatType type) {
+        switch (type) {
+            case customWeek:
+                return 2;
+            case twoWeeks:
+                return 3;
+            case monthly:
+                return 4;
+            case yearly:
+                return 5;
+            default:
+                return 1;
+        }
+
     }
 }

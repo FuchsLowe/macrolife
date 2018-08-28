@@ -51,4 +51,13 @@ public class SideButton_RepeatEditor extends android.support.v7.widget.AppCompat
         setOnClickListener(clickListener);
     }
 
+    public void highliteSelection(boolean select) {
+        if (select) {
+            this.setZ(20);
+            // TODO: Change implementation to reflect selection
+        } else {
+            this.setZ(0);
+        }
+    }
+
 }

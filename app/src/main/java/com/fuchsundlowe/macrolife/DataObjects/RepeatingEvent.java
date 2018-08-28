@@ -70,12 +70,16 @@ public class RepeatingEvent {
 
     // Returns true if it can end time comes after begin time, false otherwise.
     public boolean setEndTimeWithReturn(Calendar endTime) {
-        Calendar startTime = this.getStartTime();
-        if (endTime.after(getStartTime())) {
-            this.endTime = endTime;
-            return true;
+        if (endTime != null) {
+            if (endTime.after(getStartTime())) {
+                this.endTime = endTime;
+                return true;
+            } else {
+                return false;
+            }
         } else {
-            return false;
+            endTime = null;
+            return true;
         }
     }
     @Deprecated

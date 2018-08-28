@@ -46,7 +46,6 @@ public interface NewDAO {
 
 
     // Deleting Values:
-
     @Delete
     void removeTask(TaskObject ... taskObjects);
 
@@ -105,10 +104,16 @@ public interface NewDAO {
     @Query("SELECT * FROM TaskObject WHERE (TimeDefined == 1 AND taskStartTime BETWEEN :dayStart AND :dayEnd)")
     LiveData<List<TaskObject>> getReminderTasksForDay(long dayStart, long dayEnd);
 
+    @Query("SELECT * FROM RepeatingEvent WHERE ((startTime BETWEEN :dayStart AND :dayEnd) AND (endTime == NULL OR endTime == 0))")
+    LiveData<List<RepeatingEvent>>getReminderEventsForDay(long dayStart, long dayEnd);
+
     @Query("SELECT * FROM TaskObject WHERE (taskCreatedTimeStamp == :timeStamp)")
     LiveData<TaskObject> getTaskObjectWithCreationTime(long timeStamp);
 
     @Query("SELECT * FROM TaskObject WHERE (timeDefined == 0 AND isTaskCompleted == 0)")
     LiveData<List<TaskObject>> getTasksForRecommendationFetcher();
+
+    @Query("SELECT * FROM TaskObject WHERE (hashID == :byId)")
+    TaskObject findTaskObject(int byId);
 
 }

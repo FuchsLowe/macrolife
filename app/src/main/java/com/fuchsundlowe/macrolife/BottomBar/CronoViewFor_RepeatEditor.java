@@ -43,6 +43,11 @@ public class CronoViewFor_RepeatEditor extends ViewGroup {
     private int TEXT_SIZE = 22;
     private float lineOffset;
 
+    // Description Values passed from RepeatEventEditor:
+    private List<RepeatingTask_RepeatEditor> events;
+    private RepeatingEventEditor.RepeatType type;
+    private DayOfWeek day;
+
     // Variables to be calculated
     private Paint lineMarker;
     private Paint textMarker;
@@ -53,8 +58,7 @@ public class CronoViewFor_RepeatEditor extends ViewGroup {
     private DataProviderNewProtocol dataProvider;
     private GestureDetectorCompat longPressDetector;
     private TaskObject objectPresented;
-    private List<RepeatingEvent> events;
-    private DayOfWeek dayDisplayed;
+
 
     public CronoViewFor_RepeatEditor(@NonNull Context context) {
         super(context);
@@ -128,6 +132,7 @@ public class CronoViewFor_RepeatEditor extends ViewGroup {
         for (int i = 0; i<childCount; i++) {
             measureChildren(getWidth(), getHeight());
             View child = getChildAt(i);
+            // TODO: Consider if child has no endTime...
             if (child instanceof RepeatingTask_RepeatEditor) {
                 child.layout(left,
                         getPixelLocationOf(((RepeatingTask_RepeatEditor) child).getTaskStartTime(), false),
@@ -143,17 +148,17 @@ public class CronoViewFor_RepeatEditor extends ViewGroup {
         longPressDetector.onTouchEvent(event);
         return true;
     }
-    // This is called to initiate the view with values
-    public void defineMe(TaskObject taskMaster) {
-        objectPresented = taskMaster;
-        removeAllViews();
-        /*
-         * We grab the description and we parse it into RepeatingTasks...
-         */
 
+    // This is called to initiate the view with values
+    public void defineMe(List<RepeatingTask_RepeatEditor> eventHolder, RepeatingEventEditor.RepeatType type, DayOfWeek daySelected) {
+        this.events = eventHolder;
+        this.type = type;
+        this.day = daySelected;
+    }
+    // Called by RepeatEventEditor when changes in describing values have been changed.
+    public void updateValues() {
 
     }
-
     @Override
     protected void onAttachedToWindow() {
         super.onAttachedToWindow();
@@ -256,10 +261,16 @@ public class CronoViewFor_RepeatEditor extends ViewGroup {
     class LongPressDetector extends GestureDetector.SimpleOnGestureListener {
         @Override
         public void onLongPress(MotionEvent e) {
-            // Grab parent and establish if scroll is happenig
             RepeatingTask_RepeatEditor toAddView = new RepeatingTask_RepeatEditor(getContext());
-            toAddView.createMe(objectPresented, getTimeLocationOf(e.getY()), dayDisplayed);
-            addView(toAddView);
+            Calendar startTime = getTimeLocationOf(e.getY());
+            if (day != DayOfWeek.universal) {
+                startTime.set(Calendar.DAY_OF_WEEK, day.getValue());
+            }
+            Calendar endTime = (Calendar) startTime.clone();
+            endTime.add(Calendar.MINUTE, 30); // NOTE: Default amount is 30 min.
+            toAddView.defineMe(objectPresented.getTaskName(), startTime, endTime, day);
+            events.add(toAddView);
+            updateValues();
         }
 
     }

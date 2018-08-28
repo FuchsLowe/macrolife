@@ -24,6 +24,7 @@ public class Constants {
     public static String INTENT_FILTER_FIELD_START_TIME = "Time of start in Long";
     public static String INTENT_FILTER_RECOMMENDATION = "Get the recommendation engine";
     public static String INTENT_FILTER_CHANGE_IN_MOD = "Mod has been changed, update the ChronoView";
+    public static String INTENT_FILTER_EVENT_DELETED = "Event has been deleted";
     public static DayOfWeek[] AMERICAN_WEEK_DAYS = {DayOfWeek.sunday, DayOfWeek.monday,
             DayOfWeek.tuesday, DayOfWeek.wednesday, DayOfWeek.thursday, DayOfWeek.friday,
     DayOfWeek.saturday};
@@ -34,4 +35,5 @@ public class Constants {
     public static String START_VALUE_DONE = "Reporting that startValue is initiated";
     public static String END_VALUE_DONE = "Report that endValue is initiated";
     public static String TYPE_DEFINED = "Reporting that type is defined";
+    public static String TYPE_NOT_DEFINED = "Reporting that type is not defined sir";
 }

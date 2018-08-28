@@ -327,6 +327,7 @@ public class EditTaskBottomBar extends Fragment implements EditTaskProtocol {
         filter.addAction(Constants.START_VALUE_DONE);
         filter.addAction(Constants.END_VALUE_DONE);
         filter.addAction(Constants.TYPE_DEFINED);
+        filter.addAction(Constants.TYPE_NOT_DEFINED);
         manager.registerReceiver(new BroadcastReceiver() {
             // note: This is the part that coordinates the appearance of the bottomBarButtons:
             @Override
@@ -350,12 +351,26 @@ public class EditTaskBottomBar extends Fragment implements EditTaskProtocol {
                     }
                 } else if (intent.getAction().equals(Constants.TYPE_DEFINED)) {
                     if (bottomBarButtons != null) {
+                        // Present back the buttons and remove the RepeatEventEditor
+                        modAreaOne.removeAllViews();
+                        modAreaOne.setVisibility(View.GONE);
+                        dynamicArea.setVisibility(View.VISIBLE);
                         // We select it to indicate that we have defined that value
                         bottomBarButtons.get(ModButton.SpecialtyButton.repeating).setSpecialtyState(true);
                         //if the save button didn't appear so far, now we can present it:
                         if (bottomBarButtons.get(ModButton.SpecialtyButton.endValues).getSpecialtyState()) {
                             bottomBarButtons.get(ModButton.SpecialtyButton.save).setVisibility(View.VISIBLE);
                         }
+                    }
+                } else if (intent.getAction().equals(Constants.TYPE_NOT_DEFINED)) {
+                    if (bottomBarButtons != null) {
+                        // We un-select the repeating specialty button and remove save since we are
+                        // incomplete now...
+                        modAreaOne.removeAllViews();
+                        modAreaOne.setVisibility(View.GONE);
+                        dynamicArea.setVisibility(View.VISIBLE);
+                        bottomBarButtons.get(ModButton.SpecialtyButton.repeating).setSpecialtyState(false);
+                        bottomBarButtons.get(ModButton.SpecialtyButton.save).setVisibility(View.GONE);
                     }
                 }
             }
@@ -415,7 +430,16 @@ public class EditTaskBottomBar extends Fragment implements EditTaskProtocol {
                                     break;
                                 case repeating:
                                     // Produce Editor
-                                    dynamicArea.removeAllViews();
+                                    /*
+                                     * NOTE: Since I need to be able to revert back to the start, end
+                                     * and other values, I would like then to just hide the dynamic area
+                                     * that shows them and present editor in maybe modArea one.
+                                     * Then When I call done it will just remove the mod area one views
+                                     * and will make dynamic area visible again.
+                                     */
+                                    dynamicArea.setVisibility(View.GONE);
+                                    modAreaOne.removeAllViews();
+                                    modAreaOne.setVisibility(View.VISIBLE);
                                     RepeatingEventEditor editor = new RepeatingEventEditor(getContext(), self);
                                     float howMuchShouldIOccupyScreen = 0.8f;
                                     ConstraintLayout.LayoutParams param = new ConstraintLayout.LayoutParams(
@@ -423,17 +447,20 @@ public class EditTaskBottomBar extends Fragment implements EditTaskProtocol {
                                             (int)(screenHeight * howMuchShouldIOccupyScreen)
                                     );
                                     editor.setLayoutParams(param);
-                                    dynamicArea.addView(editor);
+                                    modAreaOne.addView(editor);
                                     editor.defineMe(taskObject);
                                     break;
                                 case save:
                                     // Save new implementation
-                                    
+                                    taskObject.setTaskStartTime(startValue);
+                                    taskObject.setTaskEndTime(endValue);
+                                    dataProvider.saveTaskObject(taskObject);
+                                    modDone();
                                     break;
                                 case delete:
                                     /*
                                      * if the task has not set yet set the end time, then it
-                                     * can be recovered... So goal is to retrive the prior state
+                                     * can be recovered... So goal is to retrieve the prior state
                                      * if possible
                                      */
                                     if (!taskObject.isThisRepeatingEvent()) {

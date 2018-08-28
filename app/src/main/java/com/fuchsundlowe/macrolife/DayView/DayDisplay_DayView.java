@@ -72,7 +72,7 @@ public class DayDisplay_DayView extends Fragment {
         taskIDs = new HashSet<>();
         eventHolder = new ArrayList<>();
 
-        // Subscribe to live taskPresented:
+        // Subscribe to live reminderPresented:
         dataMaster.getAllEvents().observe(this, new Observer<List<RepeatingEvent>>() {
             /*
              * This is know not to be effective way of searching through the DB, but problem is that
@@ -171,22 +171,66 @@ public class DayDisplay_DayView extends Fragment {
         final GridLayoutManager glm = new GridLayoutManager(getContext(), 2, GridLayoutManager.HORIZONTAL, false);
         reminderViewLayoutManager = glm;
         reminderView.setLayoutManager(reminderViewLayoutManager);
+        final List<TaskEventHolder> reminders = new ArrayList<>();
+
         // Setting the adapter
         reminderViewAdapeter = new ReminderViewAdapter();
         reminderView.setAdapter(reminderViewAdapeter);
         // Subscribe to liveData:
+        // for Tasks:
         dataMaster.getTasksForRemindersView(dayWeDisplay).observe(this, new Observer<List<TaskObject>>() {
             @Override
             public void onChanged(@Nullable List<TaskObject> objects) {
-                if (objects.size() > 1) {
+                // Update changes:
+                List<TaskEventHolder> toDelete = new ArrayList<>();
+                for (TaskEventHolder object: reminders) {
+                    if (object.isTask()) {
+                        toDelete.add(object);
+                    }
+                }
+                reminders.removeAll(toDelete);
+                // Wrapping Tasks into TaskEventHolders and adding them
+                if (objects != null) {
+                    for (TaskObject task : objects) {
+                        reminders.add(new TaskEventHolder(task, null));
+                    }
+                }
+                // define the size of the reminder bar...
+                if (reminders.size() > 1) {
                     glm.setSpanCount(2);
                 } else {
                     glm.setSpanCount(1);
                 }
-                reminderViewAdapeter.addNewData(objects);
+                reminderViewAdapeter.addNewData(reminders);
             }
         });
-
+        // for Events:
+        dataMaster.getEventsForRemindersView(dayWeDisplay).observe(this, new Observer<List<RepeatingEvent>>() {
+            @Override
+            public void onChanged(@Nullable List<RepeatingEvent> events) {
+                // Update changes:
+                List<TaskEventHolder> toDelete = new ArrayList<>();
+                for (TaskEventHolder object: reminders) {
+                    if (!object.isTask()) {
+                        toDelete.add(object);
+                    }
+                }
+                reminders.removeAll(toDelete);
+                // Wrapping Events into TaskEventHolders and adding them:
+                if (events != null) {
+                    for (RepeatingEvent event: events) {
+                        reminders.add(new TaskEventHolder(null, event));
+                    }
+                }
+                // define the size of the reminder bar...
+                if (reminders.size() > 1) {
+                    glm.setSpanCount(2);
+                } else {
+                    glm.setSpanCount(1);
+                }
+                reminderViewAdapeter.addNewData(reminders);
+            }
+        });
         reminderView.setHasFixedSize(false);
 
         reminderView.setOnDragListener(new View.OnDragListener() {
@@ -194,8 +238,9 @@ public class DayDisplay_DayView extends Fragment {
             public boolean onDrag(View v, DragEvent event) {
                 switch (event.getAction()) {
                     case DragEvent.ACTION_DRAG_STARTED:
-                        // determine if I should accept this, TODO: only taskObjects can be accepted?
-                        if (event.getClipDescription().getLabel().equals(Constants.TASK_OBJECT)) {
+                        // determine if I should accept this
+                        if (event.getClipDescription().getLabel().equals(Constants.TASK_OBJECT) ||
+                                event.getClipDescription().getLabel().equals(Constants.REPEATING_EVENT)) {
                             return true;
                         } else {
                             return false;
@@ -216,6 +261,10 @@ public class DayDisplay_DayView extends Fragment {
                             ((TaskObject) dropData).setTimeDefined(TaskObject.TimeDefined.onlyDate);
                             ((TaskObject) dropData).setTaskStartTime(dayWeDisplay);
                             dataMaster.saveTaskObject((TaskObject) dropData);
+                        } else if (dropData instanceof RepeatingEvent) {
+                            ((RepeatingEvent) dropData).setStartTime(dayWeDisplay);
+                            ((RepeatingEvent) dropData).setEndTimeWithReturn(null);
+                            dataMaster.saveRepeatingEvent((RepeatingEvent) dropData);
                         } else {
                             return false;
                         }
@@ -280,6 +329,47 @@ public class DayDisplay_DayView extends Fragment {
             }
         }, 2500, 2500);
     }
+    // This is holder for unified presenting of tasks and events
+    protected class TaskEventHolder {
+        TaskObject task;
+        RepeatingEvent event;
 
-
+        TaskEventHolder(@Nullable TaskObject task, @Nullable RepeatingEvent event) {
+            this.task = task;
+            this.event = event;
+        }
+        boolean isTask() {
+            return task != null;
+        }
+        TaskObject.CheckableStatus getCompletionState() {
+            if (isTask()) {
+                return task.getIsTaskCompleted();
+            } else {
+                return event.getIsTaskCompleted();
+            }
+        }
+        String getName() {
+            if (isTask()) {
+                return task.getTaskName();
+            } else {
+                // MARK: Gotta fetch it via DataBase
+                return dataMaster.findTaskObjectBy(event.getParentID()).getTaskName();
+            }
+        }
+        List<TaskObject.Mods> getAllMods() {
+            if (isTask()) {
+               return task.getAllMods();
+            } else {
+                return dataMaster.findTaskObjectBy(event.getParentID()).getAllMods();
+            }
+        }
+        // Returns the taskObjects hashID
+        int getMasterHashID() {
+            if (isTask()) {
+                return task.getHashID();
+            } else {
+                return event.getParentID();
+            }
+        }
+    }
 }

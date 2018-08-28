@@ -1,12 +1,14 @@
 package com.fuchsundlowe.macrolife.BottomBar;
 
 import android.content.Context;
+import android.content.Intent;
 import android.graphics.Color;
 import android.graphics.Point;
 import android.os.Handler;
 import android.os.Looper;
 import android.support.annotation.Nullable;
 import android.support.constraint.ConstraintLayout;
+import android.support.v4.content.LocalBroadcastManager;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -16,6 +18,8 @@ import android.widget.Button;
 import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+
+import com.fuchsundlowe.macrolife.DataObjects.Constants;
 import com.fuchsundlowe.macrolife.DataObjects.RepeatingEvent;
 import com.fuchsundlowe.macrolife.DataObjects.TaskObject;
 import com.fuchsundlowe.macrolife.EngineClasses.LocalStorage;
@@ -30,9 +34,10 @@ public class RepeatingTask_RepeatEditor extends LinearLayout {
 
     //private View baseView;
     private TextView tittle;
-    private TaskObject master;
+    private Context mContext;
+    protected Calendar startTime, endTime;
+    protected com.fuchsundlowe.macrolife.DataObjects.DayOfWeek day;
 
-    private DataProviderNewProtocol dataProvider;
 
     // Default Init's:
     public RepeatingTask_RepeatEditor(Context context) {
@@ -51,66 +56,49 @@ public class RepeatingTask_RepeatEditor extends LinearLayout {
 
     // Initialization methods:
     private void universalInit(Context context) {
-        View base = LayoutInflater.from(context).inflate(R.layout.repeating_task_repeating_editor, null,false);
-        this.addView(base);
+        this.mContext = context;
+
+        LayoutInflater.from(context).inflate(R.layout.repeating_task_repeating_editor, this,true);
+
         tittle = findViewById(R.id.taskTitle_RepeatEditor);
+
         Button deleteButton = findViewById(R.id.deleteButton_RepeatEditor);
-        dataProvider = LocalStorage.getInstance(context);
         deleteButton.setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(View v) {
-                // Delete Self
-                dataProvider.deleteRepeatingEvent(event);
-                // TODO: Remove self from master view? and its local group... if there is one...
+                // Deleting self...
                 setVisibility(GONE);
+                startTime = null;
+                endTime = null;
+                broadcastDeletedEvent();
             }
         });
 
     }
     // Used when initiating the task with existing values...
-    public void defineMe(TaskObject master) {
-        this.master = master;
-
-        tittle.setText(master.getTaskName());
+    public void defineMe(String taskName, Calendar startTime, Calendar endTime, com.fuchsundlowe.macrolife.DataObjects.DayOfWeek day) {
+        tittle.setText(taskName);
+        this.startTime = startTime;
+        this.endTime = endTime;
+        this.day = day;
     }
-    // Used for creating the task anew.
-    public void createMe(TaskObject master, Calendar startTime, com.fuchsundlowe.macrolife.DataObjects.DayOfWeek day) {
-        this.master = master;
-        tittle.setText(master.getTaskName());
-        Calendar endTime = (Calendar) startTime.clone();
-        endTime.add(Calendar.MINUTE, 30);
-        int newHashID = dataProvider.findNextFreeHashIDForEvent();
-        TaskObject.CheckableStatus status;
-        if (master.getIsTaskCompleted() == TaskObject.CheckableStatus.notCheckable) {
-            status = TaskObject.CheckableStatus.notCheckable;
-        } else {
-            status = TaskObject.CheckableStatus.incomplete;
-        }
-        RepeatingEvent newEvent = new RepeatingEvent(master.getHashID(), startTime, endTime,
-                newHashID, Calendar.getInstance(), status);
 
-        dataProvider.saveTaskObject(master);
-
-    }
 
     // Lifecycle:
     @Override
     protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
         super.onMeasure(widthMeasureSpec, heightMeasureSpec);
     }
-
     @Override
     protected void onLayout(boolean changed, int left, int top, int right, int bottom) {
         super.onLayout(changed, left, top, right, bottom);
         layoutOnlyChild();
     }
-
     @Override
     protected void onSizeChanged(int w, int h, int oldw, int oldh) {
         super.onSizeChanged(w, h, oldw, oldh);
         layoutOnlyChild();
     }
-
     private void layoutOnlyChild() {
         View onlyChild = getChildAt(0);
         if (onlyChild != null) {
@@ -121,10 +109,24 @@ public class RepeatingTask_RepeatEditor extends LinearLayout {
 
     // Methods:
     public Calendar getTaskStartTime() {
-        return event.getStartTime();
+        return startTime;
     }
     public Calendar getTaskEndTime() {
-        return event.getEndTime();
+        return endTime;
     }
+    // Returns true if this is intended to be a reminder not a time-defied event
+    public boolean isReminder() {
+        return endTime != null && endTime.getTimeInMillis() != 0;
+    }
+    public com.fuchsundlowe.macrolife.DataObjects.DayOfWeek getDay() {
+        return day;
+    }
+    // This will signal the RepeatingEventEditor that item has been deleted.
+    // In turn when it iterates over the values, it will find and delete event without startTime
+    private void broadcastDeletedEvent() {
+        Intent mIntent = new Intent(Constants.INTENT_FILTER_EVENT_DELETED);
+        LocalBroadcastManager.getInstance(mContext).sendBroadcast(mIntent);
+    }
+    // TODO: Create the system for changing the position as well as changing the duration...<<<<<<<<
 
 }

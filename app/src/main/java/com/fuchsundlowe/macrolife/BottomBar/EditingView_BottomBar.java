@@ -96,7 +96,7 @@ public class EditingView_BottomBar extends FrameLayout {
         }
         this.event = event;
     }
-    public boolean toggleCheckBoxExistance() { // returns true if box is now visible and flase if its not
+    public boolean toggleCheckBoxExistance() { // returns true if box is now visible and false if its not
         if (box.getVisibility() == VISIBLE) {
             box.setVisibility(GONE);
             return false;

@@ -10,12 +10,13 @@
 
     <string name="animation_end">M50 95, C 10 95 10 50 10 50, H 95, C 95 50 95 95 50 95</string>
     <string name="animation_start">M50 95, C 50 95, 50 95, 50 95, H50, C 50 95, 50 95, 50 95</string>
-
+    <!--Toast Strings-->
     <string name="Toast_Empty_Note">Empty Note</string>
     <string name="Toast_Tittle_WARNING">WARNING</string>
     <string name="Toast_Subtitle">Once deleted this action can\'t be undone.</string>
     <string name="set_start_date">Set at least start date before setting end date</string>
     <string name="set_start_time">You must set start time before setting end time</string>
+    <string name="toast_no_pattern">No repeat pattern defined</string>
 
     <string name="Monday_Short">M</string>
     <string name="Tuesday_Short">T</string>
@@ -33,5 +34,6 @@
     <string name="twoWeeks">Every 2 weeks</string>
     <string name="monthly">Monthly</string>
     <string name="yearly">Yearly</string>
+
 
 </resources>

@@ -320,7 +320,7 @@ public class DayView extends FragmentActivity implements DayViewTopFragmentCallb
         BroadcastReceiver broadcastReceiver = new BroadcastReceiver() {
             @Override
             public void onReceive(Context context, Intent intent) {
-                if (intent.getAction() == Constants.INTENT_FILTER_GLOBAL_EDIT) {
+                if (intent.getAction().equals(Constants.INTENT_FILTER_GLOBAL_EDIT)) {
                     // grab the task & insert it into editTasl
                     int hashID = intent.getIntExtra(Constants.INTENT_FILTER_FIELD_HASH_ID, -1);
                     //TaskObject objectEdited = dataMaster.findTaskObjectBy(hashID);
@@ -329,7 +329,7 @@ public class DayView extends FragmentActivity implements DayViewTopFragmentCallb
                     if (objectEdited != null) {
                         provideEditTask(objectEdited);
                     }
-                } else if (intent.getAction() == Constants.INTENT_FILTER_NEW_TASK) {
+                } else if (intent.getAction().equals(Constants.INTENT_FILTER_NEW_TASK)) {
                     Calendar currentTime = Calendar.getInstance();
                     int thirtyMinutesInMilliseconds = 1800000;
                     Calendar startTime = Calendar.getInstance();
@@ -353,7 +353,8 @@ public class DayView extends FragmentActivity implements DayViewTopFragmentCallb
                             0,
                             0,
                             "",
-                            TaskObject.TimeDefined.dateAndTime
+                            TaskObject.TimeDefined.dateAndTime,
+                            ""
                             );
                     dataMaster.saveTaskObject(newTask);
                     provideEditTask(newTask);
@@ -377,7 +378,7 @@ public class DayView extends FragmentActivity implements DayViewTopFragmentCallb
                         ||
                         event.getClipDescription().getLabel().equals(Constants.REPEATING_EVENT)) {
                     // We don't accept these but we need to change the bottom bar to Recommendation fetcher
-                    // TODO: Should empty space at least appear if there is no taskPresented to display?
+                    // TODO: Should empty space at least appear if there is no reminderPresented to display?
                     provideRecommendationFetcher();
                 }
                 return false;

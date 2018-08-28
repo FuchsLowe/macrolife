@@ -80,7 +80,7 @@ public class DateDisplay_DayView extends Fragment implements View.OnClickListene
     }
 
     // Methods:
-    //Called by outside class to fill in the taskPresented for the Fragment
+    //Called by outside class to fill in the reminderPresented for the Fragment
     public void defineTopBar(DayViewTopFragmentCallback protocol, Calendar weekToDisplay) {
         this.callback = protocol;
         this.weekWeDisplay = weekToDisplay;

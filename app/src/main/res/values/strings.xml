@@ -34,6 +34,14 @@
     <string name="twoWeeks">Every 2 weeks</string>
     <string name="monthly">Monthly</string>
     <string name="yearly">Yearly</string>
-
-
+    <!--Tags for Mod Buttons: specialty states-->
+    <string name="repeating">repeating</string>
+    <string name="delete">delete</string>
+    <string name="save">save</string>
+    <string name="type">type</string>
+    <string name="startValues">startValues</string>
+    <string name="endValues">endValues</string>
+    <string name="date">date</string>
+    <string name="time">time</string>
+    <string name="clear">clear</string>
 </resources>

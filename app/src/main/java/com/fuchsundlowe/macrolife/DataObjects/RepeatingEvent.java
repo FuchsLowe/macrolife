@@ -29,14 +29,14 @@ public class RepeatingEvent {
 
     public RepeatingEvent(int parentID, Calendar startTime,
                           Calendar endTime, int hashID, Calendar lastTimeModified,
-                          CheckableStatus completionStatus) {
+                          CheckableStatus isTaskCompleted) {
 
         this.parentID = parentID;
         this.startTime = startTime;
         this.endTime = endTime;
         this.lastTimeModified = lastTimeModified;
         this.hashID = hashID;
-        this.isTaskCompleted = completionStatus;
+        this.isTaskCompleted = isTaskCompleted;
     }
 
     // Methods:
@@ -92,5 +92,9 @@ public class RepeatingEvent {
     }
     public void setLastTimeModified(Calendar lastTimeModified) {
         this.lastTimeModified = lastTimeModified;
+    }
+    // returns true if this has only date defined, no time
+    public boolean isOnlyDate() {
+        return endTime == null || endTime.before(startTime);
     }
 }

@@ -89,13 +89,6 @@
             android:visibility="gone"
             app:srcCompat="@drawable/repeat_24px" />
 
-        <ImageView
-            android:id="@+id/repeatMulti_weekTask"
-            android:layout_width="wrap_content"
-            android:layout_height="match_parent"
-            android:layout_weight="0"
-            android:visibility="gone"
-            app:srcCompat="@drawable/repeat_one_24px" />
     </LinearLayout>
 
     <LinearLayout

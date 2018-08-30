@@ -30,6 +30,7 @@ import com.fuchsundlowe.macrolife.DataObjects.RepeatingEvent;
 import com.fuchsundlowe.macrolife.DataObjects.TaskObject;
 import com.fuchsundlowe.macrolife.EngineClasses.LocalStorage;
 import com.fuchsundlowe.macrolife.Interfaces.DataProviderNewProtocol;
+import com.fuchsundlowe.macrolife.DayView.DayDisplay_DayView.TaskEventHolder;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -211,7 +212,7 @@ public class ChronoView extends ViewGroup {
                                 ||
                                 event.getClipDescription().getLabel().equals(Constants.REPEATING_EVENT)) {
                             Object eventDragged = event.getLocalState();
-                            // determine if these exist in current view hierachy and remove them if so
+                            // determine if these exist in current view hierarchy and remove them if so
                             if (eventDragged instanceof TaskObject) {
                                 for (int i = 0; i< getChildCount(); i++) {
                                     View child = getChildAt(i);
@@ -419,35 +420,29 @@ public class ChronoView extends ViewGroup {
             if (viewObject instanceof Task_DayView) {
                 Calendar startTime = ((Task_DayView) viewObject).getTaskStartTime();
                 Calendar endTime = ((Task_DayView) viewObject).getTaskEndTime();
-                // this is the problem... We assume its taskObject not repeatingEvent...
-                if (((Task_DayView) viewObject).isRepeatingEvent()) {
-                    // We do laying for repeating event
+                // evaluating the position of task
+                if (startTime.get(Calendar.DAY_OF_YEAR) == dayDisplayed.get(Calendar.DAY_OF_YEAR)) {
                     start = getPixelLocationOf(startTime, false);
-                    end = getPixelLocationOf(endTime, false);
-                } else {
-                    // We do layout for taskObject
-                    if (startTime.get(Calendar.DAY_OF_YEAR) == dayDisplayed.get(Calendar.DAY_OF_YEAR)) {
-                        start = getPixelLocationOf(startTime, false);
-                    } else { // means that task started before today
-                        start = 0;
-                    }
-                    if (endTime.get(Calendar.DAY_OF_YEAR) == dayDisplayed.get(Calendar.DAY_OF_YEAR)) {
-                        end = getPixelLocationOf(endTime, false);
-                    } else { // Means that task doesn't end on this day
-                        end = 24 * timeUnitSize;
-                    }
-                    // I need distance for 30 min in pixels
-                    // Displays only minimun time of 30 min
-                    int thirthyMinInPixels = timeUnitSize / 2;
-                    int thirtyMinInMilliseconds = 1800000;
-                    if ((endTime.getTimeInMillis() - startTime.getTimeInMillis()) < thirtyMinInMilliseconds) {
-                        end = start + thirthyMinInPixels;
-                    }
+                } else { // means that task started before today
+                    start = 0;
                 }
+                if (endTime.get(Calendar.DAY_OF_YEAR) == dayDisplayed.get(Calendar.DAY_OF_YEAR)) {
+                    end = getPixelLocationOf(endTime, false);
+                } else { // Means that task doesn't end on this day
+                    end = 24 * timeUnitSize;
+                }
+                // I need distance for 30 min in pixels
+                // Displays only minimun time of 30 min
+                int thirtyMinInPixels = timeUnitSize / 2;
+                int thirtyMinInMilliseconds = 1800000;
+                if ((endTime.getTimeInMillis() - startTime.getTimeInMillis()) < thirtyMinInMilliseconds) {
+                    end = start + thirtyMinInPixels;
+                }
+
                 // The actual laying procedure...
                 ((Task_DayView) viewObject).myLayout((int) lineStartMark, start, this.getWidth(), end);
             } else {
-                //Assuming its only the TimeDisplayer
+                //Assuming its only the TimeDisplay
                 int top = getPixelLocationOf(Calendar.getInstance(), true);
                 tempTimeDisplayer.layout((int) lineStartMark, top, this.getWidth() - 5, top + 15);
             }
@@ -484,153 +479,24 @@ public class ChronoView extends ViewGroup {
 
 
     // Data Manipulation:
-    public void setData(@Nullable List<TaskObject> tasks,
-                        @Nullable List<RepeatingEvent> repeatingEvents) {
-        if (dataProvider == null) {
-            dataProvider = LocalStorage.getInstance(getContext());
-        }
-        // Task Evaluation:
-        if (tasks != null) {
-            List<View> viewsToRemove = new ArrayList<>();
-            HashMap<Integer, TaskObject> taskMap = new HashMap<>();
-            // Defining the HashMap
-            for (TaskObject object: tasks) {
-                taskMap.put(object.getHashID(), object);
-            }
-            // Querying the view hierarchy for evaluation of possible removal of removed and updated
-            // tasks from new batch
-            for (int i = 0; i< getChildCount(); i++) {
-                View child = getChildAt(i);
-                // We only work on views that are known to be TaskObjects wrapped in Task_DayView class
-                if (child instanceof Task_DayView) {
-                    if (!((Task_DayView) child).isRepeatingEvent()) {
-                        // Now we check if child exists in new implementation
-                        if (taskMap.containsKey(((Task_DayView) child).getTaskObjectHashID())) {
-                            // means that we need to check if task has been updated
-                            if (((Task_DayView) child).lastTimeEdited().
-                                    before(taskMap.get(((Task_DayView) child).getTaskObjectHashID()).
-                                            getLastTimeModified())) {
-                                // Means that this was updated and needs to be removed
-                                viewsToRemove.add(child);
-                            } else {
-                                // means that this is good, and we don't need to touch it...
-                                taskMap.remove(((Task_DayView) child).getTaskObjectHashID());
-                            }
-                        } else {
-                            // we will remove this task latter
-                            viewsToRemove.add(child);
-                        }
-                    }
-                }
-            }
-            // Now we remove the views:
-            for (View toRemove: viewsToRemove) {
-                removeView(toRemove);
-            }
-            // And now we add remaining views:
-            for (TaskObject objectToPresent: taskMap.values()) {
-                // Only if Task is not a repeating one we will display it, because we only display
-                // children of repeating tasks
-                if (objectToPresent.getRepeatingMod() == null) {
-                    addNewTask(objectToPresent, null);
-                }
+    public void insertData(List<TaskEventHolder> data) {
+        // Remove all views that are Task_DayView
+        List<View> toRemove= new ArrayList<>();
+        for (int i =0; i<this.getChildCount(); i++) {
+            View view = getChildAt(i);
+            if (view instanceof Task_DayView) {
+                toRemove.add(view);
             }
         }
-
-        // Events Evaluation:
-        if (repeatingEvents != null) {
-            List<View> viewsToRemove = new ArrayList<>();
-            HashMap<Integer, RepeatingEvent> taskMap = new HashMap<>();
-            // Defining the HashMap
-            for (RepeatingEvent event: repeatingEvents) {
-                taskMap.put(event.getHashID(), event);
-            }
-            // Querying the view hierarchy for evaluation of possible removal of removed and updated
-            // tasks from new batch
-            for (int i = 0; i< getChildCount(); i++) {
-                View child = getChildAt(i);
-                // We only work on views that are known to be RepeatingEvent wrapped in Task_DayView class
-                if (child instanceof Task_DayView) {
-                    if (((Task_DayView) child).isRepeatingEvent()) {
-                        // Now we check if child exists in new implementation
-                        if (taskMap.containsKey(((Task_DayView) child).getActiveHashID())) {
-                            // means that we need to check if task has been updated
-                            if (((Task_DayView) child).lastTimeEdited().
-                                    before(taskMap.get(((Task_DayView) child).getActiveHashID()).
-                                            getLastTimeModified())) {
-                                // Means that this was updated and needs to be removed
-                                viewsToRemove.add(child);
-                            } else {
-                                // means that this is good, and we don't need to touch it...
-                                taskMap.remove(((Task_DayView) child).getActiveHashID());
-                            }
-                        } else {
-                            // we will remove this view latter
-                            viewsToRemove.add(child);
-                        }
-                    }
-                }
-            }
-            // Now we remove the views:
-            for (View toRemove: viewsToRemove) {
-                removeView(toRemove);
-            }
-            // And now we add remaining views:
-            for (RepeatingEvent objectToPresent: taskMap.values()) {
-                // We only present ones whose parents show same mod as possessed by this task
-                TaskObject parent = dataProvider.findTaskObjectBy(objectToPresent.getParentID());
-                if (parent != null && parent.getRepeatingMod() != null) {
-                    if (objectToPresent.getDayOfWeek() == DayOfWeek.universal) {
-                        if (parent.getRepeatingMod() == TaskObject.Mods.repeating) {
-                            // only now we add
-                            // TODO: Am I adding the view even thou parent's time might not cover it?
-                            addNewTask(parent, objectToPresent);
-                        }
-                    } else {
-                        if (parent.getRepeatingMod() == TaskObject.Mods.repeatingMultiValues) {
-                            // Make sure that this task is for today
-                            switch (dayDisplayed.get(Calendar.DAY_OF_WEEK)) {
-                                case Calendar.MONDAY:
-                                    if (objectToPresent.getDayOfWeek() == DayOfWeek.monday) {
-                                        addNewTask(parent, objectToPresent);
-                                    }
-                                    break;
-                                case Calendar.TUESDAY:
-                                    if (objectToPresent.getDayOfWeek() == DayOfWeek.tuesday) {
-                                        addNewTask(parent, objectToPresent);
-                                    }
-                                    break;
-                                case Calendar.WEDNESDAY:
-                                    if (objectToPresent.getDayOfWeek() == DayOfWeek.wednesday) {
-                                        addNewTask(parent, objectToPresent);
-                                    }
-                                    break;
-                                case Calendar.THURSDAY:
-                                    if (objectToPresent.getDayOfWeek() == DayOfWeek.thursday) {
-                                        addNewTask(parent, objectToPresent);
-                                    }
-                                    break;
-                                case Calendar.FRIDAY:
-                                    if (objectToPresent.getDayOfWeek() == DayOfWeek.friday) {
-                                        addNewTask(parent, objectToPresent);
-                                    }
-                                    break;
-                                case Calendar.SATURDAY:
-                                    if (objectToPresent.getDayOfWeek() == DayOfWeek.saturday) {
-                                        addNewTask(parent, objectToPresent);
-                                    }
-                                    break;
-                                case Calendar.SUNDAY:
-                                    if (objectToPresent.getDayOfWeek() == DayOfWeek.sunday) {
-                                        addNewTask(parent, objectToPresent);
-                                    }
-                                    break;
-                            }
-                        }
-                    }
-                } else {
-                    //dataProvider.deleteRepeatingEvent(objectToPresent);
-                }
+        for (View v: toRemove) {
+            this.removeView(v);
+        }
+        // Process of adding new tasks to view hierarchy
+        for (TaskEventHolder holder: data) {
+            if (holder.isTask()) {
+                addNewTask(holder.task, null);
+            } else {
+                addNewTask(dataProvider.findTaskObjectBy(holder.getMasterHashID()), holder.event);
             }
         }
     }

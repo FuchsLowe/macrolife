@@ -447,7 +447,13 @@ public class LocalStorage implements DataProviderNewProtocol {
             long[] results = returnStartAndEndTimesForDay(day);
 
             return dataBase.newDAO().getEventThatIntersects(results[0], results[1]);
-        }
+    }
+    @Override
+    public LiveData<List<RepeatingEvent>> getEventsForWeekView(Calendar forDay) {
+        long[] results = returnStartAndEndTimesForDay(forDay);
+
+        return dataBase.newDAO().getEventThatIntersects(results[0], results[1]);
+    }
     @Override
     public RepeatingEvent getEventWith(int hashID) {
         if (repeatingEventHolder.getValue() != null) {

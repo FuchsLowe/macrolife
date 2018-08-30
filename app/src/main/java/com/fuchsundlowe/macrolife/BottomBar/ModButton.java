@@ -1,6 +1,7 @@
 package com.fuchsundlowe.macrolife.BottomBar;
 
 import android.content.Context;
+import android.graphics.Color;
 import android.util.AttributeSet;
 import android.view.View;
 import com.fuchsundlowe.macrolife.DataObjects.TaskObject;
@@ -112,19 +113,60 @@ public class ModButton extends android.support.v7.widget.AppCompatImageButton {
 
     public void setSpecialtyState(boolean setSelected) {
         // TODO: Implement!
+        if (setSelected) {
+            setBackgroundColor(Color.BLUE);
+        } else {
+            setBackgroundColor(Color.LTGRAY);
+        }
     }
     // True for selected, false for not
     public boolean getSpecialtyState() {
         // TODO: Implement!
         return false;
     }
-    public void setUnavailable(boolean isAvailable){
+
+    boolean isAvailable = false;
+    public void setAvailability(boolean isAvailable){
         // TODO: Implement!
+        if (isAvailable) {
+            this.isAvailable = true;
+            setAlpha(1.0f);
+        } else {
+            this.isAvailable = false;
+            setAlpha(0.5f);
+        }
+    }
+    public boolean getIsAvailable() {
+        return this.isAvailable;
     }
 
 
 
     public SpecialtyButton reportButtonType() {
+        if (buttonType == null) {
+            // We gotta define it:
+            if (getTag() != null) {
+                if (getTag().equals(getContext().getString(R.string.delete))) {
+                    buttonType = SpecialtyButton.delete;
+                } else if (getTag().equals(getContext().getString(R.string.save))) {
+                    buttonType = SpecialtyButton.save;
+                } else if (getTag().equals(getContext().getString(R.string.repeating))) {
+                    buttonType = SpecialtyButton.repeating;
+                } else if (getTag().equals(getContext().getString(R.string.type))) {
+                    buttonType = SpecialtyButton.type;
+                } else if (getTag().equals(getContext().getString(R.string.startValues))) {
+                    buttonType = SpecialtyButton.startValues;
+                } else if (getTag().equals(getContext().getString(R.string.endValues))) {
+                    buttonType = SpecialtyButton.endValues;
+                } else if (getTag().equals(getContext().getString(R.string.date))) {
+                    buttonType = SpecialtyButton.date;
+                } else if (getTag().equals(getContext().getString(R.string.time))) {
+                    buttonType = SpecialtyButton.time;
+                } else if (getTag().equals(getContext().getString(R.string.clear))) {
+                    buttonType = SpecialtyButton.clear;
+                }
+            }
+        }
         return this.buttonType;
     }
     public enum SpecialtyButton {

@@ -18,15 +18,9 @@ import android.view.ViewGroup;
 import com.fuchsundlowe.macrolife.DataObjects.Constants;
 import com.fuchsundlowe.macrolife.DataObjects.RepeatingEvent;
 import com.fuchsundlowe.macrolife.DataObjects.TaskObject;
-import com.fuchsundlowe.macrolife.DayView.Task_DayView;
 import com.fuchsundlowe.macrolife.EngineClasses.LocalStorage;
 import com.fuchsundlowe.macrolife.Interfaces.DataProviderNewProtocol;
 import com.fuchsundlowe.macrolife.R;
-
-import org.joda.time.Period;
-
-import java.text.SimpleDateFormat;
-import java.util.Calendar;
 import java.util.List;
 
 

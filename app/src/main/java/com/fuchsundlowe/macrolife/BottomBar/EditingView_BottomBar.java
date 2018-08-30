@@ -25,7 +25,7 @@ import static android.view.View.GONE;
 import static android.view.View.VISIBLE;
 
 /*
- * Defines the portion of editTaskBottomBar where you have name and checkbox available o
+ * The Holder for name and check-box
  */
 public class EditingView_BottomBar extends FrameLayout {
 

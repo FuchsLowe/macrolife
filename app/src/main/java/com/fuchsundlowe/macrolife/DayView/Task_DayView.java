@@ -43,9 +43,9 @@ public class Task_DayView extends FrameLayout {
     private int boxSize;
     private int timeUnitSize; // size in px defining 15 min worth of time in a task
     private SharedPreferences preferences;
-    private TaskObject task; // Never use by Iteself, use its helper method
+    private TaskObject task; // Never use by itself, use its helper method
     private RepeatingEvent repeatingEvent; // Never use by itself, just helper methods
-    private DataProviderNewProtocol storageMaster; // TODO: Define this
+    private DataProviderNewProtocol storageMaster;
     private boolean globalEdit = false;
     private GestureDetectorCompat longPressDetector;
     private float storedX, storedY;
@@ -72,7 +72,7 @@ public class Task_DayView extends FrameLayout {
         universalInit(context);
     }
     /*
-     * A default constructor specific for this implementation that is called by all possible init medthods
+     * A default constructor specific for this implementation that is called by all possible init methods
      */
     private void universalInit(Context context) {
         LayoutInflater inflater = LayoutInflater.from(context);
@@ -97,13 +97,6 @@ public class Task_DayView extends FrameLayout {
     }
 
     // Lifecycle:
-    private void layoutOnlyChild() {
-        View onlyChild = getChildAt(0);
-        if (onlyChild != null) {
-            onlyChild.layout(0, 0, getWidth(), getHeight());
-            onlyChild.invalidate();
-        }
-    }
     @Override
     public boolean shouldDelayChildPressedState() {
         return false;
@@ -164,13 +157,14 @@ public class Task_DayView extends FrameLayout {
             repeatingEvent.getStartTime().set(Calendar.MINUTE, startMinute);
             repeatingEvent.getEndTime().set(Calendar.HOUR_OF_DAY, endHour);
             repeatingEvent.getEndTime().set(Calendar.MINUTE, endMinute);
+            storageMaster.saveRepeatingEvent(repeatingEvent);
         } else {
             task.getTaskStartTime().set(Calendar.HOUR_OF_DAY, startHour);
             task.getTaskStartTime().set(Calendar.MINUTE, startMinute);
             task.getTaskEndTime().set(Calendar.HOUR_OF_DAY, endHour);
             task.getTaskEndTime().set(Calendar.MINUTE, endMinute);
+            storageMaster.saveTaskObject(task);
         }
-        // Todo: How do we commit save?
     }
 
     //TouchEvents:
@@ -264,7 +258,6 @@ public class Task_DayView extends FrameLayout {
             return;
         }
         if (task.getComplexGoalID() > 0) { // make sure there is one
-            // TODO: Does auto-increment start from 1 or 0?
             ComplexGoal result = storageMaster.findComplexGoal(task.getComplexGoalID());
             if (result != null) {
                 masterTaskName.setText(result.getTaskName());
@@ -311,9 +304,6 @@ public class Task_DayView extends FrameLayout {
                 case repeating:
                     modImage.setImageResource(R.drawable.repeat_one_24px);
                     break;
-                case repeatingMultiValues:
-                    modImage.setImageResource(R.drawable.repeat_24px);
-                    break;
                 case note:
                     modImage.setImageResource(R.drawable.note_add_24px);
                     break;
@@ -321,7 +311,6 @@ public class Task_DayView extends FrameLayout {
                     modImage.setImageResource(R.drawable.list_alt_24px);
                     break;
                 case checkable:
-                    // TODO: What do I do with checkables?
                     break;
             }
             modImage.setLayoutParams(new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT,
@@ -345,28 +334,17 @@ public class Task_DayView extends FrameLayout {
             return repeatingEvent.getEndTime();
         }
     }
-    public void setNewTaskTimes(@Nullable Calendar startTime, @Nullable Calendar endTime) {
-        if (startTime != null) {
-            if (repeatingEvent != null) {
-                repeatingEvent.setStartTime(startTime);
-            } else {
-                task.setTaskStartTime(startTime);
-            }
-        }
-        if (endTime != null) {
-            if (repeatingEvent != null) {
-                repeatingEvent.setEndTimeWithReturn(endTime);
-            } else {
-                task.setTaskEndTime(endTime);
-            }
-        }
-        // TODO: How should this change in time be enforced into GUI?
-    }
+
     private int dpToPixConverter(float dp) {
         float scale = getResources().getDisplayMetrics().density;
         return (int) (dp * scale * 0.5f);
     }
     private void initiateDragAndDrop() {
+        /*
+         * TODO: Toast to be performed if this is repeating event and is done
+         * 1st, 3rd 7th adn 14th time... Informing that changes are being made only to single instance
+         * and not the all repeating events.
+         */
         String[] MIME_Type = {ClipDescription.MIMETYPE_TEXT_PLAIN};
         DragShadowBuilder defaultShadowBuilder = new DragShadowBuilder(this);
         Integer height = getHeight();
@@ -382,12 +360,7 @@ public class Task_DayView extends FrameLayout {
     public boolean isRepeatingEvent() {
         return repeatingEvent != null;
     }
-    // Returns null if its not repeatingEvent
-    public Boolean isMultiValue() {
-        if (repeatingEvent != null) {
-            return repeatingEvent.getDayOfWeek() != DayOfWeek.universal;
-        } else { return null;}
-    }
+
     private void sendGlobalEditBroadcast() {
         manager = LocalBroadcastManager.getInstance(getContext());
         Intent intent = new Intent(Constants.INTENT_FILTER_GLOBAL_EDIT);

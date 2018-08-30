@@ -33,6 +33,7 @@ public interface DataProviderNewProtocol {
     LiveData<List<RepeatingEvent>> getEventsThatIntersect(Calendar day);
     RepeatingEvent getEventWith(int hashID);
     LiveData<List<RepeatingEvent>> getEventsForRemindersView(Calendar forDay);
+    LiveData<List<RepeatingEvent>> getEventsForWeekView(Calendar forDay);
     void saveRepeatingEvent(RepeatingEvent event);
     void reSaveRepeatingEventsFor(int masterHashID);
     void deleteAllRepeatingEvents(int forMasterID);

@@ -19,11 +19,11 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.inputmethod.EditorInfo;
 import android.widget.Button;
-import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 import android.widget.PopupWindow;
 import android.widget.Space;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.fuchsundlowe.macrolife.DataObjects.Constants;
 import com.fuchsundlowe.macrolife.DataObjects.RepeatingEvent;
@@ -41,6 +41,7 @@ import java.util.HashMap;
 import static com.fuchsundlowe.macrolife.BottomBar.EditTaskBottomBar.EditTaskState.editTask;
 
 // This class manages the Bottom Bar in edit task or creating a new task... Holder of 3 Layouts
+// The base class of bottom bar implementations:
 public class EditTaskBottomBar extends Fragment implements EditTaskProtocol {
 
     //Variables and instances:
@@ -337,7 +338,7 @@ public class EditTaskBottomBar extends Fragment implements EditTaskProtocol {
                     if (bottomBarButtons != null) {
                         // We select it to indicate that we have defined that value
                         bottomBarButtons.get(ModButton.SpecialtyButton.startValues).setSpecialtyState(true);
-                        bottomBarButtons.get(ModButton.SpecialtyButton.endValues).setUnavailable(true);
+                        bottomBarButtons.get(ModButton.SpecialtyButton.endValues).setAvailability(true);
                     }
                 } else if (intent.getAction().equals(Constants.END_VALUE_DONE)) {
                     // the endValue is defined:
@@ -422,12 +423,18 @@ public class EditTaskBottomBar extends Fragment implements EditTaskProtocol {
                                     dateFragment.show(self.requireFragmentManager(), "DateFragment");
                                     break;
                                 case endValues:
-                                    // Present the date
-                                    EventDatePicker datePicker = new EventDatePicker();
-                                    endValue = (Calendar) taskObject.getTaskEndTime().clone();
-                                    datePicker.defineMe(endValue, startValue, getContext());
-                                    datePicker.show(self.requireFragmentManager(), "DateFragment");
-                                    break;
+                                    // Present the date if we have startTime
+                                    if (bottomBarButtons.get(ModButton.SpecialtyButton.endValues).isAvailable) {
+                                        EventDatePicker datePicker = new EventDatePicker();
+                                        endValue = (Calendar) taskObject.getTaskEndTime().clone();
+                                        datePicker.defineMe(endValue, startValue, getContext());
+                                        datePicker.show(self.requireFragmentManager(), "DateFragment");
+                                        break;
+                                    } else {
+                                        Toast setStartTime = Toast.makeText(getContext(),R.string.set_start_date, Toast.LENGTH_SHORT);
+                                        setStartTime.show();
+                                        break;
+                                    }
                                 case repeating:
                                     // Produce Editor
                                     /*
@@ -482,6 +489,22 @@ public class EditTaskBottomBar extends Fragment implements EditTaskProtocol {
 
                 for (ModButton button: bottomBarButtons.values()) {
                     button.defineMe(listener);
+                }
+
+                // Defining the appearance of the buttons, ie which ones should be presented and
+                // which ones not, due to nature of the task...
+                if (taskObject.isThisRepeatingEvent()) {
+                    // We show all buttons and define them selected
+                    bottomBarButtons.get(ModButton.SpecialtyButton.repeating).setSpecialtyState(true);
+                    bottomBarButtons.get(ModButton.SpecialtyButton.startValues).setSpecialtyState(true);
+                    bottomBarButtons.get(ModButton.SpecialtyButton.endValues).setSpecialtyState(true);
+                } else {
+                    // We have none of the buttons selected and we hide save button
+                    bottomBarButtons.get(ModButton.SpecialtyButton.save).setVisibility(View.GONE);
+                    bottomBarButtons.get(ModButton.SpecialtyButton.repeating).setSpecialtyState(false);
+                    bottomBarButtons.get(ModButton.SpecialtyButton.startValues).setSpecialtyState(false);
+                    bottomBarButtons.get(ModButton.SpecialtyButton.endValues).setSpecialtyState(false);
+                    bottomBarButtons.get(ModButton.SpecialtyButton.endValues).setAvailability(false);
                 }
                 modAreaOne.setVisibility(View.GONE);
                 modAreaTwo.setVisibility(View.GONE);

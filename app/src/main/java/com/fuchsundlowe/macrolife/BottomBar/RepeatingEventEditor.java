@@ -6,21 +6,14 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
 import android.support.constraint.ConstraintLayout;
-import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentManager;
-import android.support.v4.app.FragmentStatePagerAdapter;
 import android.support.v4.content.LocalBroadcastManager;
 import android.support.v4.view.PagerAdapter;
 import android.support.v4.view.ViewPager;
-import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.FrameLayout;
 import android.widget.ImageButton;
-import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ScrollView;
 import android.widget.TextView;
@@ -28,7 +21,6 @@ import android.widget.Toast;
 
 import com.fuchsundlowe.macrolife.DataObjects.Constants;
 import com.fuchsundlowe.macrolife.DataObjects.DayOfWeek;
-import com.fuchsundlowe.macrolife.DataObjects.RepeatingEvent;
 import com.fuchsundlowe.macrolife.DataObjects.TaskObject;
 import com.fuchsundlowe.macrolife.EngineClasses.LocalStorage;
 import com.fuchsundlowe.macrolife.Interfaces.DataProviderNewProtocol;
@@ -40,9 +32,9 @@ import java.util.Calendar;
 import java.util.HashMap;
 import java.util.List;
 
-/* This is the master presenter of the Repeating events.
+/*
+ * This is the master presenter of the Repeating events.
  * Main Purpose of this one is to enable editing of the Repeat description schema.
- *
  */
 public class RepeatingEventEditor extends ConstraintLayout{
 
@@ -61,12 +53,11 @@ public class RepeatingEventEditor extends ConstraintLayout{
     // Bottom Bar Holder;
     private ViewPager bottomBarHolder;
     // Other variables:
-    private RepeatingEventEditor self;
     private LayoutInflater inflater;
     private TaskObject editedObject;
     private DataProviderNewProtocol localStorage;
     private SharedPreferences preferences;
-    private OnClickListener buttonClickListener;
+    private OnClickListener leftSideButtonsClickListener;
     private EditTaskProtocol protocol;
     private RepeatType currentType;
     private List<RepeatingTask_RepeatEditor> eventsHolder;
@@ -76,7 +67,7 @@ public class RepeatingEventEditor extends ConstraintLayout{
     public RepeatingEventEditor(Context context, EditTaskProtocol protocol) {
         super(context);
         this.protocol = protocol;
-        this.self = this;
+
 
         inflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
 
@@ -85,8 +76,8 @@ public class RepeatingEventEditor extends ConstraintLayout{
 
         // Two buttons that sit at the top of editorView and the TextView displaying the task name:
         taskName = editorView.findViewById(R.id.taskName_RepeatEditor);
-        saveButton = editorView.findViewById(R.id.save_editorBase);
-        deleteButton = editorView.findViewById(R.id.delete_editorBase);
+        saveButton = editorView.findViewById(R.id.saveEvent_repeatingEditor);
+        deleteButton = editorView.findViewById(R.id.deleteEvent_repeatingEditor);
         reminderBarHolder = editorView.findViewById(R.id.reminderBar_repeatingEditor);
         // Holder for the ChronoView implementation
         dayViewHolder = editorView.findViewById(R.id.DayViewHolder_RepeatEditor);
@@ -310,11 +301,11 @@ public class RepeatingEventEditor extends ConstraintLayout{
         }
         // Assigning phase
         for (int i = 0; i < 7; i++) {
-            weekButtons.get(i).defineMe(daysOfWeek[i], buttonClickListener);
+            weekButtons.get(i).defineMe(daysOfWeek[i], leftSideButtonsClickListener);
         }
     }
     private void defineButtonClickListener() {
-        buttonClickListener = new OnClickListener() {
+        leftSideButtonsClickListener = new OnClickListener() {
             @Override
             public void onClick(View v) {
                 if (v instanceof SideButton_RepeatEditor) {
@@ -335,7 +326,6 @@ public class RepeatingEventEditor extends ConstraintLayout{
         saveButton.setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(View v) {
-                // Todo: Implement
                 /*
                  * Grab repeat type and find all Slugs that fit the profile. Then Update the
                  * descriptor of task. Dismiss self, call provide the previous task displayer

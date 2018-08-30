@@ -87,6 +87,7 @@ public class RepeatingEventMaster extends Chevronable {
 
     // Called when need to add an event child
     public void addChild(RepeatingEvent child) {
+        /*
             switch (child.getDayOfWeek()) {
                 case monday:
                     events.get(DayOfWeek.monday).add(child);
@@ -103,10 +104,12 @@ public class RepeatingEventMaster extends Chevronable {
                 default:
                     events.get(DayOfWeek.sunday).add(child);
             }
+            */
     }
 
     // Called when need to remove event child
     public void removeChild(RepeatingEvent child) {
+        /*
         switch (child.getDayOfWeek()) {
             case monday:
                 events.get(DayOfWeek.monday).remove(child);
@@ -123,6 +126,7 @@ public class RepeatingEventMaster extends Chevronable {
             default:
                 events.get(DayOfWeek.sunday).remove(child);
         }
+        */
     }
 
     @Override

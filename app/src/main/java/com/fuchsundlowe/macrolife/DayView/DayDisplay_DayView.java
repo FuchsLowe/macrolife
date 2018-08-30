@@ -13,6 +13,7 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v4.content.LocalBroadcastManager;
+import android.support.v4.view.PagerAdapter;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
@@ -49,10 +50,9 @@ public class DayDisplay_DayView extends Fragment {
     private ChronoView chronoView;
     private Calendar dayWeDisplay;
     private SharedPreferences preferences;
-    private BroadcastReceiver broadcastReceiver;
     private DataProviderNewProtocol dataMaster;
     private Set<Integer> taskIDs;
-    private List<RepeatingEvent> eventHolder;
+    private List<TaskEventHolder> dataHolder;
 
     //Lifecycle Methods:
     @Nullable
@@ -70,49 +70,53 @@ public class DayDisplay_DayView extends Fragment {
         chronoView = new ChronoView(getContext(), dayWeDisplay);
         chronoViewHolder.addView(chronoView);
         taskIDs = new HashSet<>();
-        eventHolder = new ArrayList<>();
+        dataHolder = new ArrayList<>();
 
-        // Subscribe to live reminderPresented:
-        dataMaster.getAllEvents().observe(this, new Observer<List<RepeatingEvent>>() {
-            /*
-             * This is know not to be effective way of searching through the DB, but problem is that
-             * SQL in Android doesn't support Array queries well and implementation for that is
-             * simply too big...
-             * Ideal solution would be to search by Parent hashID's in array and return only those
-             * as Live Data Objects...
-             */
-            @Override
-            public void onChanged(@Nullable List<RepeatingEvent> repeatingEvents) {
-                List<RepeatingEvent> toSend = new ArrayList<>();
-                eventHolder = repeatingEvents;
-                for (RepeatingEvent event: repeatingEvents) {
-                    if (taskIDs.contains(event.getParentID())) {
-                        toSend.add(event);
-                    }
-                }
-                chronoView.setData(null, toSend);
-            }
-        });
-
+        // MARK: Subscribe to live data:
+        // Tasks implementation:
         dataMaster.getTaskThatIntersects(dayWeDisplay).observe(this, new Observer<List<TaskObject>>() {
             @Override
-            public void onChanged(@Nullable List<TaskObject> taskObjects) {
-                taskIDs.clear();
-                for (TaskObject object : taskObjects) {
-                    taskIDs.add(object.getHashID());
-                }
-                List<RepeatingEvent> toSendEvents = new ArrayList<>();
-                if (eventHolder != null) {
-                    for (RepeatingEvent event: eventHolder) {
-                        if (taskIDs.contains(event.getParentID())) {
-                            toSendEvents.add(event);
-                        }
+            public void onChanged(@Nullable List<TaskObject> objects) {
+                // Remove all existing data Tasks
+                List<TaskEventHolder> toDelete = new ArrayList<>();
+                for (TaskEventHolder object: dataHolder) {
+                    if (object.isTask()) {
+                        toDelete.add(object);
                     }
                 }
-                chronoView.setData(taskObjects, toSendEvents);
+                dataHolder.removeAll(toDelete);
+                // Wrap the new ones and insert them into dataHolder
+                if (objects != null) {
+                    for (TaskObject task: objects) {
+                        dataHolder.add(new TaskEventHolder(task, null));
+                    }
+                }
+                // insert data to ChronoView:
+                chronoView.insertData(dataHolder);
             }
         });
-
+        // Events implementation:
+        dataMaster.getEventsThatIntersect(dayWeDisplay).observe(this, new Observer<List<RepeatingEvent>>() {
+            @Override
+            public void onChanged(@Nullable List<RepeatingEvent> events) {
+                // Remove all existing data Tasks
+                List<TaskEventHolder> toDelete = new ArrayList<>();
+                for (TaskEventHolder object: dataHolder) {
+                    if (!object.isTask()) {
+                        toDelete.add(object);
+                    }
+                }
+                dataHolder.removeAll(toDelete);
+                // Wrap the new ones and insert them into dataHolder
+                if (events != null) {
+                    for (RepeatingEvent event: events) {
+                        dataHolder.add(new TaskEventHolder(null,  event));
+                    }
+                }
+                // insert data to ChronoView:
+                chronoView.insertData(dataHolder);
+            }
+        });
         defineLocalBroadcast();
         defineReminderView();
         return baseView;
@@ -148,7 +152,7 @@ public class DayDisplay_DayView extends Fragment {
 
     }
     void defineLocalBroadcast() {
-        broadcastReceiver = new BroadcastReceiver() {
+        BroadcastReceiver broadcastReceiver = new BroadcastReceiver() {
             @Override
             public void onReceive(Context context, Intent intent) {
                 if (intent.getAction() == Constants.INTENT_FILTER_GLOBAL_EDIT) {
@@ -239,12 +243,8 @@ public class DayDisplay_DayView extends Fragment {
                 switch (event.getAction()) {
                     case DragEvent.ACTION_DRAG_STARTED:
                         // determine if I should accept this
-                        if (event.getClipDescription().getLabel().equals(Constants.TASK_OBJECT) ||
-                                event.getClipDescription().getLabel().equals(Constants.REPEATING_EVENT)) {
-                            return true;
-                        } else {
-                            return false;
-                        }
+                        return event.getClipDescription().getLabel().equals(Constants.TASK_OBJECT) ||
+                                event.getClipDescription().getLabel().equals(Constants.REPEATING_EVENT);
                     case DragEvent.ACTION_DRAG_ENTERED:
                         break;
                     case DragEvent.ACTION_DRAG_LOCATION:
@@ -330,45 +330,90 @@ public class DayDisplay_DayView extends Fragment {
         }, 2500, 2500);
     }
     // This is holder for unified presenting of tasks and events
-    protected class TaskEventHolder {
+    static public class TaskEventHolder {
         TaskObject task;
         RepeatingEvent event;
 
-        TaskEventHolder(@Nullable TaskObject task, @Nullable RepeatingEvent event) {
+        public TaskEventHolder(@Nullable TaskObject task, @Nullable RepeatingEvent event) {
             this.task = task;
             this.event = event;
         }
-        boolean isTask() {
+        public boolean isTask() {
             return task != null;
         }
-        TaskObject.CheckableStatus getCompletionState() {
+        public TaskObject.CheckableStatus getCompletionState() {
             if (isTask()) {
                 return task.getIsTaskCompleted();
             } else {
                 return event.getIsTaskCompleted();
             }
         }
-        String getName() {
+        public String getName() {
             if (isTask()) {
                 return task.getTaskName();
             } else {
                 // MARK: Gotta fetch it via DataBase
-                return dataMaster.findTaskObjectBy(event.getParentID()).getTaskName();
+                return LocalStorage.getInstance(null).findTaskObjectBy(event.getParentID()).getTaskName();
             }
         }
-        List<TaskObject.Mods> getAllMods() {
+        public List<TaskObject.Mods> getAllMods() {
             if (isTask()) {
                return task.getAllMods();
             } else {
-                return dataMaster.findTaskObjectBy(event.getParentID()).getAllMods();
+                return LocalStorage.getInstance(null).findTaskObjectBy(event.getParentID()).getAllMods();
             }
         }
         // Returns the taskObjects hashID
-        int getMasterHashID() {
+        public int getMasterHashID() {
             if (isTask()) {
                 return task.getHashID();
             } else {
                 return event.getParentID();
+            }
+        }
+        // Returns whatever active ID is used, either Tasks if its a task or Events otherwise:
+        public int getActiveID() {
+            if (isTask()) {
+                return task.getHashID();
+            } else {
+                return event.getHashID();
+            }
+        }
+        // Returns the ComplexGoalID if any:
+        public int getComplexGoalID() {
+            if (isTask()) {
+                return task.getComplexGoalID();
+            } else {
+                return LocalStorage.getInstance(null).findTaskObjectBy(event.getParentID()).getComplexGoalID();
+            }
+        }
+        public TaskObject.TimeDefined getTimeDefined() {
+            if (isTask()) {
+                return task.getTimeDefined();
+            } else {
+                if (event.getEndTime() == null || event.getEndTime().before(event.getStartTime())) {
+                    return TaskObject.TimeDefined.onlyDate;
+                } else {
+                    return TaskObject.TimeDefined.dateAndTime;
+                }
+            }
+        }
+        public Calendar getStartTime() {
+            if (isTask()) {
+                return task.getTaskStartTime();
+            } else {
+                return event.getStartTime();
+            }
+        }
+        public @Nullable Calendar getEndTime() {
+            if (isTask()) {
+                if (getTimeDefined() == TaskObject.TimeDefined.dateAndTime) {
+                    return task.getTaskEndTime();
+                } else { return null; }
+            } else {
+                if (getTimeDefined() == TaskObject.TimeDefined.dateAndTime) {
+                    return event.getEndTime();
+                } else {return null;}
             }
         }
     }

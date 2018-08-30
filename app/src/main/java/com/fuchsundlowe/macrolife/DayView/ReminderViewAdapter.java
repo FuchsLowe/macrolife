@@ -116,11 +116,18 @@ public class ReminderViewAdapter extends RecyclerView.Adapter<ReminderViewAdapte
                 public boolean onLongClick(View v) {
                     String[] MIME_Type = {ClipDescription.MIMETYPE_TEXT_PLAIN};
                     ClipData.Item dataItem = new ClipData.Item(String.valueOf(baseView.getHeight()));
-                    final ClipData data = new ClipData(Constants.TASK_OBJECT, MIME_Type, dataItem);
                     final View.DragShadowBuilder shadowBuilder = new View.DragShadowBuilder(baseView);
-                    baseView.startDrag(data, shadowBuilder, getReminderPresented(), 0);
+                    final ClipData data;
+                    // Figuring out the right value to pass:
+                    if (reminderPresented.isTask()) {
+                        data = new ClipData(Constants.TASK_OBJECT, MIME_Type, dataItem);
+                        baseView.startDrag(data, shadowBuilder, getReminderPresented().task, 0);
+                    } else {
+                        data = new ClipData(Constants.REPEATING_EVENT, MIME_Type, dataItem);
+                        baseView.startDrag(data, shadowBuilder, getReminderPresented().event, 0);
+                    }
+                    // Removing the value from the view
                     removeItem(getReminderPresented(), getAdapterPosition());
-
                     return true;
                 }
             });

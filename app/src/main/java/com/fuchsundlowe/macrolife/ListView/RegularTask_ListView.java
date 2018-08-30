@@ -99,7 +99,6 @@ public class RegularTask_ListView extends FrameLayout {
         modMap.put(TaskObject.Mods.note, (ImageView) baseView.findViewById(R.id.noteMod_listViewTask));
         modMap.put(TaskObject.Mods.list, (ImageView) baseView.findViewById(R.id.listMod_listViewTask));
         modMap.put(TaskObject.Mods.repeating, (ImageView) baseView.findViewById(R.id.repeatOneMod_listViewTask));
-        modMap.put(TaskObject.Mods.repeatingMultiValues, (ImageView) baseView.findViewById(R.id.repeatMulti_listViewTask));
         for (TaskObject.Mods mod : task.getAllMods()) {
             modMap.get(mod).setVisibility(VISIBLE);
         }

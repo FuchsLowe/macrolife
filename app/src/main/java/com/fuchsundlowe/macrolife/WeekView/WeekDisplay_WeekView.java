@@ -13,11 +13,14 @@ import android.view.ViewGroup;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import com.fuchsundlowe.macrolife.DataObjects.Constants;
+import com.fuchsundlowe.macrolife.DataObjects.RepeatingEvent;
 import com.fuchsundlowe.macrolife.DataObjects.TaskObject;
 import com.fuchsundlowe.macrolife.EngineClasses.LocalStorage;
+import com.fuchsundlowe.macrolife.DayView.DayDisplay_DayView.TaskEventHolder;
 import com.fuchsundlowe.macrolife.Interfaces.DataProviderNewProtocol;
 import com.fuchsundlowe.macrolife.R;
 import java.text.DateFormat;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
 
@@ -78,11 +81,45 @@ public class WeekDisplay_WeekView extends Fragment {
             Calendar dayToInsert = (Calendar) weekIPresent.clone();
             dayToInsert.add(Calendar.DAY_OF_WEEK, i);
             mDay.defineMe(dayToInsert);
-
+            // The real insertion of data, one that gets constant updates...
+            final List<TaskEventHolder> dataHolder = new ArrayList<>();
             dataMaster.getTasksForWeekView(dayToInsert).observe(this, new Observer<List<TaskObject>>() {
                 @Override
                 public void onChanged(@Nullable List<TaskObject> objects) {
-                    mDay.dataInsertion(objects);
+                    List<TaskEventHolder> toDelete = new ArrayList<>();
+                    for (TaskEventHolder object: dataHolder) {
+                        if (object.isTask()) {
+                            toDelete.add(object);
+                        }
+                    }
+                    dataHolder.removeAll(toDelete);
+                    // Now you gotta insert them
+                    if (objects!= null) {
+                        for (TaskObject task: objects) {
+                            dataHolder.add(new TaskEventHolder(task, null));
+                        }
+                    }
+                    mDay.dataInsertion(dataHolder);
+                }
+            });
+            dataMaster.getEventsForWeekView(dayToInsert).observe(this, new Observer<List<RepeatingEvent>>() {
+                @Override
+                public void onChanged(@Nullable List<RepeatingEvent> events) {
+                    List<TaskEventHolder> toDelete = new ArrayList<>();
+                    for (TaskEventHolder object: dataHolder) {
+                        if (!object.isTask()) {
+                            toDelete.add(object);
+                        }
+                    }
+                    dataHolder.removeAll(toDelete);
+                    // Insertion:
+                    if (events != null) {
+                        for (RepeatingEvent event : events) {
+                            dataHolder.add(new TaskEventHolder(null, event));
+                        }
+                    }
+
+                    mDay.dataInsertion(dataHolder);
                 }
             });
         }

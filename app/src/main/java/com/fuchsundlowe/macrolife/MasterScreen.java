@@ -39,9 +39,9 @@ public class MasterScreen extends AppCompatActivity {
         display.setTextColor(Color.GREEN);
         display.setText("");
         //test3();
-        //toDay(null);
+        toDay(null);
         //toWeekView();
-        toListView(null);
+        //toListView(null);
         defineDisplay();
     }
 

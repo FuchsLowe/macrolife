@@ -24,7 +24,8 @@
             app:layout_constraintHorizontal_bias="0.5"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent"
-            app:srcCompat="@drawable/check_circle_24px" />
+            android:tag="@string/repeating"
+            app:srcCompat="@drawable/repeat_24px" />
 
         <com.fuchsundlowe.macrolife.BottomBar.ModButton
             android:id="@+id/startTime_editorBase"
@@ -37,7 +38,8 @@
             app:layout_constraintHorizontal_bias="0.5"
             app:layout_constraintStart_toEndOf="@+id/type_editorBase"
             app:layout_constraintTop_toTopOf="parent"
-            app:srcCompat="@drawable/check_circle_24px" />
+            android:tag="@string/startValues"
+            app:srcCompat="@drawable/start_24px" />
 
         <com.fuchsundlowe.macrolife.BottomBar.ModButton
             android:id="@+id/endTime_editorBase"
@@ -50,7 +52,8 @@
             app:layout_constraintHorizontal_bias="0.5"
             app:layout_constraintStart_toEndOf="@+id/startTime_editorBase"
             app:layout_constraintTop_toTopOf="parent"
-            app:srcCompat="@drawable/check_circle_24px" />
+            android:tag="@string/endValues"
+            app:srcCompat="@drawable/end_24px" />
 
         <com.fuchsundlowe.macrolife.BottomBar.ModButton
             android:id="@+id/delete_editorBase"
@@ -63,7 +66,8 @@
             app:layout_constraintHorizontal_bias="0.5"
             app:layout_constraintStart_toEndOf="@+id/endTime_editorBase"
             app:layout_constraintTop_toTopOf="parent"
-            app:srcCompat="@drawable/check_circle_24px" />
+            android:tag="@string/delete"
+            app:srcCompat="@drawable/delete_24px" />
 
         <com.fuchsundlowe.macrolife.BottomBar.ModButton
             android:id="@+id/save_editorBase"
@@ -76,7 +80,8 @@
             app:layout_constraintHorizontal_bias="0.5"
             app:layout_constraintStart_toEndOf="@+id/delete_editorBase"
             app:layout_constraintTop_toTopOf="parent"
-            app:srcCompat="@drawable/check_circle_24px" />
+            android:tag="@string/save"
+            app:srcCompat="@drawable/save_24px" />
     </android.support.constraint.ConstraintLayout>
 
 </android.support.constraint.ConstraintLayout>

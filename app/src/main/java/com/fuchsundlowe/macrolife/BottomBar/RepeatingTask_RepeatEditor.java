@@ -116,7 +116,7 @@ public class RepeatingTask_RepeatEditor extends LinearLayout {
     }
     // Returns true if this is intended to be a reminder not a time-defied event
     public boolean isReminder() {
-        return endTime != null && endTime.getTimeInMillis() != 0;
+        return endTime == null || endTime.before(startTime) || endTime.getTimeInMillis() <1;
     }
     public com.fuchsundlowe.macrolife.DataObjects.DayOfWeek getDay() {
         return day;
@@ -127,6 +127,6 @@ public class RepeatingTask_RepeatEditor extends LinearLayout {
         Intent mIntent = new Intent(Constants.INTENT_FILTER_EVENT_DELETED);
         LocalBroadcastManager.getInstance(mContext).sendBroadcast(mIntent);
     }
-    // TODO: Create the system for changing the position as well as changing the duration...<<<<<<<<
+    // TODO: Create the system for changing the position as well as changing the duration of tasks by hand...<<<<<<<<
 
 }

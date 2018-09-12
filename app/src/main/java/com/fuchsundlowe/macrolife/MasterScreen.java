@@ -3,14 +3,13 @@ package com.fuchsundlowe.macrolife;
 import android.arch.lifecycle.Observer;
 import android.content.Intent;
 import android.graphics.Color;
-import android.os.Handler;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.TextView;
 import com.fuchsundlowe.macrolife.ComplexGoal.ComplexTaskActivity;
-import com.fuchsundlowe.macrolife.DataObjects.DayOfWeek;
 import com.fuchsundlowe.macrolife.DataObjects.RepeatingEvent;
 import com.fuchsundlowe.macrolife.DataObjects.TaskObject;
 import com.fuchsundlowe.macrolife.DayView.DayView;
@@ -18,6 +17,7 @@ import com.fuchsundlowe.macrolife.EngineClasses.LocalStorage;
 import com.fuchsundlowe.macrolife.Interfaces.DataProviderNewProtocol;
 import com.fuchsundlowe.macrolife.TestCases.Test4;
 import com.fuchsundlowe.macrolife.TestCases.TestActivity3;
+import com.fuchsundlowe.macrolife.TestCases.WholeDB;
 import com.fuchsundlowe.macrolife.WeekView.WeekView;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -39,10 +39,38 @@ public class MasterScreen extends AppCompatActivity {
         display.setTextColor(Color.GREEN);
         display.setText("");
         //test3();
-        toDay(null);
+        //toDay(null);
         //toWeekView();
-        //toListView(null);
-        defineDisplay();
+        toListView(null);
+        //defineDisplay();
+        //testFunction();
+
+
+    }
+
+    void testFunction() {
+        LocalStorage db = (LocalStorage) dataBaseMaster;
+        db.dataBase.newDAO().getAllTaskObjects().observe(this, new Observer<List<TaskObject>>() {
+            @Override
+            public void onChanged(@Nullable List<TaskObject> objects) {
+                Log.d("TaskCount:", objects.size()+ " of tasks" );
+            }
+        });
+
+        db.dataBase.newDAO().getAllRepeatingEvents().observe(this, new Observer<List<RepeatingEvent>>() {
+            @Override
+            public void onChanged(@Nullable List<RepeatingEvent> events) {
+                Log.d("EventCount:", events.size()+ " of events");
+                for (RepeatingEvent event: events) {
+                    Calendar current = Calendar.getInstance();
+                    if (event.getStartTime().get(Calendar.DAY_OF_YEAR) ==  current.get(Calendar.DAY_OF_YEAR)) {
+                        Log.d("Event:", "Has the same day as today");
+                    } else {
+                        Log.d("Day:",event.getStartTime().get(Calendar.DAY_OF_YEAR) + " day");
+                    }
+                }
+            }
+        });
     }
 
     public void toDay(View view) {
@@ -68,6 +96,11 @@ public class MasterScreen extends AppCompatActivity {
     void toWeekView() {
         Intent week = new Intent(this, WeekView.class);
         startActivity(week);
+    }
+    public void toWholeDB(View view) {
+
+        Intent wDB = new Intent(this, WholeDB.class);
+        startActivity(wDB);
     }
 
     public void toListView(View view) {
@@ -96,7 +129,7 @@ public class MasterScreen extends AppCompatActivity {
             });
         }
 
-        dataBaseMaster.getAllEvents().observe(this, new Observer<List<RepeatingEvent>>() {
+        dataBaseMaster.getAllRepeatingEvents().observe(this, new Observer<List<RepeatingEvent>>() {
             @Override
             public void onChanged(@Nullable List<RepeatingEvent> repeatingEvents) {
                 valueMaster(null, repeatingEvents);
@@ -128,5 +161,7 @@ public class MasterScreen extends AppCompatActivity {
     void print(String val) {
         display.append(val + "\n");
     }
+
+
 
 }

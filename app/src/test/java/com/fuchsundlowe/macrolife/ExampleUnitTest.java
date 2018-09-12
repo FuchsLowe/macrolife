@@ -22,6 +22,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import static com.fuchsundlowe.macrolife.ExampleUnitTest.jack.two;
 import static java.util.Calendar.YEAR;
 
 /**
@@ -33,21 +34,18 @@ public class ExampleUnitTest {
 
     @Test
     public void myTest() {
-        int toAdd = 6;
-        DateFormat format = DateFormat.getDateInstance(DateFormat.LONG);
-        Calendar day = Calendar.getInstance();
-        day.set(Calendar.DAY_OF_WEEK, -1);
-        print("First day is" + format.format(day.getTime()));
-        day.add(Calendar.DAY_OF_WEEK, toAdd);
-        print("Last Day is" + format.format(day.getTime()));
+        jack mk1 = jack.one;
+        jack mk2 = mk1;
 
-        Calendar newDay = Calendar.getInstance();
-        newDay.setFirstDayOfWeek(Calendar.MONDAY);
-        print("New day is: " + format.format(newDay.getTime()));
-        newDay.add(Calendar.DAY_OF_WEEK, toAdd);
-        print("New last day is " + format.format(newDay.getTime()));
+        mk2 = two;
+
+        System.out.print(mk1);
+        System.out.print(mk2);
+
     }
-    void print(String val) {
-        System.out.println(val);
+
+
+    enum jack {
+        one, two, three
     }
 }

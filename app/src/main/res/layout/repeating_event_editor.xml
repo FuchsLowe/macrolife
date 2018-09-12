@@ -10,11 +10,7 @@
         android:id="@+id/frameLayout"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginEnd="8dp"
-        android:layout_marginStart="8dp"
-        android:layout_marginTop="8dp"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent">
 
@@ -41,6 +37,7 @@
             android:layout_marginStart="8dp"
             android:layout_marginTop="8dp"
             android:text="Button"
+            android:src="@drawable/delete_24px"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
@@ -51,6 +48,7 @@
             android:layout_height="24dp"
             android:layout_marginBottom="8dp"
             android:layout_marginEnd="8dp"
+            android:src="@drawable/save_24px"
             android:layout_marginTop="8dp"
             android:text="Button"
             app:layout_constraintBottom_toBottomOf="parent"
@@ -61,7 +59,7 @@
     <LinearLayout
         android:id="@+id/reminderBar_repeatingEditor"
         android:layout_width="0dp"
-        android:layout_height="wrap_content"
+        android:layout_height="28dp"
         android:orientation="horizontal"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toEndOf="@+id/leftSideHolder_RepeatEditor"
@@ -76,7 +74,7 @@
                 android:id="@+id/add_circle"
                 android:layout_width="28dp"
                 android:layout_height="28dp"
-                app:srcCompat="@drawable/add_button_circle" />
+                android:src="@drawable/add_button_circle"/>
         </FrameLayout>
     </LinearLayout>
 
@@ -84,7 +82,6 @@
         android:id="@+id/leftSideHolder_RepeatEditor"
         android:layout_width="40dp"
         android:layout_height="0dp"
-        android:layout_marginBottom="8dp"
         android:orientation="vertical"
         android:visibility="visible"
         app:layout_constraintBottom_toTopOf="@+id/bottomBar_RepeatEditor"
@@ -142,22 +139,10 @@
 
     </LinearLayout>
 
-    <ScrollView
-        android:id="@+id/DayViewHolder_RepeatEditor"
-        android:layout_width="0dp"
-        android:layout_height="0dp"
-        android:layout_marginBottom="8dp"
-        app:layout_constraintBottom_toTopOf="@+id/bottomBar_RepeatEditor"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toEndOf="@+id/leftSideHolder_RepeatEditor"
-        app:layout_constraintTop_toBottomOf="@+id/reminderBar_repeatingEditor" />
-
     <android.support.v4.view.ViewPager
         android:id="@+id/bottomBar_RepeatEditor"
         android:layout_width="0dp"
         android:layout_height="24dp"
-        android:layout_marginBottom="2dp"
-        android:layout_marginEnd="1dp"
         android:orientation="horizontal"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
@@ -165,5 +150,15 @@
         app:layout_constraintStart_toStartOf="parent">
 
     </android.support.v4.view.ViewPager>
+
+    <ScrollView
+        android:id="@+id/DayViewHolder_RepeatEditor"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        app:layout_constraintBottom_toTopOf="@+id/bottomBar_RepeatEditor"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="1.0"
+        app:layout_constraintStart_toEndOf="@+id/leftSideHolder_RepeatEditor"
+        app:layout_constraintTop_toBottomOf="@+id/reminderBar_repeatingEditor" />
 
 </android.support.constraint.ConstraintLayout>

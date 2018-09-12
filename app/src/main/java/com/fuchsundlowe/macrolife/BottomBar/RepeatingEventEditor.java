@@ -6,6 +6,7 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.constraint.ConstraintLayout;
 import android.support.v4.content.LocalBroadcastManager;
 import android.support.v4.view.PagerAdapter;
@@ -24,7 +25,6 @@ import com.fuchsundlowe.macrolife.DataObjects.DayOfWeek;
 import com.fuchsundlowe.macrolife.DataObjects.TaskObject;
 import com.fuchsundlowe.macrolife.EngineClasses.LocalStorage;
 import com.fuchsundlowe.macrolife.Interfaces.DataProviderNewProtocol;
-import com.fuchsundlowe.macrolife.Interfaces.EditTaskProtocol;
 import com.fuchsundlowe.macrolife.R;
 
 import java.util.ArrayList;
@@ -36,7 +36,7 @@ import java.util.List;
  * This is the master presenter of the Repeating events.
  * Main Purpose of this one is to enable editing of the Repeat description schema.
  */
-public class RepeatingEventEditor extends ConstraintLayout{
+public class RepeatingEventEditor extends ConstraintLayout implements RepeatChronoViewProtocol{
 
     // Top Bar:
     private ImageButton saveButton, deleteButton;
@@ -58,15 +58,13 @@ public class RepeatingEventEditor extends ConstraintLayout{
     private DataProviderNewProtocol localStorage;
     private SharedPreferences preferences;
     private OnClickListener leftSideButtonsClickListener;
-    private EditTaskProtocol protocol;
     private RepeatType currentType;
     private List<RepeatingTask_RepeatEditor> eventsHolder;
     private DayOfWeek daySelected; // used if currentType is customWeek;
 
 
-    public RepeatingEventEditor(Context context, EditTaskProtocol protocol) {
+    public RepeatingEventEditor(Context context) {
         super(context);
-        this.protocol = protocol;
 
 
         inflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
@@ -98,6 +96,19 @@ public class RepeatingEventEditor extends ConstraintLayout{
 
     }
     // MARK Methods:
+    private void defineBroadcastReceiver() {
+        IntentFilter filter = new IntentFilter();
+        filter.addAction(Constants.INTENT_FILTER_EVENT_DELETED);
+
+        LocalBroadcastManager.getInstance(getContext()).registerReceiver(new BroadcastReceiver() {
+            @Override
+            public void onReceive(Context context, Intent intent) {
+                if (intent.getAction().equals(Constants.INTENT_FILTER_EVENT_DELETED))
+                    updateDisplay();
+            }
+        }, filter);
+    }
+    // Simple adapter that should present the Regular view instead of Fragment. Implements callbacks.
     private void defineViewPager() {
         final SimplePageAdapter adapter = new SimplePageAdapter();
         bottomBarHolder.setAdapter(adapter);
@@ -111,14 +122,35 @@ public class RepeatingEventEditor extends ConstraintLayout{
 
             @Override
             public void onPageSelected(int position) {
-                currentType = adapter.presentingType[position];
-                if (currentType == RepeatType.customWeek) {
-                    leftSideHolder.setVisibility(VISIBLE);
-                } else if (leftSideHolder.getVisibility() == VISIBLE) {
-                    leftSideHolder.setVisibility(GONE);
+                RepeatType newPosition = adapter.presentingType[position];
+                if (newPosition != currentType) {
+                    // if its the same, we don't need to update anything...
+                    currentType = adapter.presentingType[position];
+                    // Called to update the events presented by DayView:
+                    if (currentType == RepeatType.customWeek) {
+                        leftSideHolder.setVisibility(VISIBLE);
+                        daySelected = DayOfWeek.monday;
+                        // I go over the buttons to establish if there are any ones selected so far,
+                        // If so I set that as daySelected, else I define monday as default
+                        for (SideButton_RepeatEditor button: weekButtons.values()) {
+                            if (button.isSelected()) {
+                                daySelected = button.dayOfWeek;
+                                break;
+                            }
+                        }
+                        /* Meaning that this might be the first init of the buttons and none was
+                         * previously selected. If monday was selected it will make a redundant call
+                         * if other day was selected, this will skip.
+                         */
+                        if (daySelected == DayOfWeek.monday) {
+                            getLeftSideButton(DayOfWeek.monday).highliteSelection(true);
+                        }
+                    } else if (leftSideHolder.getVisibility() == VISIBLE) {
+                        leftSideHolder.setVisibility(GONE);
+                        daySelected = DayOfWeek.universal;
+                    }
+                    updateDisplay();
                 }
-                // Called to update the events presented by DayView:
-                updateDisplay();
             }
 
             @Override
@@ -127,19 +159,7 @@ public class RepeatingEventEditor extends ConstraintLayout{
             }
         });
     }
-    private void defineBroadcastReceiver() {
-        IntentFilter filter = new IntentFilter();
-        filter.addAction(Constants.INTENT_FILTER_EVENT_DELETED);
 
-        LocalBroadcastManager.getInstance(getContext()).registerReceiver(new BroadcastReceiver() {
-            @Override
-            public void onReceive(Context context, Intent intent) {
-                if (intent.getAction().equals(Constants.INTENT_FILTER_EVENT_DELETED))
-                    updateDisplay();
-            }
-        }, filter);
-    }
-    // Simple adapter that should present the TypePresenter instead of Fragment
     private class SimplePageAdapter extends PagerAdapter {
 
         final RepeatType[] presentingType;
@@ -147,14 +167,6 @@ public class RepeatingEventEditor extends ConstraintLayout{
         SimplePageAdapter() {
             presentingType = new RepeatType[]{RepeatType.everyDay, RepeatType.customWeek, RepeatType.twoWeeks,
                     RepeatType.monthly, RepeatType.yearly};
-        }
-
-        View getView(int position, ViewPager pager) {
-            View frag = inflater.inflate(R.layout.type_presenter, bottomBarHolder);
-            if (frag instanceof TypePresenter) {
-                ((TypePresenter) frag).defineMe(presentingType[position]);
-            }
-            return frag;
         }
 
         @Override
@@ -170,12 +182,33 @@ public class RepeatingEventEditor extends ConstraintLayout{
         @NonNull
         @Override
         public Object instantiateItem(@NonNull ViewGroup container, int position) {
-            ViewPager pager = (ViewPager) container;
-            View view = getView(position, pager);
-
-            pager.addView(view);
-
+            Context c = getContext();
+            View view = LayoutInflater.from(c).inflate(R.layout.type_presenter, container, false);
+            TextView text = view.findViewById(R.id.textView_typePresenter);
+            container.addView(view);
+            switch (presentingType[position]) {
+                case everyDay:
+                    text.setText(c.getString(R.string.daily));
+                    break;
+                case customWeek:
+                    text.setText(c.getString(R.string.weekCustom));
+                    break;
+                case twoWeeks:
+                    text.setText(c.getString(R.string.twoWeeks));
+                    break;
+                case monthly:
+                    text.setText(c.getString(R.string.monthly));
+                    break;
+                case yearly:
+                    text.setText(c.getString(R.string.yearly));
+                    break;
+            }
             return view;
+        }
+
+        @Override
+        public void destroyItem(@NonNull ViewGroup container, int position, @NonNull Object object) {
+            container.removeView((View) object);
         }
     }
     // This function manages receiving of data and infuses fields and methods with it
@@ -187,8 +220,7 @@ public class RepeatingEventEditor extends ConstraintLayout{
         eventsHolder = new ArrayList<>();
         parseDescriptor(editedObject.getRepeatDescriptor());
         // Present the values if any for defining...
-        daySelected = DayOfWeek.monday; // NOTE the default value...
-        dayView.defineMe(eventsHolder, currentType, daySelected);
+        dayView.defineMe(objectWeEdit, eventsHolder, this);
         updateDisplay();
     }
     // Populates the events holder and sets the current type, if none defaults to EveryDay...
@@ -202,18 +234,24 @@ public class RepeatingEventEditor extends ConstraintLayout{
                     switch (Integer.valueOf((values[0]))) {
                         case 1:
                             setRepeatTypeTo(RepeatType.everyDay);
+                            daySelected = DayOfWeek.universal;
                             break;
                         case 2:
                             setRepeatTypeTo(RepeatType.customWeek);
+                            daySelected = DayOfWeek.monday;
+                            getLeftSideButton(DayOfWeek.monday).highliteSelection(true);
                             break;
                         case 3:
                             setRepeatTypeTo(RepeatType.twoWeeks);
+                            daySelected = DayOfWeek.universal;
                             break;
                         case 4:
                             setRepeatTypeTo(RepeatType.monthly);
+                            daySelected = DayOfWeek.universal;
                             break;
                         case 5:
                             setRepeatTypeTo(RepeatType.yearly);
+                            daySelected = DayOfWeek.universal;
                             break;
                     }
                 } else {
@@ -271,7 +309,8 @@ public class RepeatingEventEditor extends ConstraintLayout{
             }
         } else {
             // We are empty...
-            currentType = RepeatType.everyDay;
+            setRepeatTypeTo(RepeatType.everyDay);
+            daySelected = DayOfWeek.universal;
         }
 
     }
@@ -304,6 +343,16 @@ public class RepeatingEventEditor extends ConstraintLayout{
             weekButtons.get(i).defineMe(daysOfWeek[i], leftSideButtonsClickListener);
         }
     }
+    // Should not return null but there might be slight unforeseen flaw that might return it.
+    @Nullable
+    private SideButton_RepeatEditor getLeftSideButton(DayOfWeek byDay) {
+        for (SideButton_RepeatEditor button: weekButtons.values()) {
+            if (button.dayOfWeek == byDay) {
+                return button;
+            }
+        }
+        return null;
+    }
     private void defineButtonClickListener() {
         leftSideButtonsClickListener = new OnClickListener() {
             @Override
@@ -334,8 +383,14 @@ public class RepeatingEventEditor extends ConstraintLayout{
                 List<RepeatingTask_RepeatEditor> slugs = new ArrayList<>();
                 // Look for all eligible values in holder
                 for (RepeatingTask_RepeatEditor event: eventsHolder) {
-                    if (event.getDay() == daySelected && event.startTime != null && event.startTime.getTimeInMillis() > 0) {
-                        slugs.add(event);
+                    if (daySelected == DayOfWeek.universal) {
+                        if (event.getDay() == DayOfWeek.universal && event.startTime != null && event.startTime.getTimeInMillis() > 0) {
+                            slugs.add(event);
+                        }
+                    } else {
+                        if (event.getDay() != DayOfWeek.universal && event.startTime != null && event.startTime.getTimeInMillis() > 0) {
+                            slugs.add(event);
+                        }
                     }
                 }
                 if (slugs.size()>0) {
@@ -363,9 +418,7 @@ public class RepeatingEventEditor extends ConstraintLayout{
                 } else {
                     // same thing as on delete, we can' give green light since type isn't defined.
                     // Make a toast explaining that there is no type defined
-                    Toast toast = new Toast(getContext());
-                    toast.setDuration(Toast.LENGTH_SHORT);
-                    toast.setText(R.string.toast_no_pattern);
+                    Toast toast = Toast.makeText(getContext(), R.string.toast_no_pattern, Toast.LENGTH_SHORT);
                     toast.show();
                     // Make a broadcast to remove self.
                     callRemoveRepeatEditor();
@@ -379,6 +432,7 @@ public class RepeatingEventEditor extends ConstraintLayout{
             }
         });
 
+        // In charge of creating the reminder.
         addButton.setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -413,7 +467,7 @@ public class RepeatingEventEditor extends ConstraintLayout{
         List<RepeatingTask_RepeatEditor> toDelete = new ArrayList<>();
         List<RepeatingTask_RepeatEditor> reminders = new ArrayList<>();
         for (RepeatingTask_RepeatEditor event: eventsHolder) {
-            if (event.startTime == null) {
+            if (event.startTime == null || event.startTime.getTimeInMillis() < 1) {
                 toDelete.add(event);
                 event.setVisibility(GONE);
             } else if (event.isReminder()) {
@@ -428,7 +482,13 @@ public class RepeatingEventEditor extends ConstraintLayout{
         List<View> remindersToRemove = new ArrayList<>();
         for (int i = 0; i<reminderBarHolder.getChildCount(); i++) {
             View v = reminderBarHolder.getChildAt(i);
-            if (v.getId() != addButton.getId()) {
+            /*
+             * Possible alternative solution:
+             *
+             * Add a tag to every RepeatingTask, and then check if it matches such a tag and then
+             * remove it if the case...
+             */
+            if (v instanceof RepeatingTask_RepeatEditor) {
                 remindersToRemove.add(v);
             }
         }
@@ -459,26 +519,38 @@ public class RepeatingEventEditor extends ConstraintLayout{
         // Updates the ChronoView
         dayView.updateValues();
     }
+    // RepeatCronoView Protocol implementation
+    @Override
+    public DayOfWeek getDay() {
+        return daySelected;
+    }
+
+
     // Method used to change  the selected value of ViewPager to one of the types
     private void setRepeatTypeTo(RepeatType type) {
+        currentType = type;
         switch (type) {
             case everyDay:
-                bottomBarHolder.setCurrentItem(1, true);
+                bottomBarHolder.setCurrentItem(0, true);
+                leftSideHolder.setVisibility(GONE);
                 break;
             case customWeek:
-                bottomBarHolder.setCurrentItem(2, true);
+                bottomBarHolder.setCurrentItem(1, true);
+                leftSideHolder.setVisibility(VISIBLE);
                 break;
             case twoWeeks:
-                bottomBarHolder.setCurrentItem(3, true);
+                bottomBarHolder.setCurrentItem(2, true);
+                leftSideHolder.setVisibility(GONE);
                 break;
             case monthly:
-                bottomBarHolder.setCurrentItem(4, true);
+                bottomBarHolder.setCurrentItem(3, true);
+                leftSideHolder.setVisibility(GONE);
                 break;
             case yearly:
-                bottomBarHolder.setCurrentItem(5, true);
+                bottomBarHolder.setCurrentItem(4, true);
+                leftSideHolder.setVisibility(GONE);
                 break;
         }
-        currentType = type;
     }
     public enum RepeatType {
         everyDay(1), customWeek(2), twoWeeks(3), monthly(4), yearly(5);

@@ -45,8 +45,7 @@ public class CronoViewFor_RepeatEditor extends ViewGroup {
 
     // Description Values passed from RepeatEventEditor:
     private List<RepeatingTask_RepeatEditor> events;
-    private RepeatingEventEditor.RepeatType type;
-    private DayOfWeek day;
+    private RepeatChronoViewProtocol dayProtocol;
 
     // Variables to be calculated
     private Paint lineMarker;
@@ -111,8 +110,7 @@ public class CronoViewFor_RepeatEditor extends ViewGroup {
     @Override
     protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
         super.onMeasure(widthMeasureSpec, heightMeasureSpec);
-        int width = 0;
-        int height = 0;
+        int width, height;
 
         height = timeUnitSize * 24; // Because day has 24 hours
         width = widthMeasureSpec - (RIGHT_PADDING + LEFT_PADDING);
@@ -132,14 +130,12 @@ public class CronoViewFor_RepeatEditor extends ViewGroup {
         for (int i = 0; i<childCount; i++) {
             measureChildren(getWidth(), getHeight());
             View child = getChildAt(i);
-            // TODO: Consider if child has no endTime...
-            if (child instanceof RepeatingTask_RepeatEditor) {
+            if (child instanceof RepeatingTask_RepeatEditor && child.getVisibility() == VISIBLE) {
                 child.layout(left,
                         getPixelLocationOf(((RepeatingTask_RepeatEditor) child).getTaskStartTime(), false),
                         right,
                         getPixelLocationOf(((RepeatingTask_RepeatEditor) child).getTaskEndTime(), false)
                         );
-
             }
         }
     }
@@ -150,14 +146,29 @@ public class CronoViewFor_RepeatEditor extends ViewGroup {
     }
 
     // This is called to initiate the view with values
-    public void defineMe(List<RepeatingTask_RepeatEditor> eventHolder, RepeatingEventEditor.RepeatType type, DayOfWeek daySelected) {
+    public void defineMe(TaskObject masterTask, List<RepeatingTask_RepeatEditor> eventHolder, RepeatChronoViewProtocol parentProtocol) {
+        this.objectPresented = masterTask;
         this.events = eventHolder;
-        this.type = type;
-        this.day = daySelected;
+        this.dayProtocol = parentProtocol;
+
     }
     // Called by RepeatEventEditor when changes in describing values have been changed.
     public void updateValues() {
-        // TODO:
+        /*
+         * what this guy needs to do?
+         *
+         * Check for any inconsistencies from the values and then presents only ones that are not
+         * reminders... but full fledged events...
+         */
+        if (events != null) {
+            this.removeAllViews();
+            // The adding phase...
+            for (RepeatingTask_RepeatEditor event: events) {
+                if (!event.isReminder() && event.getDay() == dayProtocol.getDay()) {
+                    this.addView(event);
+                }
+            }
+        }
     }
     @Override
     protected void onAttachedToWindow() {
@@ -263,12 +274,38 @@ public class CronoViewFor_RepeatEditor extends ViewGroup {
         public void onLongPress(MotionEvent e) {
             RepeatingTask_RepeatEditor toAddView = new RepeatingTask_RepeatEditor(getContext());
             Calendar startTime = getTimeLocationOf(e.getY());
-            if (day != DayOfWeek.universal) {
-                startTime.set(Calendar.DAY_OF_WEEK, day.getValue());
+            if (dayProtocol.getDay() != DayOfWeek.universal) {
+                startTime.set(Calendar.DAY_OF_WEEK, dayProtocol.getDay().getValue());
             }
             Calendar endTime = (Calendar) startTime.clone();
             endTime.add(Calendar.MINUTE, 30); // NOTE: Default amount is 30 min.
-            toAddView.defineMe(objectPresented.getTaskName(), startTime, endTime, day);
+            DayOfWeek dayToPass;
+            switch (dayProtocol.getDay()) {
+                case monday:
+                    dayToPass = DayOfWeek.monday;
+                    break;
+                case tuesday:
+                    dayToPass = DayOfWeek.tuesday;
+                    break;
+                case wednesday:
+                    dayToPass = DayOfWeek.wednesday;
+                    break;
+                case thursday:
+                    dayToPass = DayOfWeek.thursday;
+                    break;
+                case friday:
+                    dayToPass = DayOfWeek.friday;
+                    break;
+                case saturday:
+                    dayToPass = DayOfWeek.saturday;
+                    break;
+                case sunday:
+                    dayToPass = DayOfWeek.sunday;
+                    break;
+                default:
+                    dayToPass = DayOfWeek.universal;
+            }
+            toAddView.defineMe(objectPresented.getTaskName(), startTime, endTime, dayToPass);
             events.add(toAddView);
             updateValues();
         }

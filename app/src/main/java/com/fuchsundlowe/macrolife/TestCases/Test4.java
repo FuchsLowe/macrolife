@@ -5,6 +5,8 @@ import android.os.Bundle;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.TextView;
+
+import com.fuchsundlowe.macrolife.DataObjects.RepeatingEvent;
 import com.fuchsundlowe.macrolife.DataObjects.TaskObject;
 import com.fuchsundlowe.macrolife.EngineClasses.LocalStorage;
 import com.fuchsundlowe.macrolife.R;
@@ -28,6 +30,28 @@ public class Test4 extends AppCompatActivity {
     }
 
     public void searchEvent(View view) {
+        String val = numerical.getText().toString();
+        Integer number = Integer.valueOf(val);
+        RepeatingEvent object = database.getEventWith(number);
+        SimpleDateFormat f = new SimpleDateFormat("HH:mm 'at' dd-MM" );
+
+        if (object != null) {
+            // ID
+            String toPresent = "ID" + object.getHashID();
+            // Start time
+            toPresent+= "\n" + " Start Time:" + f.format(object.getStartTime().getTime());
+            // End time
+            toPresent+= "\n" + "End Time:" + f.format(object.getEndTime().getTime());
+            // duration:
+            long dur = object.getEndTime().getTimeInMillis() - object.getStartTime().getTimeInMillis();
+            dur = dur / 1000 / 60; // to get minutes
+            toPresent+= "\n" + "Duration is: " + dur + "in minutes";
+
+            writeToConsole(toPresent);
+        } else {
+            writeToConsole("No Such Event");
+        }
+
     }
 
     public void searchTask(View view) {
@@ -40,8 +64,7 @@ public class Test4 extends AppCompatActivity {
             String toSend = "Name: " + object.getTaskName();
             toSend += "\n" + "HashID: " + object.getHashID();
             toSend += "\n" + "startTime: " + f.format(object.getTaskStartTime().getTime()) + "\nendTime: " + f.format(object.getTaskEndTime().getTime());
-
-
+            toSend += "\n" + "Descriptor info: \n" + object.getRepeatDescriptor() + "\n";
             writeToConsole(toSend);
         } else {
             writeToConsole("No Such Task");

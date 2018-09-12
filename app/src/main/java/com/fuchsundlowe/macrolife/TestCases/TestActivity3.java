@@ -19,6 +19,7 @@ import android.widget.Space;
 
 import com.fuchsundlowe.macrolife.BottomBar.EditTaskBottomBar;
 import com.fuchsundlowe.macrolife.BottomBar.EditingView_BottomBar;
+import com.fuchsundlowe.macrolife.BottomBar.RepeatingEventEditor;
 import com.fuchsundlowe.macrolife.DataObjects.RepeatingEvent;
 import com.fuchsundlowe.macrolife.DataObjects.TaskObject;
 import com.fuchsundlowe.macrolife.Interfaces.EditTaskProtocol;
@@ -36,19 +37,13 @@ public class TestActivity3 extends AppCompatActivity  {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_test3);
-        a = findViewById(R.id.frameLayout_a);
-
-
-
+        a = findViewById(R.id.octy);
     }
 
     @Override
     protected void onResume() {
         super.onResume();
-        WeekDisplay_WeekView n = new WeekDisplay_WeekView();
-        n.defineMe(Calendar.getInstance());
-        FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
-        ft.replace(a.getId(), n);
-        ft.commit();
+        RepeatingEventEditor ed = new RepeatingEventEditor(this);
+        a.addView(ed);
     }
 }

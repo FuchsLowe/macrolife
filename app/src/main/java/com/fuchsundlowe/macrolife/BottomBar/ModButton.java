@@ -18,6 +18,7 @@ public class ModButton extends android.support.v7.widget.AppCompatImageButton {
     private TaskObject.Mods definedMod;
     private EditTaskProtocol protocol;
     private SpecialtyButton buttonType;
+    private boolean specialtyState;
 
 
     // Layout constructors
@@ -112,27 +113,24 @@ public class ModButton extends android.support.v7.widget.AppCompatImageButton {
     }
 
     public void setSpecialtyState(boolean setSelected) {
-        // TODO: Implement!
         if (setSelected) {
             setBackgroundColor(Color.BLUE);
         } else {
             setBackgroundColor(Color.LTGRAY);
         }
+        specialtyState = setSelected;
     }
     // True for selected, false for not
     public boolean getSpecialtyState() {
-        // TODO: Implement!
-        return false;
+        return specialtyState;
     }
 
     boolean isAvailable = false;
     public void setAvailability(boolean isAvailable){
-        // TODO: Implement!
+        this.isAvailable = isAvailable;
         if (isAvailable) {
-            this.isAvailable = true;
             setAlpha(1.0f);
         } else {
-            this.isAvailable = false;
             setAlpha(0.5f);
         }
     }

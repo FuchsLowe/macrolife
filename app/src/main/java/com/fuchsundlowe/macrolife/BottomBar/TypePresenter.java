@@ -35,7 +35,7 @@ public class TypePresenter extends FrameLayout {
     }
 
     public void defineMe(RepeatingEventEditor.RepeatType type) {
-        TextView typeName = findViewById(R.id.typeName);
+        TextView typeName = findViewById(R.id.textView_typePresenter);
         Context c = getContext();
         switch (type) {
             case everyDay:

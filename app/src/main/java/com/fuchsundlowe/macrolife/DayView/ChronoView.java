@@ -494,7 +494,11 @@ public class ChronoView extends ViewGroup {
         // Process of adding new tasks to view hierarchy
         for (TaskEventHolder holder: data) {
             if (holder.isTask()) {
-                addNewTask(holder.task, null);
+                if (!holder.task.isThisRepeatingEvent()) {
+                    addNewTask(holder.task, null);
+                } else {
+                    // its a repeating value and we don't show it...
+                }
             } else {
                 addNewTask(dataProvider.findTaskObjectBy(holder.getMasterHashID()), holder.event);
             }

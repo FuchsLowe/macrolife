@@ -26,10 +26,11 @@ public interface DataProviderNewProtocol {
     void deleteTask(TaskObject objectToDelete);
     LiveData<List<TaskObject>> getTaskThatIntersects(Calendar day);
     LiveData<List<TaskObject>> getTasksForRemindersView(Calendar forDay);
+    LiveData<List<TaskObject>> getAllTaskObjects();
 
 
     // Repeating Events:
-    LiveData<List<RepeatingEvent>>getAllEvents();
+    LiveData<List<RepeatingEvent>> getAllRepeatingEvents();
     LiveData<List<RepeatingEvent>> getEventsThatIntersect(Calendar day);
     RepeatingEvent getEventWith(int hashID);
     LiveData<List<RepeatingEvent>> getEventsForRemindersView(Calendar forDay);
@@ -47,6 +48,7 @@ public interface DataProviderNewProtocol {
 
 
     // Complex Goals:
+    LiveData<List<ComplexGoal>>getAllComplexGoals();
     ComplexGoal getComplexGoalBy(int masterID);
     ComplexGoal findComplexGoal(int byID);
 

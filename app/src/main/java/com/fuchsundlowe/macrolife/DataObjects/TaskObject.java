@@ -276,7 +276,7 @@ public class TaskObject implements Serializable {
     }
     // passing a null will delete the repeating value
     public void setRepeatDescriptor(String repeatDescriptor) {
-        if (repeatDescriptor != null) {
+        if (repeatDescriptor != null || repeatDescriptor.length() > 1) {
             this.repeatDescriptor = repeatDescriptor;
             addMod(Mods.repeating);
         } else {

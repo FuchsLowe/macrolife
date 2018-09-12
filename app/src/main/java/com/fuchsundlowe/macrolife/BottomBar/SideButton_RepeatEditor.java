@@ -1,6 +1,7 @@
 package com.fuchsundlowe.macrolife.BottomBar;
 
 import android.content.Context;
+import android.graphics.Color;
 import android.util.AttributeSet;
 
 import com.fuchsundlowe.macrolife.DataObjects.DayOfWeek;
@@ -10,7 +11,7 @@ import com.fuchsundlowe.macrolife.R;
 public class SideButton_RepeatEditor extends android.support.v7.widget.AppCompatButton {
 
     public DayOfWeek dayOfWeek;
-
+    private boolean selected = false;
     public SideButton_RepeatEditor(Context context) {
         super(context);
     }
@@ -52,12 +53,18 @@ public class SideButton_RepeatEditor extends android.support.v7.widget.AppCompat
     }
 
     public void highliteSelection(boolean select) {
+        this.selected = select;
         if (select) {
             this.setZ(20);
+            setBackgroundColor(Color.YELLOW);
             // TODO: Change implementation to reflect selection
         } else {
-            this.setZ(0);
+            this.setZ(10);
+            setBackgroundColor(Color.LTGRAY);
         }
     }
 
+    public boolean isSelected() {
+        return this.selected;
+    }
 }

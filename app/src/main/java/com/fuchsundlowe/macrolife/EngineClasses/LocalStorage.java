@@ -8,6 +8,8 @@ import android.content.Context;
 import android.os.Looper;
 import android.support.annotation.Nullable;
 import android.util.Log;
+
+import com.fuchsundlowe.macrolife.BottomBar.RepeatChronoViewProtocol;
 import com.fuchsundlowe.macrolife.DataObjects.ComplexGoal;
 import com.fuchsundlowe.macrolife.DataObjects.Constants;
 import com.fuchsundlowe.macrolife.DataObjects.DayOfWeek;
@@ -16,8 +18,11 @@ import com.fuchsundlowe.macrolife.DataObjects.RepeatingEvent;
 import com.fuchsundlowe.macrolife.DataObjects.RoomDataBaseObject;
 import com.fuchsundlowe.macrolife.DataObjects.TaskObject;
 import com.fuchsundlowe.macrolife.Interfaces.DataProviderNewProtocol;
+
+import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
 /*
  * Known Issue: The Observe Forever for live data used to produce in memory holding of Tasks ( via
@@ -65,6 +70,10 @@ public class LocalStorage implements DataProviderNewProtocol {
 
 
     // TaskObject Goal:
+    @Override
+    public LiveData<List<TaskObject>> getAllTaskObjects() {
+        return dataBase.newDAO().getAllTaskObjects();
+    }
     @Override
     public TaskObject findTaskObjectBy(int ID) {
         List<TaskObject> transformed = taskObjectHolder.getValue();
@@ -122,19 +131,22 @@ public class LocalStorage implements DataProviderNewProtocol {
                         @Override
                         public void run() {
                             task.setLastTimeModified(Calendar.getInstance());
-                            dataBase.newDAO().saveTask(task);
                             // If task is set as repeatable object, delete existing repEvents and institute new ones
                             if (task.isThisRepeatingEvent()) {
                                 // Establish if this task has the same value in descriptor as stored one...
-                                if (!dataBase.newDAO().findTaskObject(
-                                        task.getHashID()).getRepeatDescriptor().equals(task.getRepeatDescriptor())) {
+                                TaskObject fromDB = dataBase.newDAO().findTaskObject(task.getHashID());
+                                if (!fromDB.getRepeatDescriptor().equals(task.getRepeatDescriptor())
+                                        || !fromDB.getTaskStartTime().equals(task.getTaskStartTime())
+                                        || !fromDB.getTaskEndTime().equals(task.getTaskEndTime())) {
                                     // Removing the existing repeating events:
                                     deleteAllRepeatingEvents(task.getHashID());
                                     // Inserting new Values:
                                     dataBase.newDAO().insertRepeatingEvent(composeRepeatingEvents(task));
+                                } else {
+                                   String n = "Nothing has changed Milord.";
                                 }
-                               // Otherwise descriptor is same and we don't have to compose new RepeatingEvents
                             }
+                            dataBase.newDAO().saveTask(task);
                         }
                     }).start();
                     return;
@@ -154,25 +166,31 @@ public class LocalStorage implements DataProviderNewProtocol {
     }
     // A helper method that converts schema into repeating objects and
     private RepeatingEvent[] composeRepeatingEvents(TaskObject object) {
-        // TODO: TEST!
+        // Define the objects start and end times to be the start and end times of the day:
+        long[] newStartTime = returnStartAndEndTimesForDay(object.getTaskStartTime());
+        long[] newEndTime = returnStartAndEndTimesForDay(object.getTaskEndTime());
+        object.getTaskStartTime().setTimeInMillis(newStartTime[0] - 1);
+        object.getTaskEndTime().setTimeInMillis(newEndTime[1] + 1);
+
+        // Implement the creation of Repeating Events
         Calendar end, start;
         String[] results = object.getRepeatDescriptor().split("\\|");
         Integer type = null;
         ArrayList<RepeatingEvent> toReturn = new ArrayList<>();
-        TaskObject.CheckableStatus checkableStatus = object.getIsTaskCompleted();
-        if (checkableStatus == TaskObject.CheckableStatus.completed) {
-            checkableStatus = TaskObject.CheckableStatus.incomplete;
+        TaskObject.CheckableStatus objectsCheckableStatus = object.getIsTaskCompleted();
+        if (objectsCheckableStatus == TaskObject.CheckableStatus.completed) {
+            objectsCheckableStatus = TaskObject.CheckableStatus.incomplete;
         }
-        TaskObject.CheckableStatus mStatus;
+        TaskObject.CheckableStatus eventsCheckableStatus;
         Calendar currentTime = Calendar.getInstance();
         for (Integer i = 0; i<results.length; i++) {
             if (i == 0) {
                 // Declaring type:
                 type = Integer.valueOf(results[i]);
             } else {
-                // Create New start and end value:
-                start = object.getTaskStartTime();
-                end = object.getTaskEndTime();
+                // Create new start and end value:
+                start = (Calendar) object.getTaskStartTime().clone();
+                end = (Calendar) object.getTaskEndTime().clone();
                 String[] timeResult = results[i].split("-");
                 if (timeResult.length == 1) {
                     // We have only one thus its a event
@@ -180,55 +198,57 @@ public class LocalStorage implements DataProviderNewProtocol {
                         RepeatingEvent event;
                         switch (type) {
                             case 1: // every Day
-                                // if checkable status is assigned to a time before now, we will mark it completed.
-                                if (checkableStatus != TaskObject.CheckableStatus.notCheckable) {
+                                // if checkable status is assigned to a time before now, we will set it completed.
+                                if (objectsCheckableStatus != TaskObject.CheckableStatus.notCheckable) {
                                     if (start.before(currentTime)) {
-                                        mStatus = TaskObject.CheckableStatus.completed;
+                                        eventsCheckableStatus = TaskObject.CheckableStatus.completed;
                                     } else {
-                                        mStatus = TaskObject.CheckableStatus.incomplete;
+                                        eventsCheckableStatus = TaskObject.CheckableStatus.incomplete;
                                     }
                                 } else {
-                                    mStatus = TaskObject.CheckableStatus.notCheckable;
+                                    eventsCheckableStatus = TaskObject.CheckableStatus.notCheckable;
                                 }
-                                event = new RepeatingEvent(object.getHashID(), start, null, 0, Calendar.getInstance(), mStatus);
+                                event = new RepeatingEvent(object.getHashID(), (Calendar) start.clone(), null, 0, Calendar.getInstance(), eventsCheckableStatus);
                                 toReturn.add(event);
                                 // increment start
                                 start.add(Calendar.DAY_OF_YEAR, 1);
                                 break;
                             case 2: // custom Week
-                                Long lDate = new Long(timeResult[0]);
                                 Calendar workValue = Calendar.getInstance();
-                                workValue.setTimeInMillis(lDate);
-                                start.set(Calendar.DAY_OF_WEEK, workValue.get(Calendar.DAY_OF_WEEK));
+                                workValue.setTimeInMillis(Long.valueOf(timeResult[0]));
+                                workValue.set(Calendar.YEAR, start.get(Calendar.YEAR));
+                                workValue.set(Calendar.WEEK_OF_YEAR, start.get(Calendar.WEEK_OF_YEAR));
                                 // Create event:
                                 // if checkable status is assigned to a time before now, we will mark it completed.
-                                if (checkableStatus != TaskObject.CheckableStatus.notCheckable) {
-                                    if (start.before(currentTime)) {
-                                        mStatus = TaskObject.CheckableStatus.completed;
+                                if (workValue.after(object.getTaskStartTime()) && workValue.before(object.getTaskEndTime())) {
+                                    if (objectsCheckableStatus != TaskObject.CheckableStatus.notCheckable) {
+                                        if (start.before(currentTime)) {
+                                            eventsCheckableStatus = TaskObject.CheckableStatus.completed;
+                                        } else {
+                                            eventsCheckableStatus = TaskObject.CheckableStatus.incomplete;
+                                        }
                                     } else {
-                                        mStatus = TaskObject.CheckableStatus.incomplete;
+                                        eventsCheckableStatus = TaskObject.CheckableStatus.notCheckable;
                                     }
-                                } else {
-                                    mStatus = TaskObject.CheckableStatus.notCheckable;
+                                    event = new RepeatingEvent(object.getHashID(), workValue, null, 0, Calendar.getInstance(), eventsCheckableStatus);
+                                    toReturn.add(event);
                                 }
-                                event = new RepeatingEvent(object.getHashID(), start, null, 0, Calendar.getInstance(), mStatus);
-                                toReturn.add(event);
-                                // increment start
+                                    // increment start
                                 start.add(Calendar.WEEK_OF_YEAR, 1);
                                 break;
                             case 3: // every 2 weeks
                                 // Create Event:
                                 // if checkable status is assigned to a time before now, we will mark it completed.
-                                if (checkableStatus != TaskObject.CheckableStatus.notCheckable) {
+                                if (objectsCheckableStatus != TaskObject.CheckableStatus.notCheckable) {
                                     if (start.before(currentTime)) {
-                                        mStatus = TaskObject.CheckableStatus.completed;
+                                        eventsCheckableStatus = TaskObject.CheckableStatus.completed;
                                     } else {
-                                        mStatus = TaskObject.CheckableStatus.incomplete;
+                                        eventsCheckableStatus = TaskObject.CheckableStatus.incomplete;
                                     }
                                 } else {
-                                    mStatus = TaskObject.CheckableStatus.notCheckable;
+                                    eventsCheckableStatus = TaskObject.CheckableStatus.notCheckable;
                                 }
-                                event = new RepeatingEvent(object.getHashID(), start, null, 0, Calendar.getInstance(), mStatus);
+                                event = new RepeatingEvent(object.getHashID(), (Calendar) start.clone(), null, 0, Calendar.getInstance(), eventsCheckableStatus);
                                 toReturn.add(event);
                                 start.add(Calendar.WEEK_OF_YEAR, 2);
                                 // increment start
@@ -236,16 +256,16 @@ public class LocalStorage implements DataProviderNewProtocol {
                             case 4: // every month
                                 // Create Event:
                                 // if checkable status is assigned to a time before now, we will mark it completed.
-                                if (checkableStatus != TaskObject.CheckableStatus.notCheckable) {
+                                if (objectsCheckableStatus != TaskObject.CheckableStatus.notCheckable) {
                                     if (start.before(currentTime)) {
-                                        mStatus = TaskObject.CheckableStatus.completed;
+                                        eventsCheckableStatus = TaskObject.CheckableStatus.completed;
                                     } else {
-                                        mStatus = TaskObject.CheckableStatus.incomplete;
+                                        eventsCheckableStatus = TaskObject.CheckableStatus.incomplete;
                                     }
                                 } else {
-                                    mStatus = TaskObject.CheckableStatus.notCheckable;
+                                    eventsCheckableStatus = TaskObject.CheckableStatus.notCheckable;
                                 }
-                                event = new RepeatingEvent(object.getHashID(), start, null, 0, Calendar.getInstance(), mStatus);
+                                event = new RepeatingEvent(object.getHashID(), (Calendar) start.clone(), null, 0, Calendar.getInstance(), eventsCheckableStatus);
                                 toReturn.add(event);
                                 // increment start
                                 start.add(Calendar.MONTH, 1);
@@ -253,16 +273,16 @@ public class LocalStorage implements DataProviderNewProtocol {
                             case 5: // every year
                                 // Create Event:
                                 // if checkable status is assigned to a time before now, we will mark it completed.
-                                if (checkableStatus != TaskObject.CheckableStatus.notCheckable) {
+                                if (objectsCheckableStatus != TaskObject.CheckableStatus.notCheckable) {
                                     if (start.before(currentTime)) {
-                                        mStatus = TaskObject.CheckableStatus.completed;
+                                        eventsCheckableStatus = TaskObject.CheckableStatus.completed;
                                     } else {
-                                        mStatus = TaskObject.CheckableStatus.incomplete;
+                                        eventsCheckableStatus = TaskObject.CheckableStatus.incomplete;
                                     }
                                 } else {
-                                    mStatus = TaskObject.CheckableStatus.notCheckable;
+                                    eventsCheckableStatus = TaskObject.CheckableStatus.notCheckable;
                                 }
-                                event = new RepeatingEvent(object.getHashID(), start, null, 0, Calendar.getInstance(), mStatus);
+                                event = new RepeatingEvent(object.getHashID(), (Calendar) start.clone(), null, 0, Calendar.getInstance(), eventsCheckableStatus);
                                 toReturn.add(event);
                                 // increment start
                                 start.add(Calendar.YEAR, 1);
@@ -273,115 +293,118 @@ public class LocalStorage implements DataProviderNewProtocol {
                     // we have full fledged time frame
                     while(start.before(end)) {
                         RepeatingEvent event;
-                        Calendar workStart, workEnd;
-                        workStart = (Calendar) start.clone();
-                        workStart.setTimeInMillis(new Long(timeResult[0]));
+                        Calendar eventStartTime, eventEndTime;
+                        eventStartTime = (Calendar) start.clone();
+                        eventStartTime.setTimeInMillis(Long.valueOf(timeResult[0]));
                         long diff;
-                        diff = new Long(timeResult[1]) - new Long(timeResult[0]);
+                        diff = Long.valueOf(timeResult[1]) - Long.valueOf(timeResult[0]);
                         switch (type) {
                             case 1:
-                                workStart.set(start.get(Calendar.YEAR), start.get(Calendar.MONTH), start.get(Calendar.DAY_OF_MONTH));
-                                workEnd = (Calendar) workStart.clone();
-                                workEnd.add(Calendar.MILLISECOND, (int) diff);
+                                eventStartTime.set(start.get(Calendar.YEAR), start.get(Calendar.MONTH), start.get(Calendar.DAY_OF_MONTH));
+                                eventEndTime = (Calendar) eventStartTime.clone();
+                                eventEndTime.add(Calendar.MILLISECOND, (int) diff);
                                 // Create RepEvent
                                 // if checkable status is assigned to a time before now, we will mark it completed.
-                                if (checkableStatus != TaskObject.CheckableStatus.notCheckable) {
+                                if (objectsCheckableStatus != TaskObject.CheckableStatus.notCheckable) {
                                     if (start.before(currentTime)) {
-                                        mStatus = TaskObject.CheckableStatus.completed;
+                                        eventsCheckableStatus = TaskObject.CheckableStatus.completed;
                                     } else {
-                                        mStatus = TaskObject.CheckableStatus.incomplete;
+                                        eventsCheckableStatus = TaskObject.CheckableStatus.incomplete;
                                     }
                                 } else {
-                                    mStatus = TaskObject.CheckableStatus.notCheckable;
+                                    eventsCheckableStatus = TaskObject.CheckableStatus.notCheckable;
                                 }
-                                event = new RepeatingEvent(object.getHashID(), start, null, 0, Calendar.getInstance(), mStatus);
+                                event = new RepeatingEvent(object.getHashID(), eventStartTime, eventEndTime, 0, Calendar.getInstance(), eventsCheckableStatus);
                                 toReturn.add(event);
                                 // increment start
                                 start.add(Calendar.DAY_OF_YEAR, 1);
                                 break;
                             case 2:
-                                workStart.set(Calendar.YEAR, start.get(Calendar.YEAR));
-                                workStart.set(Calendar.MONTH, start.get(Calendar.MONTH));
-                                // But we keep same day of the week?
-                                workEnd = (Calendar) start.clone();
-                                workEnd.add(Calendar.MILLISECOND,(int) diff);
-                                if (start.before(end)) {
+                                // Implementation is different as it has specific requirements...
+                                eventStartTime.setTimeInMillis(Long.valueOf(timeResult[0]));
+                                eventStartTime.set(Calendar.YEAR, start.get(Calendar.YEAR));
+                                eventStartTime.set(Calendar.WEEK_OF_YEAR, start.get(Calendar.WEEK_OF_YEAR));
+
+                                eventEndTime = (Calendar) eventStartTime.clone();
+                                eventEndTime.add(Calendar.MILLISECOND,(int) diff);
+                                if (eventStartTime.after(object.getTaskStartTime())
+                                        && eventStartTime.before(object.getTaskEndTime())) {
                                     // Create RepEvent
                                     // if checkable status is assigned to a time before now, we will mark it completed.
-                                    if (checkableStatus != TaskObject.CheckableStatus.notCheckable) {
+                                    if (objectsCheckableStatus != TaskObject.CheckableStatus.notCheckable) {
                                         if (start.before(currentTime)) {
-                                            mStatus = TaskObject.CheckableStatus.completed;
+                                            eventsCheckableStatus = TaskObject.CheckableStatus.completed;
                                         } else {
-                                            mStatus = TaskObject.CheckableStatus.incomplete;
+                                            eventsCheckableStatus = TaskObject.CheckableStatus.incomplete;
                                         }
                                     } else {
-                                        mStatus = TaskObject.CheckableStatus.notCheckable;
+                                        eventsCheckableStatus = TaskObject.CheckableStatus.notCheckable;
                                     }
-                                    event = new RepeatingEvent(object.getHashID(), start, null, 0, Calendar.getInstance(), mStatus);
+                                    event = new RepeatingEvent(object.getHashID(), eventStartTime, eventEndTime, 0, Calendar.getInstance(), eventsCheckableStatus);
                                     toReturn.add(event);
                                 }
                                 // increment start
                                 start.add(Calendar.WEEK_OF_YEAR, 1);
                                 break;
                             case 3:
-                                workStart.set(start.get(Calendar.YEAR), start.get(Calendar.MONTH), start.get(Calendar.DAY_OF_MONTH));
-                                workEnd = (Calendar) workStart.clone();
-                                workEnd.add(Calendar.MILLISECOND, (int) diff);
+                                eventStartTime.set(start.get(Calendar.YEAR), start.get(Calendar.MONTH), start.get(Calendar.DAY_OF_MONTH));
+                                eventEndTime = (Calendar) eventStartTime.clone();
+                                eventEndTime.add(Calendar.MILLISECOND, (int) diff);
                                 // Create RepEvent
                                 // if checkable status is assigned to a time before now, we will mark it completed.
-                                if (checkableStatus != TaskObject.CheckableStatus.notCheckable) {
+                                if (objectsCheckableStatus != TaskObject.CheckableStatus.notCheckable) {
                                     if (start.before(currentTime)) {
-                                        mStatus = TaskObject.CheckableStatus.completed;
+                                        eventsCheckableStatus = TaskObject.CheckableStatus.completed;
                                     } else {
-                                        mStatus = TaskObject.CheckableStatus.incomplete;
+                                        eventsCheckableStatus = TaskObject.CheckableStatus.incomplete;
                                     }
                                 } else {
-                                    mStatus = TaskObject.CheckableStatus.notCheckable;
+                                    eventsCheckableStatus = TaskObject.CheckableStatus.notCheckable;
                                 }
-                                event = new RepeatingEvent(object.getHashID(), start, null, 0, Calendar.getInstance(), mStatus);
+                                event = new RepeatingEvent(object.getHashID(), eventStartTime, eventEndTime, 0, Calendar.getInstance(), eventsCheckableStatus);
                                 toReturn.add(event);
                                 // increment start
                                 start.add(Calendar.WEEK_OF_YEAR, 2);
                                 break;
                             case 4:
-                                workStart.set(start.get(Calendar.YEAR), start.get(Calendar.MONTH), start.get(Calendar.DAY_OF_MONTH));
-                                workEnd = (Calendar) workStart.clone();
-                                workEnd.add(Calendar.MILLISECOND, (int) diff);
+                                eventStartTime.set(start.get(Calendar.YEAR), start.get(Calendar.MONTH), start.get(Calendar.DAY_OF_MONTH));
+                                eventEndTime = (Calendar) eventStartTime.clone();
+                                eventEndTime.add(Calendar.MILLISECOND, (int) diff);
                                 // Create RepEvent
 
                                 // increment start
                                 // if checkable status is assigned to a time before now, we will mark it completed.
-                                if (checkableStatus != TaskObject.CheckableStatus.notCheckable) {
+                                if (objectsCheckableStatus != TaskObject.CheckableStatus.notCheckable) {
                                     if (start.before(currentTime)) {
-                                        mStatus = TaskObject.CheckableStatus.completed;
+                                        eventsCheckableStatus = TaskObject.CheckableStatus.completed;
                                     } else {
-                                        mStatus = TaskObject.CheckableStatus.incomplete;
+                                        eventsCheckableStatus = TaskObject.CheckableStatus.incomplete;
                                     }
                                 } else {
-                                    mStatus = TaskObject.CheckableStatus.notCheckable;
+                                    eventsCheckableStatus = TaskObject.CheckableStatus.notCheckable;
                                 }
-                                event = new RepeatingEvent(object.getHashID(), start, null, 0, Calendar.getInstance(), mStatus);
+                                event = new RepeatingEvent(object.getHashID(), eventStartTime, eventEndTime, 0, Calendar.getInstance(), eventsCheckableStatus);
                                 toReturn.add(event);
                                 start.add(Calendar.MONTH, 1);
                                 break;
                             case 5:
-                                workStart.set(start.get(Calendar.YEAR), start.get(Calendar.MONTH), start.get(Calendar.DAY_OF_MONTH));
-                                workEnd = (Calendar) workStart.clone();
-                                workEnd.add(Calendar.MILLISECOND, (int) diff);
+                                eventStartTime.set(start.get(Calendar.YEAR), start.get(Calendar.MONTH), start.get(Calendar.DAY_OF_MONTH));
+                                eventEndTime = (Calendar) eventStartTime.clone();
+                                eventEndTime.add(Calendar.MILLISECOND, (int) diff);
                                 // Create RepEvent
 
                                 // increment start
-                                // if checkable status is assigned to a time before now, we will mark it completed.
-                                if (checkableStatus != TaskObject.CheckableStatus.notCheckable) {
+                                // if checkable status is assigned to a time before now, we will set it completed.
+                                if (objectsCheckableStatus != TaskObject.CheckableStatus.notCheckable) {
                                     if (start.before(currentTime)) {
-                                        mStatus = TaskObject.CheckableStatus.completed;
+                                        eventsCheckableStatus = TaskObject.CheckableStatus.completed;
                                     } else {
-                                        mStatus = TaskObject.CheckableStatus.incomplete;
+                                        eventsCheckableStatus = TaskObject.CheckableStatus.incomplete;
                                     }
                                 } else {
-                                    mStatus = TaskObject.CheckableStatus.notCheckable;
+                                    eventsCheckableStatus = TaskObject.CheckableStatus.notCheckable;
                                 }
-                                event = new RepeatingEvent(object.getHashID(), start, null, 0, Calendar.getInstance(), mStatus);
+                                event = new RepeatingEvent(object.getHashID(), eventStartTime, eventEndTime, 0, Calendar.getInstance(), eventsCheckableStatus);
                                 toReturn.add(event);
                                 start.add(Calendar.YEAR, 1);
                                 break;
@@ -390,9 +413,10 @@ public class LocalStorage implements DataProviderNewProtocol {
                 }
             }
         }
-        return (RepeatingEvent[]) toReturn.toArray();
+        RepeatingEvent[] toSend = new RepeatingEvent[toReturn.size()];
+        toReturn.toArray(toSend);
+        return toSend;
     }
-
     @Override
     public void deleteTask(final TaskObject objectToDelete) {
         new Thread(new Runnable() {
@@ -466,7 +490,7 @@ public class LocalStorage implements DataProviderNewProtocol {
         return null;
     }
     @Override
-    public LiveData<List<RepeatingEvent>> getAllEvents() {
+    public LiveData<List<RepeatingEvent>> getAllRepeatingEvents() {
         return dataBase.newDAO().getAllRepeatingEvents();
     }
     @Override
@@ -527,7 +551,15 @@ public class LocalStorage implements DataProviderNewProtocol {
     }
     @Override
     public void deleteAllRepeatingEvents(final int forMasterID) {
-        dataBase.newDAO().removeRepeatingEvent((RepeatingEvent[]) getAllEventsBy(forMasterID).toArray());
+        ArrayList<RepeatingEvent> toDelete = getAllEventsBy(forMasterID);
+        final RepeatingEvent[] toSend = new RepeatingEvent[toDelete.size()];
+        toDelete.toArray(toSend);
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                dataBase.newDAO().removeRepeatingEvent(toSend);
+            }
+        }).start();
     }
     @Override
     public LiveData<List<RepeatingEvent>> getEventsForRemindersView(Calendar forDay) {
@@ -598,6 +630,10 @@ public class LocalStorage implements DataProviderNewProtocol {
 
 
     // Complex Goals Objects:
+    @Override
+    public LiveData<List<ComplexGoal>>getAllComplexGoals() {
+        return dataBase.newDAO().getAllComplexGoals();
+    }
     @Override
     public ComplexGoal findComplexGoal(int byID) {
         if (complexGoalHolder.getValue() != null) {

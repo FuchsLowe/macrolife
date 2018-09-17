@@ -18,13 +18,14 @@ public class ListView extends AppCompatActivity {
     private FrameLayout bottomBar;
     private RecyclerView centerBar;
     private Button complete, current, complex;
+    private ListDataController dataProvider;
 
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_list_view);
-
+        dataProvider = new ListDataController(this);
         // Linking views:
         bottomBar = findViewById(R.id.bottomBar_listView);
         centerBar = findViewById(R.id.centerBar_listView);
@@ -39,6 +40,13 @@ public class ListView extends AppCompatActivity {
         complex.setTag(complex);
 
 
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        // This ensures that there are no memory leaks associated with LiveData.
+        dataProvider.destroy();
     }
 
     public void onButtonClick(View view) {

@@ -23,19 +23,16 @@ import android.view.GestureDetector;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
-
 import com.fuchsundlowe.macrolife.DataObjects.Constants;
-import com.fuchsundlowe.macrolife.DataObjects.DayOfWeek;
 import com.fuchsundlowe.macrolife.DataObjects.RepeatingEvent;
+import com.fuchsundlowe.macrolife.DataObjects.TaskEventHolder;
 import com.fuchsundlowe.macrolife.DataObjects.TaskObject;
 import com.fuchsundlowe.macrolife.EngineClasses.LocalStorage;
 import com.fuchsundlowe.macrolife.Interfaces.DataProviderNewProtocol;
-import com.fuchsundlowe.macrolife.DayView.DayDisplay_DayView.TaskEventHolder;
-
+import com.fuchsundlowe.macrolife.DataObjects.TaskEventHolder;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -494,13 +491,13 @@ public class ChronoView extends ViewGroup {
         // Process of adding new tasks to view hierarchy
         for (TaskEventHolder holder: data) {
             if (holder.isTask()) {
-                if (!holder.task.isThisRepeatingEvent()) {
-                    addNewTask(holder.task, null);
+                if (!holder.getTask().isThisRepeatingEvent()) {
+                    addNewTask(holder.getTask(), null);
                 } else {
                     // its a repeating value and we don't show it...
                 }
             } else {
-                addNewTask(dataProvider.findTaskObjectBy(holder.getMasterHashID()), holder.event);
+                addNewTask(dataProvider.findTaskObjectBy(holder.getMasterHashID()), holder.getEvent());
             }
         }
     }

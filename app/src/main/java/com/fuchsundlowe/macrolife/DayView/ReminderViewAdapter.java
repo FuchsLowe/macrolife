@@ -17,7 +17,7 @@ import com.fuchsundlowe.macrolife.DataObjects.Constants;
 import com.fuchsundlowe.macrolife.DataObjects.TaskObject;
 import com.fuchsundlowe.macrolife.R;
 import java.util.List;
-import com.fuchsundlowe.macrolife.DayView.DayDisplay_DayView.TaskEventHolder;
+import com.fuchsundlowe.macrolife.DataObjects.TaskEventHolder;
 
 public class ReminderViewAdapter extends RecyclerView.Adapter<ReminderViewAdapter.ReminderViewHolder>{
 
@@ -121,10 +121,10 @@ public class ReminderViewAdapter extends RecyclerView.Adapter<ReminderViewAdapte
                     // Figuring out the right value to pass:
                     if (reminderPresented.isTask()) {
                         data = new ClipData(Constants.TASK_OBJECT, MIME_Type, dataItem);
-                        baseView.startDrag(data, shadowBuilder, getReminderPresented().task, 0);
+                        baseView.startDrag(data, shadowBuilder, getReminderPresented().getTask(), 0);
                     } else {
                         data = new ClipData(Constants.REPEATING_EVENT, MIME_Type, dataItem);
-                        baseView.startDrag(data, shadowBuilder, getReminderPresented().event, 0);
+                        baseView.startDrag(data, shadowBuilder, getReminderPresented().getEvent(), 0);
                     }
                     // Removing the value from the view
                     removeItem(getReminderPresented(), getAdapterPosition());

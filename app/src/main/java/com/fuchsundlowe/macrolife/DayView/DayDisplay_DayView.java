@@ -24,6 +24,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ScrollView;
 
+import com.fuchsundlowe.macrolife.DataObjects.TaskEventHolder;
 import com.fuchsundlowe.macrolife.DataObjects.Constants;
 import com.fuchsundlowe.macrolife.DataObjects.RepeatingEvent;
 import com.fuchsundlowe.macrolife.DataObjects.TaskObject;
@@ -329,92 +330,5 @@ public class DayDisplay_DayView extends Fragment {
             }
         }, 2500, 2500);
     }
-    // This is holder for unified presenting of tasks and events
-    static public class TaskEventHolder {
-        TaskObject task;
-        RepeatingEvent event;
 
-        public TaskEventHolder(@Nullable TaskObject task, @Nullable RepeatingEvent event) {
-            this.task = task;
-            this.event = event;
-        }
-        public boolean isTask() {
-            return task != null;
-        }
-        public TaskObject.CheckableStatus getCompletionState() {
-            if (isTask()) {
-                return task.getIsTaskCompleted();
-            } else {
-                return event.getIsTaskCompleted();
-            }
-        }
-        public String getName() {
-            if (isTask()) {
-                return task.getTaskName();
-            } else {
-                // MARK: Gotta fetch it via DataBase
-                return LocalStorage.getInstance(null).findTaskObjectBy(event.getParentID()).getTaskName();
-            }
-        }
-        public List<TaskObject.Mods> getAllMods() {
-            if (isTask()) {
-               return task.getAllMods();
-            } else {
-                return LocalStorage.getInstance(null).findTaskObjectBy(event.getParentID()).getAllMods();
-            }
-        }
-        // Returns the taskObjects hashID
-        public int getMasterHashID() {
-            if (isTask()) {
-                return task.getHashID();
-            } else {
-                return event.getParentID();
-            }
-        }
-        // Returns whatever active ID is used, either Tasks if its a task or Events otherwise:
-        public int getActiveID() {
-            if (isTask()) {
-                return task.getHashID();
-            } else {
-                return event.getHashID();
-            }
-        }
-        // Returns the ComplexGoalID if any:
-        public int getComplexGoalID() {
-            if (isTask()) {
-                return task.getComplexGoalID();
-            } else {
-                return LocalStorage.getInstance(null).findTaskObjectBy(event.getParentID()).getComplexGoalID();
-            }
-        }
-        public TaskObject.TimeDefined getTimeDefined() {
-            if (isTask()) {
-                return task.getTimeDefined();
-            } else {
-                if (event.getEndTime() == null || event.getEndTime().before(event.getStartTime())) {
-                    return TaskObject.TimeDefined.onlyDate;
-                } else {
-                    return TaskObject.TimeDefined.dateAndTime;
-                }
-            }
-        }
-        public Calendar getStartTime() {
-            if (isTask()) {
-                return task.getTaskStartTime();
-            } else {
-                return event.getStartTime();
-            }
-        }
-        public @Nullable Calendar getEndTime() {
-            if (isTask()) {
-                if (getTimeDefined() == TaskObject.TimeDefined.dateAndTime) {
-                    return task.getTaskEndTime();
-                } else { return null; }
-            } else {
-                if (getTimeDefined() == TaskObject.TimeDefined.dateAndTime) {
-                    return event.getEndTime();
-                } else {return null;}
-            }
-        }
-    }
 }

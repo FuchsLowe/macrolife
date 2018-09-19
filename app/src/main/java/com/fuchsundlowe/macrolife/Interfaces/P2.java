@@ -4,16 +4,20 @@ import com.fuchsundlowe.macrolife.DataObjects.TaskEventHolder;
 
 import java.util.List;
 
-// Interface implemented by Fragments to receive communication from ListDataController:
-public interface P2 {
+// Abstract class implemented by Fragments to receive communication from ListDataController:
+public abstract class P2 {
 
-    void deliverCompleted(List<TaskEventHolder> set);
-    void deliverUpcoming(List<TaskEventHolder> set);
-    void deliverUnassigned(List<TaskEventHolder> set);
-    void deliverOverdue(List<TaskEventHolder> set);
+    // Mark: Used to deliver whole new set of data
+    public void deliverCompleted(List<TaskEventHolder> newHolders) {
 
-    void addCompleted(List<TaskEventHolder> set);
-    void addUpcoming(List<TaskEventHolder> set);
-    void addUnassigned(List<TaskEventHolder> set);
-    void addOverdue(List<TaskEventHolder> set);
+    }
+    public void deliverOverdue(List<TaskEventHolder> newHolders) {
+
+    }
+    public void deliverUnassigned(List<TaskEventHolder> newHolders) {
+
+    }
+    public void deliverUpcoming(List<TaskEventHolder> newHolders) {
+
+    }
 }

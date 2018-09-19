@@ -25,11 +25,12 @@ import android.widget.TextView;
 
 import com.fuchsundlowe.macrolife.DataObjects.Constants;
 import com.fuchsundlowe.macrolife.DataObjects.RepeatingEvent;
+import com.fuchsundlowe.macrolife.DataObjects.TaskEventHolder;
 import com.fuchsundlowe.macrolife.DataObjects.TaskObject;
 import com.fuchsundlowe.macrolife.DayView.DayDisplay_DayView;
 import com.fuchsundlowe.macrolife.EngineClasses.LocalStorage;
 import com.fuchsundlowe.macrolife.Interfaces.DataProviderNewProtocol;
-import com.fuchsundlowe.macrolife.DayView.DayDisplay_DayView.TaskEventHolder;
+
 import com.fuchsundlowe.macrolife.R;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;

@@ -796,7 +796,7 @@ public class LocalStorage implements DataProviderNewProtocol {
        }
        /*
         * For checkable tasks that are past due, I need to remove checkable attribute and put in
-        * unassigned tasks if after specific time period.
+        * undefined tasks if after specific time period.
         */
        void updateTaskCheckableStatus() {}
    }

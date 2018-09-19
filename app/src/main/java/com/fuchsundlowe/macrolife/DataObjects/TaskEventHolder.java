@@ -108,5 +108,12 @@ public class TaskEventHolder {
     public RepeatingEvent getEvent() {
         return event;
     }
+    public Calendar getLastTimeModified() {
+        if (isTask()) {
+            return task.getLastTimeModified();
+        } else {
+            return event.getLastTimeModified();
+        }
+    }
 
 }

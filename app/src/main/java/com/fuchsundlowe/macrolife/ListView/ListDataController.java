@@ -12,10 +12,14 @@ import com.fuchsundlowe.macrolife.EngineClasses.LocalStorage;
 import com.fuchsundlowe.macrolife.Interfaces.DataProviderNewProtocol;
 import com.fuchsundlowe.macrolife.Interfaces.P1;
 import com.fuchsundlowe.macrolife.Interfaces.P2;
+import com.fuchsundlowe.macrolife.Interfaces.P3;
 
 import java.util.ArrayList;
-import java.util.Calendar;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 /*
  * Class that manages database calls, filters data and creates LiveData Objects to be used for
@@ -40,13 +44,10 @@ import java.util.List;
   * the change to LDC and then LDC reports this change to all subscribers who should insert the task
   * in upcoming by updating their views.
  */
-class ListDataController implements P1 {
+class ListDataController implements P1, P3 {
 
     private Context mContext;
     private DataProviderNewProtocol dataMaster;
-
-    private boolean tasksHaveArrived, eventsHaveArrived = false;
-
 
     private LiveData<List<TaskObject>> allTaskObjects;
     private Observer<List<TaskObject>> observerForTasks;
@@ -54,16 +55,24 @@ class ListDataController implements P1 {
     private LiveData<List<RepeatingEvent>> allRepeatingEvents;
     private Observer<List<RepeatingEvent>> observerForEvents;
 
-    private List<TaskEventHolder> completed;
-    private List<TaskEventHolder> upcoming;
-    private List<TaskEventHolder> overdue;
     private List<TaskEventHolder> unassigned;
+    private List<TaskEventHolder> completed;
+    private List<TaskEventHolder>  upcoming;
+    private List<TaskEventHolder>  overdue;
 
-    private boolean setsEvaluated = false;
-    private List<P2> completedSet;
-    private List<P2> overdueSet;
-    private List<P2> upcomingSet;
+    private currentStatus tasksStatus, eventsStatus;
+
     private List<P2> unassignedSet;
+    private List<P2> completedSet;
+    private List<P2> upcomingSet;
+    private List<P2> overdueSet;
+
+    private AsyncSorter tasksSorter, eventsSorter;
+
+    private Map<bracketType, Boolean> toFlush;
+
+    private P3 self;
+
 
     protected ListDataController(Context context) {
         // Initialization phase:
@@ -79,258 +88,187 @@ class ListDataController implements P1 {
         allRepeatingEvents = dataMaster.getAllRepeatingEvents();
         allRepeatingEvents.observeForever(observerForEvents);
 
-
     }
     private void initiateData() {
 
-        completed = new ArrayList<>();
-        upcoming = new ArrayList<>();
-        overdue = new ArrayList<>();
-        unassigned = new ArrayList<>();
+        unassigned = Collections.synchronizedList(new ArrayList<TaskEventHolder>());
+        completed = Collections.synchronizedList(new ArrayList<TaskEventHolder>());
+        upcoming = Collections.synchronizedList(new ArrayList<TaskEventHolder>());
+        overdue = Collections.synchronizedList(new ArrayList<TaskEventHolder>());
 
-        completedSet = new ArrayList<>();
-        overdueSet = new ArrayList<>();
-        upcomingSet = new ArrayList<>();
         unassignedSet = new ArrayList<>();
+        completedSet = new ArrayList<>();
+        upcomingSet = new ArrayList<>();
+        overdueSet = new ArrayList<>();
 
-        final boolean tasksHaveArrived, eventsHaveArrived = false;
+        tasksStatus = currentStatus.notDefined;
+        eventsStatus = currentStatus.notDefined;
 
+        toFlush = new ConcurrentHashMap<>();
+        toFlush.put(bracketType.undefined, Boolean.FALSE);
+        toFlush.put(bracketType.completed, Boolean.FALSE);
+        toFlush.put(bracketType.upcoming, Boolean.FALSE);
+        toFlush.put(bracketType.overdue, Boolean.FALSE);
 
-        // TODO Implement, the meat of class
+        this.self = this;
+
         // Tasks:
         observerForTasks = new Observer<List<TaskObject>>() {
             @Override
             public void onChanged(@Nullable List<TaskObject> objects) {
-                // Evaluate and put into right groups
-                reportTaskHaveArrived();
-                sifter(objects);
+                if (tasksSorter != null) {
+                    tasksSorter.cancel(true);
+                }
+                tasksSorter = new AsyncSorter();
+                Transporter task = new Transporter(objects, null, unassigned,
+                        completed, upcoming, overdue, self);
+                tasksSorter.execute(task);
             }
         };
         // Events:
         observerForEvents = new Observer<List<RepeatingEvent>>() {
             @Override
             public void onChanged(@Nullable List<RepeatingEvent> events) {
-                reportEventsHaveArrived();
-                // Evaluate and put into right group
-                sifter((ArrayList<RepeatingEvent>) events);
+                // Send for sorting
+                if (eventsSorter != null) {
+                    eventsSorter.cancel(true);
+                }
+                eventsSorter = new AsyncSorter();
+                Transporter event = new Transporter(null, events, unassigned,
+                        completed, upcoming, overdue, self);
+                eventsSorter.execute(event);
             }
         };
-
-    }
-    private void reportTaskHaveArrived() {
-        tasksHaveArrived = true;
-    }
-    private void reportEventsHaveArrived() {
-        eventsHaveArrived = true;
-    }
-    // This method evaluates the holder and returns its target bracket
-    private bracketType evaluate(TaskEventHolder holder) {
-        // TODO : Evaluate the time it takes to calculate this...
-        long nan = System.nanoTime();
-        Calendar currentTime = Calendar.getInstance();
-        long nan2 = System.nanoTime();
-        long resForCal = nan2 -nan;
-
-        bracketType reportType = null;
-        switch (holder.getCompletionState()) {
-            case completed:
-                reportType = bracketType.completed;
-                break;
-            case incomplete:
-                /*
-                 * if its incomplete... establish if its reminder or t/e...
-                 * if reminder determine if day has passed
-                 *
-                 * if t/e establish end time if has passed
-                 */
-                switch (holder.getTimeDefined()) {
-                    case noTime:
-                        reportType = bracketType.unassigned;
-                        break;
-                    case onlyDate:
-                        // meaning its reminder, has the day passed?
-                        if (hasDayPassed(holder.getStartTime(), currentTime)) {
-                            reportType = bracketType.overdue;
-                        } else {
-                            reportType = bracketType.upcoming;
-                        }
-                        break;
-                    case dateAndTime:
-                        if (holder.getEndTime().before(currentTime)) {
-                            // means that it has passed
-                            reportType = bracketType.overdue;
-                        } else {
-                            reportType = bracketType.upcoming;
-                        }
-                        break;
-                }
-                break;
-            case notCheckable:
-                switch (holder.getTimeDefined()) {
-                    case noTime:
-                        reportType = bracketType.unassigned;
-                        break;
-                    case onlyDate:
-                        if (hasDayPassed(holder.getStartTime(), currentTime)) {
-                            reportType = bracketType.completed;
-                        } else {
-                            reportType = bracketType.upcoming;
-                        }
-                        break;
-                    case dateAndTime:
-                        if (holder.getEndTime().before(currentTime)) {
-                            reportType = bracketType.completed;
-                        } else {
-                            reportType = bracketType.upcoming;
-                        }
-                        break;
-                }
-                break;
-        }
-
-
-        long total = System.nanoTime();
-        long totalResult = total - nan;
-
-        return reportType;
-    }
-    private void sifter(List<TaskObject> o) {
-        // Remove all task objects from existing brackets
-        List<TaskEventHolder> toDelete = new ArrayList<>();
-        for (TaskEventHolder holder: completed) {
-            if (holder.isTask()) {
-                toDelete.add(holder);
-            }
-        }
-        completed.removeAll(toDelete);
-        toDelete.clear();
-        for (TaskEventHolder holder: overdue) {
-            if (holder.isTask()) {
-                toDelete.add(holder);
-            }
-        }
-        overdue.removeAll(toDelete);
-        toDelete.clear();
-        for (TaskEventHolder holder: upcoming) {
-            if (holder.isTask()) {
-                toDelete.add(holder);
-            }
-        }
-        upcoming.removeAll(toDelete);
-        toDelete.clear();
-        for (TaskEventHolder holder: unassigned) {
-            if (holder.isTask()) {
-                toDelete.add(holder);
-            }
-        }
-        unassigned.removeAll(toDelete);
-        toDelete.clear();
-
-        // now we need to distribute new ones inside the lot:
-        boolean editedCompleted = false;
-        boolean editedOverdue = false;
-        boolean editedUpcoming = false;
-        boolean editedUnassigned = false;
-        for (TaskObject object: o) {
-            TaskEventHolder holder = new TaskEventHolder(object, null);
-            switch (evaluate(holder)) {
-                case completed:
-                    editedCompleted = true;
-                    completed.add(holder);
-                    break;
-                case overdue:
-                    editedOverdue = true;
-                    overdue.add(holder);
-                    break;
-                case upcoming:
-                    editedUpcoming = true;
-                    upcoming.add(holder);
-                    break;
-                case unassigned:
-                    editedUnassigned = true;
-                    unassigned.add(holder);
-                    break;
-            }
-        }
-        if (editedCompleted) {
-            for (P2 subscriber: completedSet) {
-                subscriber.deliverCompleted(completed);
-            }
-        }
-        if (editedOverdue) {
-            for (P2 subscriber: overdueSet) {
-                subscriber.deliverOverdue(overdue);
-            }
-        }
-        if (editedUnassigned) {
-            for (P2 subscriber: unassignedSet) {
-                subscriber.deliverUnassigned(unassigned);
-            }
-        }
-        if (editedUpcoming) {
-            for (P2 subscriber: upcomingSet) {
-                subscriber.deliverUpcoming(upcoming);
-            }
-        }
-
-    }
-    private void sifter(ArrayList<RepeatingEvent> o) {
-
     }
 
-    // a helper method that determines if reminder has passed or not
-    private boolean hasDayPassed(Calendar day, Calendar currentTime) {
-        if (currentTime.get(Calendar.YEAR) == day.get(Calendar.YEAR)) {
-            return currentTime.get(Calendar.DAY_OF_YEAR) > day.get(Calendar.DAY_OF_YEAR);
-        } else {
-            return currentTime.get(Calendar.YEAR) > day.get(Calendar.YEAR);
-        }
-    }
-
-    // MARK Methods for dispensing data to Fragments
     // This method is called from ListView onDestroy class to delete any LiveData observeForever calls
     protected void destroy() {
+        self = null;
+
         if (allTaskObjects != null && observerForTasks != null) {
             allTaskObjects.removeObserver(observerForTasks);
+            observerForTasks = null;
         }
         if (allRepeatingEvents != null && observerForEvents != null) {
             allRepeatingEvents.removeObserver(observerForEvents);
+            observerForEvents = null;
         }
+        if (tasksSorter != null) {
+            tasksSorter.cancel(true);
+            tasksSorter = null;
+        }
+        if (eventsSorter != null) {
+            eventsSorter.cancel(true);
+            eventsSorter = null;
+        }
+
+        tasksStatus = currentStatus.notDefined;
+        eventsStatus = currentStatus.notDefined;
+
+        unassigned = null;
+        completed = null;
+        upcoming = null;
+        overdue = null;
+
+        unassignedSet = null;
+        completedSet = null;
+        upcomingSet = null;
+        overdueSet = null;
+
+        mContext = null;
+        dataMaster = null;
 
     }
 
-    // Protocol implementation:
+    // Protocol P2 implementation:
     public void reportChange(TaskEventHolder beingChanged) {
 
     }
     public void subscribeToCompleted(P2 protocol) {
         completedSet.add(protocol);
-        if (setsEvaluated) {
+        if (tasksStatus == currentStatus.ready && eventsStatus == currentStatus.ready) {
             protocol.deliverCompleted(completed);
-        } // if not, it will be delivered when completed
-
+        }
     }
     public void subscribeToOverdue(P2 protocol) {
         overdueSet.add(protocol);
-        if (setsEvaluated) {
+        if (tasksStatus == currentStatus.ready && eventsStatus == currentStatus.ready) {
             protocol.deliverOverdue(overdue);
         }
     }
     public void subscribeToUnassigned(P2 protocol) {
         unassignedSet.add(protocol);
-        if (setsEvaluated) {
+        if (tasksStatus == currentStatus.ready && eventsStatus == currentStatus.ready) {
             protocol.deliverUnassigned(unassigned);
         }
     }
     public void subscribeToUpcoming(P2 protocol) {
-        upcomingSet.add(protocol);
-        if (setsEvaluated) {
+        if (tasksStatus == currentStatus.ready && eventsStatus == currentStatus.ready) {
             protocol.deliverUpcoming(upcoming);
         }
-
     }
 
-    private enum bracketType {
-        completed, overdue, unassigned, upcoming
+
+    // Protocol P3 implementations:
+    @Override
+    public void markTasksReady() {
+        tasksStatus = currentStatus.ready;
+    }
+    @Override
+    public void markEventsReady() {
+        eventsStatus = currentStatus.ready;
+    }
+    @Override
+    public void changedOverdue() {
+        toFlush.put(bracketType.overdue, Boolean.TRUE);
+    }
+    @Override
+    public void changedUpcoming() {
+        toFlush.put(bracketType.upcoming, Boolean.TRUE);
+    }
+    @Override
+    public void changedCompleted() {
+        toFlush.put(bracketType.completed, Boolean.TRUE);
+    }
+    @Override
+    public void changedUnassigned() {
+        toFlush.put(bracketType.undefined, Boolean.TRUE);
+    }
+    @Override
+    public void flushChanges() {
+        if (tasksStatus == currentStatus.ready && eventsStatus == currentStatus.ready) {
+            if (toFlush.get(bracketType.overdue)) {
+                for (P2 fragment: overdueSet) {
+                    fragment.deliverOverdue(overdue);
+                }
+                toFlush.put(bracketType.overdue, Boolean.FALSE);
+            }
+            if (toFlush.get(bracketType.upcoming)) {
+                for (P2 fragment: upcomingSet) {
+                    fragment.deliverUpcoming(upcoming);
+                }
+                toFlush.put(bracketType.upcoming, Boolean.FALSE);
+            }
+            if (toFlush.get(bracketType.completed)) {
+                for (P2 fragment: completedSet) {
+                    fragment.deliverCompleted(completed);
+                }
+                toFlush.put(bracketType.completed, Boolean.FALSE);
+            }
+            if (toFlush.get(bracketType.undefined)) {
+                for (P2 fragment: unassignedSet) {
+                    fragment.deliverUnassigned(unassigned);
+                }
+                toFlush.put(bracketType.undefined, Boolean.FALSE);
+            }
+        }
+    }
+
+    // Enums:
+    protected enum bracketType {
+        completed, overdue, undefined, upcoming
+    }
+    private enum currentStatus {
+        ready, working, notDefined
     }
 }

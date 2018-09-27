@@ -22,7 +22,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import static com.fuchsundlowe.macrolife.ExampleUnitTest.jack.two;
+
 import static java.util.Calendar.YEAR;
 
 /**
@@ -34,18 +34,21 @@ public class ExampleUnitTest {
 
     @Test
     public void myTest() {
-        jack mk1 = jack.one;
-        jack mk2 = mk1;
 
-        mk2 = two;
+        Calendar one = Calendar.getInstance();
+        Calendar two = Calendar.getInstance();
+        two.add(Calendar.MONTH, 2);
 
-        System.out.print(mk1);
-        System.out.print(mk2);
+        long positive = distanceInDays(one,two);
+        long negative = distanceInDays(two, one);
 
+        String hint = "Where is the wisdom now Satan?";
     }
 
+    private long distanceInDays(Calendar start, Calendar end) {
+        DateTime mk1 = new DateTime(start.getTimeInMillis());
+        DateTime mk2 = new DateTime(end.getTimeInMillis());
 
-    enum jack {
-        one, two, three
+        return Days.daysBetween(mk1, mk2).getDays();
     }
 }

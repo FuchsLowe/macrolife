@@ -137,7 +137,11 @@ public class ReminderViewAdapter extends RecyclerView.Adapter<ReminderViewAdapte
                 public void onClick(View v) {
                     LocalBroadcastManager manager = LocalBroadcastManager.getInstance(baseView.getContext());
                     Intent intent = new Intent(Constants.INTENT_FILTER_GLOBAL_EDIT);
-                    intent.putExtra(Constants.INTENT_FILTER_FIELD_HASH_ID, reminderPresented.getMasterHashID());
+                    if (reminderPresented.isTask()) {
+                        intent.putExtra(Constants.INTENT_FILTER_TASK_ID, reminderPresented.getMasterHashID());
+                    } else {
+                        intent.putExtra(Constants.INTENT_FILTER_EVENT_ID, reminderPresented.getActiveID());
+                    }
                     manager.sendBroadcast(intent);
 
                 }

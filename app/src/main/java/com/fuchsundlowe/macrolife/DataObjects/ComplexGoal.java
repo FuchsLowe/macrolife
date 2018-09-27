@@ -21,28 +21,20 @@ public class ComplexGoal {
     protected int hashID;
     protected String taskName;
     @Ignore
-    public Calendar taskEndTime; //Todo: Do I need This
+    public Calendar taskEndTime;
     private Calendar lastTimeModified;
     protected Calendar taskCreatedTimeStamp;
-    protected boolean isTaskCompleted;
-    private SourceType taskOriginalSource ;
     private String purpose;
 
     public ComplexGoal(int hashID, String taskName, Calendar taskCreatedTimeStamp,
                        Calendar lastTimeModified,
-                       boolean isTaskCompleted, SourceType taskOriginalSource,
                        String purpose) {
-
 
         this.hashID = hashID;
         this.taskName = taskName;
         this.taskCreatedTimeStamp =taskCreatedTimeStamp;
-        this.isTaskCompleted = isTaskCompleted;
-        this.taskOriginalSource = taskOriginalSource;
         this.purpose = purpose;
         this.lastTimeModified = lastTimeModified;
-
-
     } 
 
 
@@ -88,19 +80,5 @@ public class ComplexGoal {
     }
     public void setTaskCreatedTimeStamp(Calendar taskCreatedTimeStamp) {
         this.taskCreatedTimeStamp = taskCreatedTimeStamp;
-    }
-
-    public boolean isTaskCompleted() {
-        return isTaskCompleted;
-    }
-    public void setTaskCompleted(boolean taskCompleted) {
-        isTaskCompleted = taskCompleted;
-    }
-
-    public SourceType getTaskOriginalSource() {
-        return taskOriginalSource;
-    }
-    public void setTaskOriginalSource(SourceType taskOriginalSource) {
-        this.taskOriginalSource = taskOriginalSource;
     }
 }

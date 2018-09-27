@@ -19,7 +19,8 @@ public class Constants {
     public static String DATA_BASE_NAME = "MK1";
     public static String INTENT_FILTER_GLOBAL_EDIT = "Global Edit Signaling";
     public static String INTENT_FILTER_NEW_TASK = "This is new task";
-    public static String INTENT_FILTER_FIELD_HASH_ID = "Get me the hash ID";
+    public static String INTENT_FILTER_TASK_ID = "Get me the hash ID";
+    public static String INTENT_FILTER_EVENT_ID = "Give me the events ID boo";
     public static String INTENT_FILTER_FIELD_MOD_TYPE = "The Mod this task has now";
     public static String INTENT_FILTER_FIELD_START_TIME = "Time of start in Long";
     public static String INTENT_FILTER_RECOMMENDATION = "Get the recommendation engine";

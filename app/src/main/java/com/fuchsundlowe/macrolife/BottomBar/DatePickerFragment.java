@@ -3,9 +3,11 @@ package com.fuchsundlowe.macrolife.BottomBar;
 import android.app.DatePickerDialog;
 import android.app.Dialog;
 import android.os.Bundle;
+import android.support.annotation.Nullable;
 import android.support.v4.app.DialogFragment;
 import android.widget.DatePicker;
 
+import com.fuchsundlowe.macrolife.DataObjects.RepeatingEvent;
 import com.fuchsundlowe.macrolife.DataObjects.TaskObject;
 import com.fuchsundlowe.macrolife.Interfaces.EditTaskProtocol;
 
@@ -16,6 +18,7 @@ public class DatePickerFragment extends DialogFragment
 
     private EditTaskProtocol protocol;
     private TaskObject taskObject;
+    private RepeatingEvent eventObject;
     private boolean isEditingStartValue;
 
     @Override
@@ -24,16 +27,32 @@ public class DatePickerFragment extends DialogFragment
         Calendar c;
         DatePickerDialog datePicker;
         if (isEditingStartValue) {
-            if (taskObject.getTaskStartTime() != null && taskObject.getTaskStartTime().getTimeInMillis() > 0) {
-                c = taskObject.getTaskStartTime();
+            if (isTask()) {
+                if (taskObject.getTaskStartTime() != null && taskObject.getTaskStartTime().getTimeInMillis() > 0) {
+                    c = taskObject.getTaskStartTime();
+                } else {
+                    c = Calendar.getInstance();
+                }
             } else {
-                c = Calendar.getInstance();
+                if (eventObject.getStartTime() != null && eventObject.getStartTime().getTimeInMillis() > 0) {
+                    c = eventObject.getStartTime();
+                } else {
+                    c = Calendar.getInstance();
+                }
             }
         } else {
-            if (taskObject.getTaskEndTime() != null && taskObject.getTaskEndTime().getTimeInMillis() > 0) {
-                c = taskObject.getTaskEndTime();
+            if (isTask()) {
+                if (taskObject.getTaskEndTime() != null && taskObject.getTaskEndTime().getTimeInMillis() > 0) {
+                    c = taskObject.getTaskEndTime();
+                } else {
+                    c = Calendar.getInstance();
+                }
             } else {
-                c = Calendar.getInstance();
+                if (eventObject.getEndTime() != null && eventObject.getEndTime().getTimeInMillis() > 0) {
+                    c = eventObject.getEndTime();
+                } else {
+                    c = Calendar.getInstance();
+                }
             }
         }
 
@@ -53,24 +72,36 @@ public class DatePickerFragment extends DialogFragment
         return datePicker;
     }
 
-    public void defineMe(TaskObject objectManipulated, EditTaskProtocol protocol, boolean isEditingStartValue) {
+    public void defineMe(TaskObject objectManipulated, @Nullable RepeatingEvent eventManipulated, EditTaskProtocol protocol, boolean isEditingStartValue) {
         this.protocol = protocol;
         this.taskObject = objectManipulated;
+        this.eventObject = eventManipulated;
         this.isEditingStartValue = isEditingStartValue;
     }
 
     public void onDateSet(DatePicker view, int year, int month, int day) {
         Calendar valueEdited;
-        if (isEditingStartValue) {
-            valueEdited = taskObject.getTaskStartTime();
+        if (isEditingStartValue) { // todo make it take repeating events
+            if (isTask()) {
+                valueEdited = taskObject.getTaskStartTime();
+            } else {
+                valueEdited = eventObject.getStartTime();
+            }
         } else {
             // Establish if end time comes before Start time
-            valueEdited = taskObject.getTaskEndTime();
+            if (isTask()) {
+                valueEdited = taskObject.getTaskEndTime();
+            } else {
+                valueEdited = eventObject.getEndTime();
+            }
         }
         valueEdited.set(Calendar.YEAR, year);
         valueEdited.set(Calendar.MONTH, month);
         valueEdited.set(Calendar.DAY_OF_MONTH, day);
-        protocol.saveTask(taskObject, null);
+        protocol.saveTask(taskObject, eventObject);
 
+    }
+    private boolean isTask() {
+        return eventObject == null;
     }
 }

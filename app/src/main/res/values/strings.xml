@@ -18,7 +18,7 @@
     <string name="set_start_time">You must set start time before setting end time</string>
     <string name="toast_no_pattern">No repeat pattern defined</string>
     <string name="go_to_editing_options">Repeating events dates should be altered via its own tab</string>
-
+    <!--Days of week-->
     <string name="Monday_Short">M</string>
     <string name="Tuesday_Short">T</string>
     <string name="Wednesday_Short">W</string>
@@ -27,14 +27,24 @@
     <string name="Saturday_Short">S</string>
     <string name="Sunday_Short">S</string>
 
+    <string name="Monday_Long">Monday</string>
+    <string name="Tuesday_Long">Tuesday</string>
+    <string name="Wednesday_Long">Wednesday</string>
+    <string name="Thursday_Long">Thursday</string>
+    <string name="Friday_Long">Friday</string>
+    <string name="Saturday_Long">Saturday</string>
+    <string name="Sunday_Long">Sunday</string>
+
     <string name="week">Week number</string>
     <string name="to">to</string>
+
     <!--This is used for representing the repeat type in repeatEventEditor, for use in bottom Adapter-->
     <string name="daily">Daily</string>
     <string name="weekCustom">Custom week</string>
     <string name="twoWeeks">Every 2 weeks</string>
     <string name="monthly">Monthly</string>
     <string name="yearly">Yearly</string>
+
     <!--Tags for Mod Buttons: specialty states-->
     <string name="repeating">repeating</string>
     <string name="delete">delete</string>
@@ -45,4 +55,22 @@
     <string name="date">date</string>
     <string name="time">time</string>
     <string name="clear">clear</string>
+    
+    <!-- Tags for List View Time Field -->
+    <string name="listView_textForCompletedTask">Task completed on _</string>
+
+    <string name="listView_textForOverdueTask_minutes">Task was due _ minutes ago</string>
+    <string name="listView_textForOverdueTask_hours">Task was due _ hours ago</string>
+    <string name="listView_textForOverdueTask_days">Task was due _ days ago</string>
+    <string name="listView_textForOverdueTask_yesterday">Task was due yesterday</string>
+
+    <string name="listView_textForUpcomingTask_inProgress">Task in progress</string>
+    <string name="listView_textForUpcomingTask_dueToday">Task due today</string>
+    <string name="listView_textForUpcomingTask_underHour">Task is due in _ minutes</string>
+    <string name="listView_textForUpcomingTask_today">Task due today at _</string>
+    <string name="listView_textForUpcomingTask_tomorrow">Task due tomorrow</string>
+    <string name="listView_textForUpcomingTask_tomorrowAt">Task due tomorrow at _</string>
+    <string name="listView_textForUpcomingTask_dueOn">Task is due on _</string>
+
+
 </resources>

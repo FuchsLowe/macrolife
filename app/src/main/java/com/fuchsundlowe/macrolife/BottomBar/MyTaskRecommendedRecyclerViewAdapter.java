@@ -82,7 +82,7 @@ public class MyTaskRecommendedRecyclerViewAdapter extends RecyclerView.Adapter<M
                     // Test The call of edit...
                     LocalBroadcastManager manager = LocalBroadcastManager.getInstance(me.getContext());
                     Intent intent = new Intent(Constants.INTENT_FILTER_GLOBAL_EDIT);
-                    intent.putExtra(Constants.INTENT_FILTER_FIELD_HASH_ID, data.getHashID());
+                    intent.putExtra(Constants.INTENT_FILTER_TASK_ID, data.getHashID());
                     manager.sendBroadcast(intent);
                 }
             });

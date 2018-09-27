@@ -33,15 +33,13 @@ import com.fuchsundlowe.macrolife.Interfaces.BottomBarCommunicationProtocol;
 import com.fuchsundlowe.macrolife.Interfaces.DataProviderNewProtocol;
 import com.fuchsundlowe.macrolife.Interfaces.EditTaskProtocol;
 import com.fuchsundlowe.macrolife.R;
-import com.fuchsundlowe.macrolife.TestCases.TestOfAlpha;
+
 import java.util.Calendar;
 import java.util.HashMap;
-
-
 import static com.fuchsundlowe.macrolife.BottomBar.EditTaskBottomBar.EditTaskState.editTask;
 
 // This class manages the Bottom Bar in edit task or creating a new task... Holder of 3 Layouts
-// The base class of bottom bar implementations:
+// The base class of bottom bar implementations...
 public class EditTaskBottomBar extends Fragment implements EditTaskProtocol {
 
     //Variables and instances:
@@ -54,6 +52,7 @@ public class EditTaskBottomBar extends Fragment implements EditTaskProtocol {
     private int MIN_PADDING_BETWEEN_BUTTONS = 10;
     private HashMap<TaskObject.Mods, ModButton> modButtons;
     private TaskObject taskObject;
+    private RepeatingEvent eventObject;
     private LayoutInflater inflater;
     private ModButton.SpecialtyButton modSelected = null; // Should be either start or end
     private Context context;
@@ -101,9 +100,11 @@ public class EditTaskBottomBar extends Fragment implements EditTaskProtocol {
 
     // Editing of object appearance:
     public void defineMe(final EditTaskState setState, @Nullable TaskObject taskManipulated,
+                         @Nullable RepeatingEvent eventManipulated,
                          final BottomBarCommunicationProtocol parentProtocol, int sizeToWorkWith) {
         this.state = setState;
         this.taskObject = taskManipulated;
+        this.eventObject = eventManipulated;
         this.parentProtocol = parentProtocol;
         this.sizeOfParent = sizeToWorkWith;
     }
@@ -122,9 +123,7 @@ public class EditTaskBottomBar extends Fragment implements EditTaskProtocol {
                     public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
                         if (actionId == EditorInfo.IME_ACTION_DONE) {
                             if (v.getText().length() > 0) {
-                                // TODO: return this to whoever needs it...
                                 TaskObject newTaskCreated = createNewTask(v.getText().toString());
-                                // TODO: If this is not possible, return new object to Activity and resend it here.
                                 setState(editTask);
                             }
                             baseView.requestLayout();
@@ -138,13 +137,12 @@ public class EditTaskBottomBar extends Fragment implements EditTaskProtocol {
                 dynamicArea.requestLayout();
                 return;
             case editTask:
-                if (taskObject != null) {
-                    dynamicArea.removeAllViews();
-                    dynamicArea.setVisibility(View.VISIBLE);
-                    editView = new EditingView_BottomBar(getContext());
-                    dynamicArea.addView(editView);
-                    editView.insertData(taskObject, null, this);
-                    defineModButtons();
+                dynamicArea.removeAllViews();
+                dynamicArea.setVisibility(View.VISIBLE);
+                editView = new EditingView_BottomBar(getContext());
+                dynamicArea.addView(editView);
+                editView.insertData(taskObject, eventObject, this);
+                defineModButtons();
                     /* TODO:
                      * Should I Change the color of the button on possible mod? Problem is
                      * that change of color is expected when button gets clicked and having
@@ -161,9 +159,8 @@ public class EditTaskBottomBar extends Fragment implements EditTaskProtocol {
                         modButtons.get(mod).setModActive(true);
                     }
                     */
-                    dynamicArea.requestLayout();
-                    return;
-                } else {return;}
+                dynamicArea.requestLayout();
+                return;
         }
     }
     /*
@@ -297,7 +294,11 @@ public class EditTaskBottomBar extends Fragment implements EditTaskProtocol {
               // We report back to DayView to complete the deletion Progress and decide what to do
                 // whith this view
                 popupWindow.dismiss();
-                parentProtocol.reportDeleteTask(taskObject);
+                if (isTask()) {
+                    parentProtocol.reportDeleteTask(taskObject);
+                } else {
+                    parentProtocol.reportDeleteEvent(eventObject);
+                }
             }
         });
         Button cancelButton = warningBox.findViewById(R.id.cancelButton_deleteWarning);
@@ -378,6 +379,9 @@ public class EditTaskBottomBar extends Fragment implements EditTaskProtocol {
             }
         }, filter);
     }
+    private boolean isTask() {
+        return eventObject == null;
+    }
 
     //EditTaskProtocol implementation:
     @Override
@@ -420,7 +424,7 @@ public class EditTaskBottomBar extends Fragment implements EditTaskProtocol {
                                 case startValues:
                                     // Present the date
                                     EventDatePicker dateFragment = new EventDatePicker();
-                                    startValue = (Calendar)taskObject.getTaskStartTime().clone();
+                                    startValue = (Calendar) taskObject.getTaskStartTime().clone();
                                     dateFragment.defineMe(startValue, null, getContext());
                                     dateFragment.show(self.requireFragmentManager(), "DateFragment");
                                     break;
@@ -440,7 +444,7 @@ public class EditTaskBottomBar extends Fragment implements EditTaskProtocol {
                                 case repeating:
                                     // Produce Editor
                                     /*
-                                     * NOTE: Since I need to be able to revert back to the start, end
+                                     * Since I need to be able to revert back to the start, end
                                      * and other values, I would like then to just hide the dynamic area
                                      * that shows them and present editor in maybe modArea one.
                                      * Then When I call done it will just remove the mod area one views
@@ -545,126 +549,130 @@ public class EditTaskBottomBar extends Fragment implements EditTaskProtocol {
                     } else {
                         taskObject.setIsTaskCompleted(TaskObject.CheckableStatus.notCheckable);
                     }
-                    saveTask(taskObject, null);
+                    saveTask(taskObject, eventObject);
                 }
                 break;
             case delete:
                 presentDeleteWarning();
                 break;
             case dateAndTime:
+                /* NOTE: Don't think this is teh right way, since you can edit repeating event values normally...
                 if (taskObject.isThisRepeatingEvent()) {
                     // Make a Toast indicating that this is not doable since its repeating event:
                     Toast actionNotDoable = Toast.makeText(getContext(),R.string.go_to_editing_options, Toast.LENGTH_SHORT);
                     actionNotDoable.show();
                     break;
                 } else {
-                    dynamicArea.setVisibility(View.GONE);
-                    modAreaOne.removeAllViews();
-                    modAreaOne.setVisibility(View.GONE);
-                    modAreaTwo.removeAllViews();
-                    // Defining the click listeners for buttons that are presented for this mod
-                    View.OnClickListener localClickListener = new View.OnClickListener() {
-                        @Override
-                        public void onClick(View v) {
-                            if (v instanceof ModButton) {
-                                switch (((ModButton) v).reportButtonType()) {
-                                    case startValues:
-                                        modAreaOne.setVisibility(View.VISIBLE);
-                                        modSelected = ModButton.SpecialtyButton.startValues;
-                                        break;
-                                    case endValues:
-                                        modAreaOne.setVisibility(View.VISIBLE);
-                                        modSelected = ModButton.SpecialtyButton.endValues;
-                                        break;
-                                    case clear:
-                                        // Detect which value to delete
-                                        if (modSelected == ModButton.SpecialtyButton.startValues) {
-                                            taskObject.setTimeDefined(TaskObject.TimeDefined.noTime);
-                                        } else {
-                                            taskObject.setTimeDefined(TaskObject.TimeDefined.onlyDate);
-                                            taskObject.setTaskEndTime(null);
-                                        }
-                                        dataProvider.saveTaskObject(taskObject);
-                                        break;
-                                    case delete:
-                                        // Should there be warning?
+
+                }
+                */
+                dynamicArea.setVisibility(View.GONE);
+                modAreaOne.removeAllViews();
+                modAreaOne.setVisibility(View.GONE);
+                modAreaTwo.removeAllViews();
+                // Defining the click listeners for buttons that are presented for this mod
+                View.OnClickListener localClickListener = new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        if (v instanceof ModButton) {
+                            switch (((ModButton) v).reportButtonType()) {
+                                case startValues:
+                                    modAreaOne.setVisibility(View.VISIBLE);
+                                    modSelected = ModButton.SpecialtyButton.startValues;
+                                    break;
+                                case endValues:
+                                    modAreaOne.setVisibility(View.VISIBLE);
+                                    modSelected = ModButton.SpecialtyButton.endValues;
+                                    break;
+                                case clear:
+                                    // Detect which value to delete
+                                    if (modSelected == ModButton.SpecialtyButton.startValues) {
                                         taskObject.setTimeDefined(TaskObject.TimeDefined.noTime);
-                                        break;
-                                    case time:
-                                        TimePickerFragment timeFragment = new TimePickerFragment();
-                                        if (modSelected == ModButton.SpecialtyButton.startValues) {
-                                            timeFragment.defineMe(taskObject, self, true);
-                                        } else if (modSelected == ModButton.SpecialtyButton.endValues) {
-                                            timeFragment.defineMe(taskObject, self, false);
-                                        }
-                                        timeFragment.show(requireFragmentManager(), "TimeFragment");
-                                        break;
-                                    case date:
-                                        com.fuchsundlowe.macrolife.BottomBar.DatePickerFragment dateFragment =
-                                                new com.fuchsundlowe.macrolife.BottomBar.DatePickerFragment();
-                                        if (modSelected == ModButton.SpecialtyButton.startValues) {
-                                            dateFragment.defineMe(taskObject, self, true);
-                                        } else if (modSelected == ModButton.SpecialtyButton.endValues) {
-                                            dateFragment.defineMe(taskObject, self, false);
-                                        }
-                                        dateFragment.show(requireFragmentManager(), "DateFragment");
-                                        break;
-                                    case save:
-                                        saveTask(taskObject, null);
-                                        modDone();
-                                        break;
-                                }
+                                    } else {
+                                        taskObject.setTimeDefined(TaskObject.TimeDefined.onlyDate);
+                                        taskObject.setTaskEndTime(null);
+                                    }
+                                    dataProvider.saveTaskObject(taskObject);
+                                    break;
+                                case delete:
+                                    // Should there be warning?
+                                    taskObject.setTimeDefined(TaskObject.TimeDefined.noTime);
+                                    break;
+                                case time:
+                                    TimePickerFragment timeFragment = new TimePickerFragment();
+                                    if (modSelected == ModButton.SpecialtyButton.startValues) {
+                                        timeFragment.defineMe(taskObject, eventObject, self, true);
+                                    } else if (modSelected == ModButton.SpecialtyButton.endValues) {
+                                        timeFragment.defineMe(taskObject, eventObject, self, false);
+                                    }
+                                    timeFragment.show(requireFragmentManager(), "TimeFragment");
+                                    break;
+                                case date:
+                                    com.fuchsundlowe.macrolife.BottomBar.DatePickerFragment dateFragment =
+                                            new com.fuchsundlowe.macrolife.BottomBar.DatePickerFragment();
+                                    if (modSelected == ModButton.SpecialtyButton.startValues) {
+                                        dateFragment.defineMe(taskObject, eventObject, self, true);
+                                    } else if (modSelected == ModButton.SpecialtyButton.endValues) {
+                                        dateFragment.defineMe(taskObject, eventObject, self, false);
+                                    }
+                                    dateFragment.show(requireFragmentManager(), "DateFragment");
+                                    break;
+                                case save:
+                                    saveTask(taskObject, eventObject);
+                                    modDone();
+                                    break;
                             }
                         }
-                    };
-
-                    // Defining the buttons:
-                    ModButton.SpecialtyButton[] firstRowButtons = {ModButton.SpecialtyButton.date,
-                            ModButton.SpecialtyButton.time, ModButton.SpecialtyButton.clear};
-                    ModButton.SpecialtyButton[] secondRow = {ModButton.SpecialtyButton.startValues,
-                            ModButton.SpecialtyButton.endValues}; //, ModButton.SpecialtyButton.delete, ModButton.SpecialtyButton.clear};
-                    int[] paddingAndButtonValues = calculatePaddingAndButtonHeight(firstRowButtons.length, secondRow.length);
-
-                    // Creating the first row buttons and adding them along with space for even look
-                    for (ModButton.SpecialtyButton value : firstRowButtons) {
-                        ModButton button = new ModButton(getContext(), value, localClickListener);
-                        button.setLayoutParams(new ConstraintLayout.LayoutParams(paddingAndButtonValues[0],
-                                paddingAndButtonValues[0]));
-                        Space space = new Space(context);
-                        LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, 5);
-                        lp.weight = 1;
-                        space.setLayoutParams(lp);
-                        modAreaOne.addView(space);
-                        modAreaOne.addView(button);
                     }
-                    // This one is added at the end to make everything even
-                    Space spaceUpper = new Space(context);
-                    LinearLayout.LayoutParams lpu = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, 5);
-                    lpu.weight = 1;
-                    spaceUpper.setLayoutParams(lpu);
-                    modAreaOne.addView(spaceUpper);
+                };
 
-                    // Creating the second row buttons and adding them along with space for even look
-                    for (ModButton.SpecialtyButton value : secondRow) {
-                        ModButton button = new ModButton(getContext(), value, localClickListener);
-                        //button.setPadding(paddingAndButtonValues[2],0,0,0);
-                        button.setLayoutParams(new ConstraintLayout.LayoutParams(paddingAndButtonValues[0],
-                                paddingAndButtonValues[0]));
-                        Space space = new Space(context);
-                        LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, 5);
-                        lp.weight = 1;
-                        space.setLayoutParams(lp);
-                        modAreaTwo.addView(space);
-                        modAreaTwo.addView(button);
-                    }
-                    Space spaceLower = new Space(context);
-                    LinearLayout.LayoutParams lpl = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, 5);
-                    lpl.weight = 1;
-                    spaceLower.setLayoutParams(lpl);
-                    modAreaTwo.addView(spaceLower);
-                    // Done:
-                    break;
+                // Defining the buttons:
+                ModButton.SpecialtyButton[] firstRowButtons = {ModButton.SpecialtyButton.date,
+                        ModButton.SpecialtyButton.time, ModButton.SpecialtyButton.clear};
+                ModButton.SpecialtyButton[] secondRow = {ModButton.SpecialtyButton.startValues,
+                        ModButton.SpecialtyButton.endValues}; //, ModButton.SpecialtyButton.delete, ModButton.SpecialtyButton.clear};
+                int[] paddingAndButtonValues = calculatePaddingAndButtonHeight(firstRowButtons.length, secondRow.length);
+
+                // Creating the first row buttons and adding them along with space for even look
+                for (ModButton.SpecialtyButton value : firstRowButtons) {
+                    ModButton button = new ModButton(getContext(), value, localClickListener);
+                    button.setLayoutParams(new ConstraintLayout.LayoutParams(paddingAndButtonValues[0],
+                            paddingAndButtonValues[0]));
+                    Space space = new Space(context);
+                    LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, 5);
+                    lp.weight = 1;
+                    space.setLayoutParams(lp);
+                    modAreaOne.addView(space);
+                    modAreaOne.addView(button);
                 }
+                // This one is added at the end to make everything even
+                Space spaceUpper = new Space(context);
+                LinearLayout.LayoutParams lpu = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, 5);
+                lpu.weight = 1;
+                spaceUpper.setLayoutParams(lpu);
+                modAreaOne.addView(spaceUpper);
+
+                // Creating the second row buttons and adding them along with space for even look
+                for (ModButton.SpecialtyButton value : secondRow) {
+                    ModButton button = new ModButton(getContext(), value, localClickListener);
+                    //button.setPadding(paddingAndButtonValues[2],0,0,0);
+                    button.setLayoutParams(new ConstraintLayout.LayoutParams(paddingAndButtonValues[0],
+                            paddingAndButtonValues[0]));
+                    Space space = new Space(context);
+                    LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, 5);
+                    lp.weight = 1;
+                    space.setLayoutParams(lp);
+                    modAreaTwo.addView(space);
+                    modAreaTwo.addView(button);
+                }
+                Space spaceLower = new Space(context);
+                LinearLayout.LayoutParams lpl = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, 5);
+                lpl.weight = 1;
+                spaceLower.setLayoutParams(lpl);
+                modAreaTwo.addView(spaceLower);
+                // Done:
+                break;
+
         }
     }
     @Override

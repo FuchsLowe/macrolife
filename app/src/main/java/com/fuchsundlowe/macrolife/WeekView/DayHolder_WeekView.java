@@ -1,21 +1,13 @@
 package com.fuchsundlowe.macrolife.WeekView;
 
 
-import android.arch.lifecycle.LifecycleOwner;
-import android.arch.lifecycle.Observer;
 import android.content.Context;
 import android.content.Intent;
-import android.os.Bundle;
-import android.app.Fragment;
-import android.os.Handler;
-import android.os.Looper;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.AttributeSet;
-import android.util.Log;
 import android.view.DragEvent;
-import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
@@ -27,16 +19,14 @@ import com.fuchsundlowe.macrolife.DataObjects.Constants;
 import com.fuchsundlowe.macrolife.DataObjects.RepeatingEvent;
 import com.fuchsundlowe.macrolife.DataObjects.TaskEventHolder;
 import com.fuchsundlowe.macrolife.DataObjects.TaskObject;
-import com.fuchsundlowe.macrolife.DayView.DayDisplay_DayView;
 import com.fuchsundlowe.macrolife.EngineClasses.LocalStorage;
 import com.fuchsundlowe.macrolife.Interfaces.DataProviderNewProtocol;
 
 import com.fuchsundlowe.macrolife.R;
-import java.text.DateFormat;
+
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.Comparator;
 import java.util.List;
 
 /**
@@ -294,7 +284,7 @@ public class DayHolder_WeekView extends FrameLayout implements DayHolderCommunic
         dataProvider.saveTaskObject(newTaskWeCreate);
         LocalBroadcastManager broadcastManager = LocalBroadcastManager.getInstance(getContext());
         Intent mIntent = new Intent(Constants.INTENT_FILTER_NEW_TASK);
-        mIntent.putExtra(Constants.INTENT_FILTER_FIELD_HASH_ID, newHashId);
+        mIntent.putExtra(Constants.INTENT_FILTER_TASK_ID, newHashId);
         mIntent.putExtra(Constants.TASK_OBJECT, newTaskWeCreate);
         broadcastManager.sendBroadcast(mIntent);
     }

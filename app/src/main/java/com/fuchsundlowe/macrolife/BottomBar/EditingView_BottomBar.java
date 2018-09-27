@@ -49,9 +49,17 @@ public class EditingView_BottomBar extends FrameLayout {
             public void onClick(View v) {
                 if (v instanceof CheckBox) {
                     if (((CheckBox) v).isChecked()) {
-                        taskObject.setIsTaskCompleted(TaskObject.CheckableStatus.completed);
+                        if (isTask()) {
+                            taskObject.setIsTaskCompleted(TaskObject.CheckableStatus.completed);
+                        } else {
+                            event.setIsTaskCompleted(TaskObject.CheckableStatus.completed);
+                        }
                     } else {
-                        taskObject.setIsTaskCompleted(TaskObject.CheckableStatus.incomplete);
+                        if (isTask()) {
+                            taskObject.setIsTaskCompleted(TaskObject.CheckableStatus.incomplete);
+                        } else {
+                            event.setIsTaskCompleted(TaskObject.CheckableStatus.incomplete);
+                        }
                     }
                     reportDataEdited();
                 }
@@ -81,7 +89,14 @@ public class EditingView_BottomBar extends FrameLayout {
         this.protocolProvider = protocol;
         this.taskObject = taskObject;
         taskName.setText(taskObject.getTaskName());
-        switch (taskObject.getIsTaskCompleted()) {
+        TaskObject.CheckableStatus status;
+        if (isTask()) {
+            status = taskObject.getIsTaskCompleted();
+        } else {
+            status = event.getIsTaskCompleted();
+        }
+
+        switch (status) {
             case notCheckable:
                 box.setVisibility(GONE);
                 break;
@@ -124,6 +139,10 @@ public class EditingView_BottomBar extends FrameLayout {
     }
     private void reportDataEdited() {
         protocolProvider.saveTask(taskObject, event);
+    }
+    // Returns true if we are editing the Task, else false if we are doing the event
+    private boolean isTask() {
+        return event == null;
     }
 
 }

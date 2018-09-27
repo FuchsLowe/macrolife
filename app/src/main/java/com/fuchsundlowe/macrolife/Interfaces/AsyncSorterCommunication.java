@@ -1,6 +1,9 @@
 package com.fuchsundlowe.macrolife.Interfaces;
 
-public interface P3 {
+import java.util.Map;
+
+// A protocol that enables communication back from AsyncSorter to LDC...
+public interface AsyncSorterCommunication {
 
     void markTasksReady();
     void markEventsReady();
@@ -9,6 +12,8 @@ public interface P3 {
     void changedUpcoming();
     void changedCompleted();
     void changedUnassigned();
+
+    void deliverNewComplexTotals(Map<Integer, Integer> completed, Map<Integer, Integer> incomplete);
 
     void flushChanges();
 }

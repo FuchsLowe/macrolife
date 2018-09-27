@@ -11,8 +11,6 @@ import android.os.Looper;
 import android.support.annotation.Nullable;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.AttributeSet;
-import android.util.Log;
-import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.CheckBox;
@@ -22,25 +20,19 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 import com.fuchsundlowe.macrolife.DataObjects.ComplexGoal;
 import com.fuchsundlowe.macrolife.DataObjects.Constants;
-import com.fuchsundlowe.macrolife.DataObjects.RepeatingEvent;
 import com.fuchsundlowe.macrolife.DataObjects.TaskEventHolder;
 import com.fuchsundlowe.macrolife.DataObjects.TaskObject;
 
 import com.fuchsundlowe.macrolife.EngineClasses.LocalStorage;
 import com.fuchsundlowe.macrolife.Interfaces.DataProviderNewProtocol;
 import com.fuchsundlowe.macrolife.R;
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
+
 import java.util.Calendar;
 import java.util.HashMap;
 import java.util.List;
 
 
 import com.fuchsundlowe.macrolife.WeekView.DayHolder_WeekView.TimeCapsule;
-
-import static com.fuchsundlowe.macrolife.DataObjects.TaskObject.CheckableStatus.completed;
-import static com.fuchsundlowe.macrolife.DataObjects.TaskObject.CheckableStatus.incomplete;
-import static com.fuchsundlowe.macrolife.DataObjects.TaskObject.CheckableStatus.notCheckable;
 
 
 // A task object used in WeekDisplay
@@ -305,7 +297,11 @@ public class WeekTask extends FrameLayout {
     private void sendGlobalEditBroadcast() {
         LocalBroadcastManager manager = LocalBroadcastManager.getInstance(context);
         Intent intent = new Intent(Constants.INTENT_FILTER_GLOBAL_EDIT);
-        intent.putExtra(Constants.INTENT_FILTER_FIELD_HASH_ID, dataToPresent.getMasterHashID());
+        if (dataToPresent.isTask()) {
+            intent.putExtra(Constants.INTENT_FILTER_TASK_ID, dataToPresent.getMasterHashID());
+        } else {
+            intent.putExtra(Constants.INTENT_FILTER_EVENT_ID, dataToPresent.getActiveID());
+        }
         manager.sendBroadcast(intent);
     }
     private void initDragAndDrop() {

@@ -242,7 +242,7 @@ public class ListFragment extends Fragment implements DateAndTimeProtocol {
             case 0:
                 String taskPurpose = purpose.getText().toString();
                 ComplexGoal goal = new ComplexGoal(0, taskName, Calendar.getInstance(),
-                        Calendar.getInstance(), false, SourceType.local, null);
+                        Calendar.getInstance(), "");
 
                 dataMaster.insertObject(goal);
                 // TODO: Open a complex creator?

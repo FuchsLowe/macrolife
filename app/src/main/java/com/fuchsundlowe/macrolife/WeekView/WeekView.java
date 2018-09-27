@@ -18,6 +18,7 @@ import android.widget.FrameLayout;
 import com.fuchsundlowe.macrolife.BottomBar.EditTaskBottomBar;
 import com.fuchsundlowe.macrolife.BottomBar.RecommendationBar;
 import com.fuchsundlowe.macrolife.DataObjects.Constants;
+import com.fuchsundlowe.macrolife.DataObjects.RepeatingEvent;
 import com.fuchsundlowe.macrolife.DataObjects.TaskObject;
 import com.fuchsundlowe.macrolife.EngineClasses.LocalStorage;
 import com.fuchsundlowe.macrolife.Interfaces.BottomBarCommunicationProtocol;
@@ -81,8 +82,15 @@ public class WeekView extends AppCompatActivity implements BottomBarCommunicatio
             public void onReceive(Context context, Intent intent) {
                 if (intent.getAction().equals(Constants.INTENT_FILTER_GLOBAL_EDIT)) {
                     // grab the task & insert it into editTask
-                    int hashID = intent.getIntExtra(Constants.INTENT_FILTER_FIELD_HASH_ID, -1);
-                    TaskObject objectEdited = dataProvider.findTaskObjectBy(hashID);
+                    int taskID = intent.getIntExtra(Constants.INTENT_FILTER_TASK_ID, -1);
+                    int eventID = intent.getIntExtra(Constants.INTENT_FILTER_EVENT_ID, -1);
+
+                    TaskObject objectEdited = dataProvider.findTaskObjectBy(taskID);
+                    RepeatingEvent eventEdited = dataProvider.getEventWith(eventID);
+
+                    if (objectEdited == null && eventEdited != null) {
+                        objectEdited = dataProvider.findTaskObjectBy(eventEdited.getParentID());
+                    }
 
                     if (objectEdited != null) {
                         FragmentTransaction transaction= getSupportFragmentManager().beginTransaction();
@@ -90,7 +98,7 @@ public class WeekView extends AppCompatActivity implements BottomBarCommunicatio
                         transaction.replace(bottomBar.getId(), editTask);
                         transaction.commitAllowingStateLoss();
                         //bottomBar.setTag(editTaskBarTag);
-                        editTask.defineMe(EditTaskBottomBar.EditTaskState.editTask, objectEdited, self, bottomBar.getWidth());
+                        editTask.defineMe(EditTaskBottomBar.EditTaskState.editTask, objectEdited, eventEdited, self, bottomBar.getWidth());
                     }
                 } else if (intent.getAction().equals(Constants.INTENT_FILTER_NEW_TASK)) {
                     // So click occurred to create new task... We need to initiate the edit of it
@@ -100,7 +108,7 @@ public class WeekView extends AppCompatActivity implements BottomBarCommunicatio
                         EditTaskBottomBar taskEditor = new EditTaskBottomBar();
                         transaction.replace(bottomBar.getId(), taskEditor);
                         transaction.commit();
-                        taskEditor.defineMe(EditTaskBottomBar.EditTaskState.editTask, newTask, self, bottomBar.getWidth());
+                        taskEditor.defineMe(EditTaskBottomBar.EditTaskState.editTask, newTask, null, self, bottomBar.getWidth());
                     }
                 } else if (intent.getAction().equals(Constants.INTENT_FILTER_RECOMMENDATION)) {
                     provideRecommendationFetcher();
@@ -132,6 +140,13 @@ public class WeekView extends AppCompatActivity implements BottomBarCommunicatio
         dataProvider.deleteTask(objectToDelete);
         provideRecommendationFetcher();
     }
+
+    @Override
+    public void reportDeleteEvent(RepeatingEvent eventToDelete) {
+        dataProvider.deleteRepeatingEvent(eventToDelete);
+        provideRecommendationFetcher();
+    }
+
     // Page Adapter in charge of presenting WeekDisplays:
     private class CentralPageAdapter extends FragmentStatePagerAdapter {
         final int NUMBER_OF_WEEKS = 104;

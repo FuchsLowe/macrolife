@@ -24,7 +24,6 @@ import android.widget.TextView;
 
 import com.fuchsundlowe.macrolife.DataObjects.ComplexGoal;
 import com.fuchsundlowe.macrolife.DataObjects.Constants;
-import com.fuchsundlowe.macrolife.DataObjects.DayOfWeek;
 import com.fuchsundlowe.macrolife.DataObjects.RepeatingEvent;
 import com.fuchsundlowe.macrolife.DataObjects.TaskObject;
 import com.fuchsundlowe.macrolife.EngineClasses.LocalStorage;
@@ -49,7 +48,6 @@ public class Task_DayView extends FrameLayout {
     private boolean globalEdit = false;
     private GestureDetectorCompat longPressDetector;
     private float storedX, storedY;
-    private LocalBroadcastManager manager;
     private ClickLocation clickLocation;
     private View m;
 
@@ -362,9 +360,14 @@ public class Task_DayView extends FrameLayout {
     }
 
     private void sendGlobalEditBroadcast() {
-        manager = LocalBroadcastManager.getInstance(getContext());
+        LocalBroadcastManager manager = LocalBroadcastManager.getInstance(getContext());
         Intent intent = new Intent(Constants.INTENT_FILTER_GLOBAL_EDIT);
-        intent.putExtra(Constants.INTENT_FILTER_FIELD_HASH_ID, task.getHashID());
+        if (isTask()) {
+            intent.putExtra(Constants.INTENT_FILTER_TASK_ID, task.getHashID());
+        } else {
+            intent.putExtra(Constants.INTENT_FILTER_EVENT_ID, repeatingEvent.getHashID());
+        }
+
         manager.sendBroadcast(intent);
     }
     // Retrives RepeatingEvent ID if there is one, if not returns TaskObject ID
@@ -385,6 +388,10 @@ public class Task_DayView extends FrameLayout {
             return task.getLastTimeModified();
         }
     }
+    private boolean isTask() {
+        return repeatingEvent == null;
+    }
+
     // Local Enum:
     private enum ClickLocation{
         top, center, bottom, none

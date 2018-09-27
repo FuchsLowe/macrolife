@@ -6,6 +6,7 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentManager;
@@ -21,6 +22,7 @@ import android.view.ViewGroup;
 import com.fuchsundlowe.macrolife.BottomBar.RecommendationBar;
 import com.fuchsundlowe.macrolife.BottomBar.EditTaskBottomBar;
 import com.fuchsundlowe.macrolife.DataObjects.Constants;
+import com.fuchsundlowe.macrolife.DataObjects.RepeatingEvent;
 import com.fuchsundlowe.macrolife.DataObjects.TaskObject;
 import com.fuchsundlowe.macrolife.EngineClasses.LocalStorage;
 import com.fuchsundlowe.macrolife.Interfaces.BottomBarCommunicationProtocol;
@@ -51,7 +53,6 @@ public class DayView extends FragmentActivity implements DayViewTopFragmentCallb
     private DayView self;
     private int currentDayPosition, currentDatePosition;
     private FragmentManager fragmentManager;
-    private SharedPreferences preferences;
     private String recommendationBarTag = "RecommendationBar";
     private String editTaskBarTag = "EditTaskBarTag";
 
@@ -96,7 +97,6 @@ public class DayView extends FragmentActivity implements DayViewTopFragmentCallb
         fragmentManager = getSupportFragmentManager();
         provideRecommendationFetcher();
         // Test Phase
-        preferences = this.getSharedPreferences(Constants.SHARED_PREFERENCES_KEY, MODE_PRIVATE);
         defineBroadcastReceiver();
         defineDragAndDrop();
     }
@@ -166,6 +166,12 @@ public class DayView extends FragmentActivity implements DayViewTopFragmentCallb
     // BottomBar communication protocol:
     public void reportDeleteTask(TaskObject object) {
         dataMaster.deleteTask(object);
+        provideRecommendationFetcher();
+    }
+
+    @Override
+    public void reportDeleteEvent(RepeatingEvent eventToDelete) {
+        dataMaster.deleteRepeatingEvent(eventToDelete);
         provideRecommendationFetcher();
     }
 
@@ -303,7 +309,7 @@ public class DayView extends FragmentActivity implements DayViewTopFragmentCallb
             // Check if there is any
         }
     }
-    private void provideEditTask(TaskObject taskBeingEdited) {
+    private void provideEditTask(TaskObject taskBeingEdited, @Nullable RepeatingEvent event) {
         // Implementation of Fragment Transaction
         FragmentTransaction transaction= fragmentManager.beginTransaction();
         EditTaskBottomBar editTask = new EditTaskBottomBar();
@@ -311,7 +317,7 @@ public class DayView extends FragmentActivity implements DayViewTopFragmentCallb
         if (!isFinishing()) {
             transaction.commit();
             bottom.setTag(editTaskBarTag);
-            editTask.defineMe(EditTaskBottomBar.EditTaskState.editTask, taskBeingEdited, this, bottom.getWidth());
+            editTask.defineMe(EditTaskBottomBar.EditTaskState.editTask, taskBeingEdited, event,this, bottom.getWidth());
         }
     }
 
@@ -322,12 +328,19 @@ public class DayView extends FragmentActivity implements DayViewTopFragmentCallb
             public void onReceive(Context context, Intent intent) {
                 if (intent.getAction().equals(Constants.INTENT_FILTER_GLOBAL_EDIT)) {
                     // grab the task & insert it into editTasl
-                    int hashID = intent.getIntExtra(Constants.INTENT_FILTER_FIELD_HASH_ID, -1);
-                    //TaskObject objectEdited = dataMaster.findTaskObjectBy(hashID);
-                    TaskObject objectEdited = dataMaster.findTaskObjectBy(hashID);
+                    int taskID = intent.getIntExtra(Constants.INTENT_FILTER_TASK_ID, -1);
+                    int eventID = intent.getIntExtra(Constants.INTENT_FILTER_EVENT_ID, -1);
+
+                    TaskObject objectEdited = dataMaster.findTaskObjectBy(taskID);
+                    RepeatingEvent eventEdited = dataMaster.getEventWith(eventID);
+
+                    // Meaning that we have passed the event ID but no task ID...
+                    if (objectEdited == null && eventEdited != null) {
+                        objectEdited = dataMaster.findTaskObjectBy(eventEdited.getParentID());
+                    }
 
                     if (objectEdited != null) {
-                        provideEditTask(objectEdited);
+                        provideEditTask(objectEdited, eventEdited);
                     }
                 } else if (intent.getAction().equals(Constants.INTENT_FILTER_NEW_TASK)) {
                     Calendar currentTime = Calendar.getInstance();
@@ -357,7 +370,7 @@ public class DayView extends FragmentActivity implements DayViewTopFragmentCallb
                             ""
                             );
                     dataMaster.saveTaskObject(newTask);
-                    provideEditTask(newTask);
+                    provideEditTask(newTask, null);
                 } else if (intent.getAction() == Constants.INTENT_FILTER_RECOMMENDATION) {
                     provideRecommendationFetcher();
                 }

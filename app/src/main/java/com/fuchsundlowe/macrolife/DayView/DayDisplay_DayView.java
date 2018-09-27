@@ -166,8 +166,7 @@ public class DayDisplay_DayView extends Fragment {
         IntentFilter intentFilter = new IntentFilter();
         intentFilter.addAction(Constants.INTENT_FILTER_GLOBAL_EDIT);
         intentFilter.addAction(Constants.INTENT_FILTER_NEW_TASK);
-        LocalBroadcastManager.getInstance(getContext()).registerReceiver(broadcastReceiver,
-                intentFilter);
+        //LocalBroadcastManager.getInstance(getContext()).registerReceiver(broadcastReceiver, intentFilter); NOTE: Not being used for now...
     }
 
     // ReminderView Implementation

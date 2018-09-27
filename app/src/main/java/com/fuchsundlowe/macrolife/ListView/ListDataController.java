@@ -9,10 +9,11 @@ import com.fuchsundlowe.macrolife.DataObjects.TaskEventHolder;
 import com.fuchsundlowe.macrolife.DataObjects.RepeatingEvent;
 import com.fuchsundlowe.macrolife.DataObjects.TaskObject;
 import com.fuchsundlowe.macrolife.EngineClasses.LocalStorage;
+import com.fuchsundlowe.macrolife.Interfaces.AsyncSorterCommunication;
 import com.fuchsundlowe.macrolife.Interfaces.DataProviderNewProtocol;
-import com.fuchsundlowe.macrolife.Interfaces.P1;
-import com.fuchsundlowe.macrolife.Interfaces.P2;
-import com.fuchsundlowe.macrolife.Interfaces.P3;
+import com.fuchsundlowe.macrolife.Interfaces.LDCToFragmentListView;
+import com.fuchsundlowe.macrolife.Interfaces.LDCProtocol;
+import com.fuchsundlowe.macrolife.ListView.ListView.bracketType;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -44,7 +45,7 @@ import java.util.concurrent.ConcurrentHashMap;
   * the change to LDC and then LDC reports this change to all subscribers who should insert the task
   * in upcoming by updating their views.
  */
-class ListDataController implements P1, P3 {
+class ListDataController implements LDCProtocol, AsyncSorterCommunication {
 
     private Context mContext;
     private DataProviderNewProtocol dataMaster;
@@ -55,6 +56,7 @@ class ListDataController implements P1, P3 {
     private LiveData<List<RepeatingEvent>> allRepeatingEvents;
     private Observer<List<RepeatingEvent>> observerForEvents;
 
+    private Map<Integer, Integer> completedStatistics, incompleteStatistics;
     private List<TaskEventHolder> unassigned;
     private List<TaskEventHolder> completed;
     private List<TaskEventHolder>  upcoming;
@@ -62,16 +64,17 @@ class ListDataController implements P1, P3 {
 
     private currentStatus tasksStatus, eventsStatus;
 
-    private List<P2> unassignedSet;
-    private List<P2> completedSet;
-    private List<P2> upcomingSet;
-    private List<P2> overdueSet;
+    private List<LDCToFragmentListView> complexStatisticsSet;
+    private List<LDCToFragmentListView> unassignedSet;
+    private List<LDCToFragmentListView> completedSet;
+    private List<LDCToFragmentListView> upcomingSet;
+    private List<LDCToFragmentListView> overdueSet;
 
     private AsyncSorter tasksSorter, eventsSorter;
 
     private Map<bracketType, Boolean> toFlush;
 
-    private P3 self;
+    private AsyncSorterCommunication self;
 
 
     protected ListDataController(Context context) {
@@ -96,6 +99,7 @@ class ListDataController implements P1, P3 {
         upcoming = Collections.synchronizedList(new ArrayList<TaskEventHolder>());
         overdue = Collections.synchronizedList(new ArrayList<TaskEventHolder>());
 
+        complexStatisticsSet = new ArrayList<>();
         unassignedSet = new ArrayList<>();
         completedSet = new ArrayList<>();
         upcomingSet = new ArrayList<>();
@@ -119,6 +123,7 @@ class ListDataController implements P1, P3 {
                 if (tasksSorter != null) {
                     tasksSorter.cancel(true);
                 }
+                tasksStatus = currentStatus.working;
                 tasksSorter = new AsyncSorter();
                 Transporter task = new Transporter(objects, null, unassigned,
                         completed, upcoming, overdue, self);
@@ -133,6 +138,7 @@ class ListDataController implements P1, P3 {
                 if (eventsSorter != null) {
                     eventsSorter.cancel(true);
                 }
+                eventsStatus = currentStatus.working;
                 eventsSorter = new AsyncSorter();
                 Transporter event = new Transporter(null, events, unassigned,
                         completed, upcoming, overdue, self);
@@ -142,7 +148,7 @@ class ListDataController implements P1, P3 {
     }
 
     // This method is called from ListView onDestroy class to delete any LiveData observeForever calls
-    protected void destroy() {
+    public void destroy() {
         self = null;
 
         if (allTaskObjects != null && observerForTasks != null) {
@@ -180,36 +186,38 @@ class ListDataController implements P1, P3 {
 
     }
 
-    // Protocol P2 implementation:
-    public void reportChange(TaskEventHolder beingChanged) {
-
-    }
-    public void subscribeToCompleted(P2 protocol) {
+    // Protocol LDCToFragmentListView implementation:
+    public void subscribeToCompleted(LDCToFragmentListView protocol) {
         completedSet.add(protocol);
         if (tasksStatus == currentStatus.ready && eventsStatus == currentStatus.ready) {
             protocol.deliverCompleted(completed);
         }
     }
-    public void subscribeToOverdue(P2 protocol) {
+    public void subscribeToOverdue(LDCToFragmentListView protocol) {
         overdueSet.add(protocol);
         if (tasksStatus == currentStatus.ready && eventsStatus == currentStatus.ready) {
             protocol.deliverOverdue(overdue);
         }
     }
-    public void subscribeToUnassigned(P2 protocol) {
+    public void subscribeToUnassigned(LDCToFragmentListView protocol) {
         unassignedSet.add(protocol);
         if (tasksStatus == currentStatus.ready && eventsStatus == currentStatus.ready) {
             protocol.deliverUnassigned(unassigned);
         }
     }
-    public void subscribeToUpcoming(P2 protocol) {
+    public void subscribeToUpcoming(LDCToFragmentListView protocol) {
         if (tasksStatus == currentStatus.ready && eventsStatus == currentStatus.ready) {
             protocol.deliverUpcoming(upcoming);
         }
     }
+    public void subscribeToComplexGoals(LDCToFragmentListView protocol) {
+        complexStatisticsSet.add(protocol);
+        if (tasksStatus == currentStatus.ready && eventsStatus == currentStatus.ready) {
+            protocol.deliverComplexTasksStatistics(completedStatistics, incompleteStatistics);
+        }
+    }
 
-
-    // Protocol P3 implementations:
+    // Protocol AsyncSorterCommunication implementations:
     @Override
     public void markTasksReady() {
         tasksStatus = currentStatus.ready;
@@ -235,39 +243,43 @@ class ListDataController implements P1, P3 {
         toFlush.put(bracketType.undefined, Boolean.TRUE);
     }
     @Override
+    public void deliverNewComplexTotals(Map<Integer, Integer> completed, Map<Integer, Integer> incomplete) {
+        completedStatistics = completed;
+        incompleteStatistics = incomplete;
+    }
+    @Override
     public void flushChanges() {
         if (tasksStatus == currentStatus.ready && eventsStatus == currentStatus.ready) {
             if (toFlush.get(bracketType.overdue)) {
-                for (P2 fragment: overdueSet) {
+                for (LDCToFragmentListView fragment: overdueSet) {
                     fragment.deliverOverdue(overdue);
                 }
                 toFlush.put(bracketType.overdue, Boolean.FALSE);
             }
             if (toFlush.get(bracketType.upcoming)) {
-                for (P2 fragment: upcomingSet) {
+                for (LDCToFragmentListView fragment: upcomingSet) {
                     fragment.deliverUpcoming(upcoming);
                 }
                 toFlush.put(bracketType.upcoming, Boolean.FALSE);
             }
             if (toFlush.get(bracketType.completed)) {
-                for (P2 fragment: completedSet) {
+                for (LDCToFragmentListView fragment: completedSet) {
                     fragment.deliverCompleted(completed);
                 }
                 toFlush.put(bracketType.completed, Boolean.FALSE);
             }
             if (toFlush.get(bracketType.undefined)) {
-                for (P2 fragment: unassignedSet) {
+                for (LDCToFragmentListView fragment: unassignedSet) {
                     fragment.deliverUnassigned(unassigned);
                 }
                 toFlush.put(bracketType.undefined, Boolean.FALSE);
             }
+            for (LDCToFragmentListView fragment : complexStatisticsSet) {
+                fragment.deliverComplexTasksStatistics(completedStatistics, incompleteStatistics);
+            }
         }
     }
 
-    // Enums:
-    protected enum bracketType {
-        completed, overdue, undefined, upcoming
-    }
     private enum currentStatus {
         ready, working, notDefined
     }

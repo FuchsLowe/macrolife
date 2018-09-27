@@ -11,58 +11,33 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.FrameLayout;
 
+import com.fuchsundlowe.macrolife.Interfaces.LDCProtocol;
 import com.fuchsundlowe.macrolife.R;
 
 public class ListView extends AppCompatActivity {
 
     private FrameLayout bottomBar;
     private RecyclerView centerBar;
-    private Button complete, current, complex;
-    private ListDataController dataProvider;
+    private LDCProtocol dataProvider;
 
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_list_view);
-        dataProvider = new ListDataController(this);
-        // Linking views:
-        bottomBar = findViewById(R.id.bottomBar_listView);
+
         centerBar = findViewById(R.id.centerBar_listView);
-
-        complete = findViewById(R.id.completed_listView);
-        complete.setTag(ButtonTags.complete);
-
-        current = findViewById(R.id.current_listView);
-        current.setTag(ButtonTags.current);
-
-        complex = findViewById(R.id.complex_listVIew);
-        complex.setTag(complex);
-
-
+        dataProvider = new ListDataController(this);
     }
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        // This ensures that there are no memory leaks associated with LiveData.
+        // This ensures that there are no memory leaks associated DataProvider...
         dataProvider.destroy();
     }
 
-    public void onButtonClick(View view) {
-        // determine which view was called:
-        if (view instanceof Button) {
-            if (view.getTag().equals(ButtonTags.complete)) {
 
-            } else if (view.getTag().equals(current)) {
-
-            } else if (view.getTag().equals(complex)) {
-
-            }
-        }
-
-        // Change elevation maybe for selected one?
-    }
 
     // List View Page adapter:
     private class ListViewAdapter extends FragmentStatePagerAdapter {
@@ -71,15 +46,16 @@ public class ListView extends AppCompatActivity {
 
         @Override
         public Fragment getItem(int position) {
+            // TODO: Update to reflect the values being inseted into it...
             switch (position) {
-                case 0:
-                    break;
-                case 2:
-                    break;
-                default:
-                    break;
+                case 0: // Completed
+                    Completed_ListView frag = new Completed_ListView();
+                    return frag;
+                case 2: // Complex
+                    return null;
+                default: // Current
+                    return null;
             }
-            return null;
         }
 
         @Override
@@ -87,21 +63,10 @@ public class ListView extends AppCompatActivity {
             return 3;
         }
     }
+
+    protected enum bracketType {
+        completed, overdue, undefined, upcoming
+    }
     // TODO: Bottom Bar implementation:
 
-    // a simple enum for tags for buttons:
-    private enum ButtonTags {
-    // todo Implement!
-        complete("completeTag"), current("currentTag"), complex("ComplexTag");
-        String textID;
-
-        ButtonTags(String val) {
-            textID = val;
-        }
-
-        String getTag() {
-            return textID;
-        }
-
-    }
 }

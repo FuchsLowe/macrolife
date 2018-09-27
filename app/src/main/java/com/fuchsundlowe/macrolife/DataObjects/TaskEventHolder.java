@@ -32,6 +32,13 @@ public class TaskEventHolder {
             return event.getIsTaskCompleted();
         }
     }
+    public void setCompletionStatus(TaskObject.CheckableStatus status) {
+        if (isTask()) {
+            task.setIsTaskCompleted(status);
+        } else {
+            event.setIsTaskCompleted(status);
+        }
+    }
     public String getName() {
         if (isTask()) {
             return task.getTaskName();
@@ -55,6 +62,18 @@ public class TaskEventHolder {
             return event.getParentID();
         }
     }
+    public void setComplexGoalID(int newComplexGoalID) {
+        if (isTask()) {
+            task.setComplexGoalID(newComplexGoalID);
+        } else {
+            TaskObject temp = LocalStorage.getInstance(null).findTaskObjectBy(event.getParentID());
+            if (temp != null){
+                temp.setComplexGoalID(newComplexGoalID);
+            } else {
+                // TODO What if temp is null?
+            }
+        }
+    }
     // Returns whatever active ID is used, either Tasks if its a task or Events otherwise:
     public int getActiveID() {
         if (isTask()) {
@@ -64,11 +83,34 @@ public class TaskEventHolder {
         }
     }
     // Returns the ComplexGoalID if any:
-    public int getComplexGoalID() {
+    @Nullable
+    public Integer getComplexGoalID() {
         if (isTask()) {
             return task.getComplexGoalID();
         } else {
-            return LocalStorage.getInstance(null).findTaskObjectBy(event.getParentID()).getComplexGoalID();
+            TaskObject temp = LocalStorage.getInstance(null).findTaskObjectBy(event.getParentID());
+            if (temp != null) {
+                return temp.getComplexGoalID();
+            } else {
+                return null;
+            }
+        }
+    }
+    // Returns the Name of complex goal if one exists, if no returns null.
+    @Nullable public String getComplexGoalName() {
+        Integer complexGoalID = getComplexGoalID();
+        if (complexGoalID != null) {
+            ComplexGoal temp = LocalStorage.getInstance(null).findComplexGoal(complexGoalID);
+            if (temp != null) {
+                return temp.getTaskName();
+            } else {
+                // Temp is null TODO: Does this make sense? Primarily if null is because we don't have
+                // DB ready? Can this happen? if not then this should be valid...
+                setComplexGoalID(-1);
+                return null;
+            }
+        } else {
+            return null;
         }
     }
     public TaskObject.TimeDefined getTimeDefined() {

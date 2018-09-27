@@ -39,7 +39,6 @@ public class EventDatePicker extends DialogFragment implements DatePickerDialog.
         value.set(year, month, dayOfMonth);
         // This changes selection of this type and defines that startTime is set
         sendBroadcast();
-
     }
 
     // Value is the calendar to which we

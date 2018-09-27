@@ -4,9 +4,11 @@ import android.app.Dialog;
 import android.app.TimePickerDialog;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.text.format.DateFormat;
 import android.widget.TimePicker;
 
+import com.fuchsundlowe.macrolife.DataObjects.RepeatingEvent;
 import com.fuchsundlowe.macrolife.DataObjects.TaskObject;
 import com.fuchsundlowe.macrolife.Interfaces.EditTaskProtocol;
 
@@ -17,6 +19,7 @@ public class TimePickerFragment extends android.support.v4.app.DialogFragment
 
     private EditTaskProtocol protocol;
     private TaskObject taskObject;
+    private RepeatingEvent eventObject;
     private boolean isEditingStartValue;
 
 
@@ -26,17 +29,33 @@ public class TimePickerFragment extends android.support.v4.app.DialogFragment
         int hour, minute;
         Calendar c;
         TimePickerDialog timePicker;
-        if (isEditingStartValue) {
-            if (taskObject.getTaskStartTime() != null) {
-                c = taskObject.getTaskStartTime();
+        if (isEditingStartValue) { // todo: resolve this part first
+            if (isTask()) {
+                if (taskObject.getTaskStartTime() != null) {
+                    c = taskObject.getTaskStartTime();
+                } else {
+                    c = Calendar.getInstance();
+                }
             } else {
-                c = Calendar.getInstance();
+               if (eventObject.getStartTime() != null) {
+                   c = eventObject.getStartTime();
+               } else {
+                   c = Calendar.getInstance();
+               }
             }
         } else {
-            if (taskObject.getTaskEndTime() != null) {
-                c = taskObject.getTaskEndTime();
+            if (isTask()) {
+                if (taskObject.getTaskEndTime() != null) {
+                    c = taskObject.getTaskEndTime();
+                } else {
+                    c = Calendar.getInstance();
+                }
             } else {
-                c= Calendar.getInstance();
+                if (eventObject.getEndTime() != null) {
+                    c = eventObject.getEndTime();
+                } else {
+                    c = Calendar.getInstance();
+                }
             }
         }
         hour = c.get(Calendar.HOUR_OF_DAY);
@@ -47,18 +66,27 @@ public class TimePickerFragment extends android.support.v4.app.DialogFragment
         return timePicker;
     }
 
-    public void defineMe(TaskObject objectManipulated, EditTaskProtocol protocol, boolean isEditingStartValue) {
+    public void defineMe(TaskObject objectManipulated, @Nullable RepeatingEvent eventManipulated, EditTaskProtocol protocol, boolean isEditingStartValue) {
         this.protocol = protocol;
         this.taskObject = objectManipulated;
+        this.eventObject = eventManipulated;
         this.isEditingStartValue = isEditingStartValue;
     }
 
     public void onTimeSet(TimePicker view, int hourOfDay, int minute) {
         Calendar valueEdited;
         if (isEditingStartValue) {
-            valueEdited = taskObject.getTaskStartTime();
+            if (isTask()) {
+                valueEdited = taskObject.getTaskStartTime();
+            } else {
+                valueEdited = eventObject.getStartTime();
+            }
         } else {
-            valueEdited = taskObject.getTaskEndTime();
+            if (isTask()) {
+                valueEdited = taskObject.getTaskEndTime();
+            } else {
+                valueEdited = eventObject.getEndTime();
+            }
         }
         // Todo: This is known to throw the error because sometimes the valueEdited is null...
         valueEdited.set(Calendar.HOUR_OF_DAY, hourOfDay);
@@ -67,6 +95,10 @@ public class TimePickerFragment extends android.support.v4.app.DialogFragment
             // We will let default taskObject implementation deal with this inconsistency if any
             taskObject.setTaskEndTime(valueEdited);
         }
-        protocol.saveTask(taskObject, null);
+        protocol.saveTask(taskObject, eventObject);
+    }
+
+    private boolean isTask() {
+        return eventObject==null;
     }
 }

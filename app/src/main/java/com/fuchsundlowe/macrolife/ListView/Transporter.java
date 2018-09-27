@@ -4,7 +4,7 @@ package com.fuchsundlowe.macrolife.ListView;
 import com.fuchsundlowe.macrolife.DataObjects.RepeatingEvent;
 import com.fuchsundlowe.macrolife.DataObjects.TaskEventHolder;
 import com.fuchsundlowe.macrolife.DataObjects.TaskObject;
-import com.fuchsundlowe.macrolife.Interfaces.P3;
+import com.fuchsundlowe.macrolife.Interfaces.AsyncSorterCommunication;
 
 import java.util.HashMap;
 import java.util.List;
@@ -28,13 +28,13 @@ public class Transporter {
 
     boolean editedUnassigned, editedCompleted, editedUpcoming, editedOverdue;
 
-    P3 parent;
+    AsyncSorterCommunication parent;
 
     public Transporter(List<TaskObject> tasksToConvert, List<RepeatingEvent> eventsToConvert,
                        List<TaskEventHolder> unassigned,
                        List<TaskEventHolder> completed,
                        List<TaskEventHolder> upcoming,
-                       List<TaskEventHolder> overdue, P3 parent) {
+                       List<TaskEventHolder> overdue, AsyncSorterCommunication parent) {
 
         this.tasksToConvert = tasksToConvert;
         this.eventsToConvert = eventsToConvert;

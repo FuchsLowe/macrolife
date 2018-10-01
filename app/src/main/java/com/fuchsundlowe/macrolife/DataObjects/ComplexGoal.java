@@ -21,7 +21,7 @@ public class ComplexGoal {
     protected int hashID;
     protected String taskName;
     @Ignore
-    public Calendar taskEndTime;
+    public Calendar deadline;
     private Calendar lastTimeModified;
     protected Calendar taskCreatedTimeStamp;
     private String purpose;
@@ -61,11 +61,11 @@ public class ComplexGoal {
         this.hashID = hashID;
     }
 
-    public Calendar getTaskEndTime() {
-        return taskEndTime;
+    public Calendar getDeadline() {
+        return deadline;
     }
-    public void setTaskEndTime(Calendar taskEndTime) {
-        this.taskEndTime = taskEndTime;
+    public void setDeadline(Calendar deadline) {
+        this.deadline = deadline;
     }
 
     public Calendar getLastTimeModified() {
@@ -80,5 +80,9 @@ public class ComplexGoal {
     }
     public void setTaskCreatedTimeStamp(Calendar taskCreatedTimeStamp) {
         this.taskCreatedTimeStamp = taskCreatedTimeStamp;
+    }
+    // Checks the existance of deadline for this Goal
+    public boolean hasDeadline() {
+        return deadline != null && deadline.getTimeInMillis() > 1;
     }
 }

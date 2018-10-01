@@ -1,4 +1,4 @@
-package com.fuchsundlowe.macrolife.BottomBar;
+package com.fuchsundlowe.macrolife.BottomBar.Mods;
 
 import android.content.Context;
 import android.content.res.Resources;

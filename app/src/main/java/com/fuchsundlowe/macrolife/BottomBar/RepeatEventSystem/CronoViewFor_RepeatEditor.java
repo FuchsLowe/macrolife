@@ -1,4 +1,4 @@
-package com.fuchsundlowe.macrolife.BottomBar;
+package com.fuchsundlowe.macrolife.BottomBar.RepeatEventSystem;
 
 import android.content.Context;
 import android.content.SharedPreferences;
@@ -17,15 +17,12 @@ import android.widget.ScrollView;
 
 import com.fuchsundlowe.macrolife.DataObjects.Constants;
 import com.fuchsundlowe.macrolife.DataObjects.DayOfWeek;
-import com.fuchsundlowe.macrolife.DataObjects.RepeatingEvent;
 import com.fuchsundlowe.macrolife.DataObjects.TaskObject;
 import com.fuchsundlowe.macrolife.EngineClasses.LocalStorage;
 import com.fuchsundlowe.macrolife.Interfaces.DataProviderNewProtocol;
 
-import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
-import java.util.Set;
 
 // Holds the ChronoView type of view for RepeatEditor
 public class CronoViewFor_RepeatEditor extends ViewGroup {

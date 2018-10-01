@@ -2,7 +2,7 @@ package com.fuchsundlowe.macrolife.DataObjects;
 
 import android.arch.persistence.room.TypeConverter;
 
-import com.fuchsundlowe.macrolife.BottomBar.RepeatingEventEditor;
+import com.fuchsundlowe.macrolife.BottomBar.RepeatEventSystem.RepeatingEventEditor;
 
 import java.util.Calendar;
 import java.util.Date;

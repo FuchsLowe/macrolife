@@ -1,4 +1,4 @@
-package com.fuchsundlowe.macrolife.BottomBar;
+package com.fuchsundlowe.macrolife.BottomBar.Pickers;
 
 import android.app.DatePickerDialog;
 import android.app.Dialog;

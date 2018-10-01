@@ -2,27 +2,21 @@ package com.fuchsundlowe.macrolife.EngineClasses;
 
 import android.arch.lifecycle.LiveData;
 import android.arch.lifecycle.Observer;
-import android.arch.persistence.room.Query;
 import android.arch.persistence.room.Room;
 import android.content.Context;
-import android.os.Looper;
 import android.support.annotation.Nullable;
 import android.util.Log;
 
-import com.fuchsundlowe.macrolife.BottomBar.RepeatChronoViewProtocol;
 import com.fuchsundlowe.macrolife.DataObjects.ComplexGoal;
 import com.fuchsundlowe.macrolife.DataObjects.Constants;
-import com.fuchsundlowe.macrolife.DataObjects.DayOfWeek;
 import com.fuchsundlowe.macrolife.DataObjects.ListObject;
 import com.fuchsundlowe.macrolife.DataObjects.RepeatingEvent;
 import com.fuchsundlowe.macrolife.DataObjects.RoomDataBaseObject;
 import com.fuchsundlowe.macrolife.DataObjects.TaskObject;
 import com.fuchsundlowe.macrolife.Interfaces.DataProviderNewProtocol;
 
-import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.Date;
 import java.util.List;
 /*
  * Known Issue: The Observe Forever for live data used to produce in memory holding of Tasks ( via
@@ -631,6 +625,29 @@ public class LocalStorage implements DataProviderNewProtocol {
 
     // Complex Goals Objects:
     @Override
+    public void saveComplexGoal(final ComplexGoal goalToSave) {
+        if (complexGoalHolder.getValue() != null) {
+            for (ComplexGoal goal: complexGoalHolder.getValue()) {
+                if (goal.getHashID() ==  goalToSave.getHashID()) {
+                    new Thread(new Runnable() {
+                        @Override
+                        public void run() {
+                            goalToSave.setLastTimeModified(Calendar.getInstance());
+                            dataBase.newDAO().saveComplexTask(goalToSave);
+                        }
+                    }).start();
+                    return;
+                }
+            }
+            new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    dataBase.newDAO().insertComplexTask(goalToSave);
+                }
+            }).start();
+        }
+    }
+    @Override
     public LiveData<List<ComplexGoal>>getAllComplexGoals() {
         return dataBase.newDAO().getAllComplexGoals();
     }
@@ -653,6 +670,15 @@ public class LocalStorage implements DataProviderNewProtocol {
             }
         }
         return null;
+    }
+    @Override
+    public void deleteComplexGoal(final ComplexGoal goal) {
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                dataBase.newDAO().removeComplexGoal(goal);
+            }
+        }).start();
     }
 
 

@@ -26,6 +26,8 @@ public class Transporter {
     Map<Integer, TaskEventHolder> upcoming;
     Map<Integer, TaskEventHolder> overdue;
 
+    Map<Integer, TaskEventHolder> nextTask;
+
     boolean editedUnassigned, editedCompleted, editedUpcoming, editedOverdue;
 
     AsyncSorterCommunication parent;
@@ -34,7 +36,8 @@ public class Transporter {
                        List<TaskEventHolder> unassigned,
                        List<TaskEventHolder> completed,
                        List<TaskEventHolder> upcoming,
-                       List<TaskEventHolder> overdue, AsyncSorterCommunication parent) {
+                       List<TaskEventHolder> overdue,
+                       AsyncSorterCommunication parent) {
 
         this.tasksToConvert = tasksToConvert;
         this.eventsToConvert = eventsToConvert;
@@ -43,6 +46,7 @@ public class Transporter {
         this.mUpcoming = upcoming;
         this.mOverdue = overdue;
         this.parent = parent;
+
     }
     // We create maps for easier checks of Buckets back in ListDataController
     public void initiateMaps() {
@@ -51,6 +55,7 @@ public class Transporter {
         completed = new HashMap<>();
         upcoming = new HashMap<>();
         overdue = new HashMap<>();
+        nextTask = new HashMap<>();
 
         // Now we fill them up:
         for (TaskEventHolder holder: mUnassigned) {

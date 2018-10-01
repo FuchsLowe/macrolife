@@ -4,7 +4,6 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
@@ -317,7 +316,7 @@ public class DayView extends FragmentActivity implements DayViewTopFragmentCallb
         if (!isFinishing()) {
             transaction.commit();
             bottom.setTag(editTaskBarTag);
-            editTask.defineMe(EditTaskBottomBar.EditTaskState.editTask, taskBeingEdited, event,this, bottom.getWidth());
+            editTask.displayEditTask(EditTaskBottomBar.EditTaskState.editTask, taskBeingEdited, event,this, bottom.getWidth());
         }
     }
 

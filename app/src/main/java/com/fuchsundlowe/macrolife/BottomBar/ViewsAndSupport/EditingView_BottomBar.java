@@ -1,4 +1,4 @@
-package com.fuchsundlowe.macrolife.BottomBar;
+package com.fuchsundlowe.macrolife.BottomBar.ViewsAndSupport;
 
 import android.content.Context;
 import android.inputmethodservice.InputMethodService;

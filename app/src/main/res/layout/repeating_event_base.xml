@@ -13,7 +13,7 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent">
 
-        <com.fuchsundlowe.macrolife.BottomBar.ModButton
+        <com.fuchsundlowe.macrolife.BottomBar.Mods.ModButton
             android:id="@+id/type_editorBase"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -27,7 +27,7 @@
             android:tag="@string/repeating"
             app:srcCompat="@drawable/repeat_24px" />
 
-        <com.fuchsundlowe.macrolife.BottomBar.ModButton
+        <com.fuchsundlowe.macrolife.BottomBar.Mods.ModButton
             android:id="@+id/startTime_editorBase"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -41,7 +41,7 @@
             android:tag="@string/startValues"
             app:srcCompat="@drawable/start_24px" />
 
-        <com.fuchsundlowe.macrolife.BottomBar.ModButton
+        <com.fuchsundlowe.macrolife.BottomBar.Mods.ModButton
             android:id="@+id/endTime_editorBase"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -55,7 +55,7 @@
             android:tag="@string/endValues"
             app:srcCompat="@drawable/end_24px" />
 
-        <com.fuchsundlowe.macrolife.BottomBar.ModButton
+        <com.fuchsundlowe.macrolife.BottomBar.Mods.ModButton
             android:id="@+id/delete_editorBase"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -69,7 +69,7 @@
             android:tag="@string/delete"
             app:srcCompat="@drawable/delete_24px" />
 
-        <com.fuchsundlowe.macrolife.BottomBar.ModButton
+        <com.fuchsundlowe.macrolife.BottomBar.Mods.ModButton
             android:id="@+id/save_editorBase"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"

@@ -9,6 +9,7 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.content.LocalBroadcastManager;
 import android.support.v4.view.PagerAdapter;
+import android.support.v7.widget.RecyclerView;
 import android.util.AttributeSet;
 import android.view.View;
 import android.widget.CheckBox;
@@ -34,7 +35,7 @@ import java.util.Calendar;
 import java.util.HashMap;
 
 // A class that manages the regular task representation in listView...
-public class RegularTask_ListView extends FrameLayout {
+public class RegularTask extends FrameLayout {
 
     private View baseView;
     private TextView taskName, masterTaskName, timeText;
@@ -49,19 +50,19 @@ public class RegularTask_ListView extends FrameLayout {
 
 
     // Many public constructors:
-    public RegularTask_ListView(@NonNull Context context) {
+    public RegularTask(@NonNull Context context) {
         super(context);
         init();
     }
-    public RegularTask_ListView(@NonNull Context context, @Nullable AttributeSet attrs) {
+    public RegularTask(@NonNull Context context, @Nullable AttributeSet attrs) {
         super(context, attrs);
         init();
     }
-    public RegularTask_ListView(@NonNull Context context, @Nullable AttributeSet attrs, int defStyleAttr) {
+    public RegularTask(@NonNull Context context, @Nullable AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
         init();
     }
-    public RegularTask_ListView(@NonNull Context context, @Nullable AttributeSet attrs, int defStyleAttr, int defStyleRes) {
+    public RegularTask(@NonNull Context context, @Nullable AttributeSet attrs, int defStyleAttr, int defStyleRes) {
         super(context, attrs, defStyleAttr, defStyleRes);
         init();
     }

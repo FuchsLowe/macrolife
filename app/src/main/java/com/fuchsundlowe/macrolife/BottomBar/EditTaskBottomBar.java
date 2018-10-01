@@ -25,6 +25,14 @@ import android.widget.Space;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.fuchsundlowe.macrolife.BottomBar.Mods.ListView_CompleteMod;
+import com.fuchsundlowe.macrolife.BottomBar.Mods.ModButton;
+import com.fuchsundlowe.macrolife.BottomBar.Mods.NotePad;
+import com.fuchsundlowe.macrolife.BottomBar.Pickers.DatePickerFragment;
+import com.fuchsundlowe.macrolife.BottomBar.Pickers.EventDatePicker;
+import com.fuchsundlowe.macrolife.BottomBar.Pickers.TimePickerFragment;
+import com.fuchsundlowe.macrolife.BottomBar.RepeatEventSystem.RepeatingEventEditor;
+import com.fuchsundlowe.macrolife.BottomBar.ViewsAndSupport.EditingView_BottomBar;
 import com.fuchsundlowe.macrolife.DataObjects.Constants;
 import com.fuchsundlowe.macrolife.DataObjects.RepeatingEvent;
 import com.fuchsundlowe.macrolife.DataObjects.TaskObject;
@@ -99,9 +107,9 @@ public class EditTaskBottomBar extends Fragment implements EditTaskProtocol {
     }
 
     // Editing of object appearance:
-    public void defineMe(final EditTaskState setState, @Nullable TaskObject taskManipulated,
-                         @Nullable RepeatingEvent eventManipulated,
-                         final BottomBarCommunicationProtocol parentProtocol, int sizeToWorkWith) {
+    public void displayEditTask(final EditTaskState setState, @Nullable TaskObject taskManipulated,
+                                @Nullable RepeatingEvent eventManipulated,
+                                final BottomBarCommunicationProtocol parentProtocol, int sizeToWorkWith) {
         this.state = setState;
         this.taskObject = taskManipulated;
         this.eventObject = eventManipulated;
@@ -505,7 +513,7 @@ public class EditTaskBottomBar extends Fragment implements EditTaskProtocol {
                     bottomBarButtons.get(ModButton.SpecialtyButton.repeating).setSpecialtyState(true);
                     bottomBarButtons.get(ModButton.SpecialtyButton.startValues).setSpecialtyState(true);
                     bottomBarButtons.get(ModButton.SpecialtyButton.endValues).setSpecialtyState(true);
-                    bottomBarButtons.get(ModButton.SpecialtyButton.endValues).isAvailable = true;
+                    bottomBarButtons.get(ModButton.SpecialtyButton.endValues).setAvailability(true);
                     // I am passing the values so they would be used if editing is done, so we don't pass
                     // null by accident as parameter.
                     startValue = taskObject.getTaskStartTime();
@@ -608,8 +616,8 @@ public class EditTaskBottomBar extends Fragment implements EditTaskProtocol {
                                     timeFragment.show(requireFragmentManager(), "TimeFragment");
                                     break;
                                 case date:
-                                    com.fuchsundlowe.macrolife.BottomBar.DatePickerFragment dateFragment =
-                                            new com.fuchsundlowe.macrolife.BottomBar.DatePickerFragment();
+                                    DatePickerFragment dateFragment =
+                                            new DatePickerFragment();
                                     if (modSelected == ModButton.SpecialtyButton.startValues) {
                                         dateFragment.defineMe(taskObject, eventObject, self, true);
                                     } else if (modSelected == ModButton.SpecialtyButton.endValues) {

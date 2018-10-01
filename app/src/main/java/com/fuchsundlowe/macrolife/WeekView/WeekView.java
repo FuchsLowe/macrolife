@@ -98,7 +98,7 @@ public class WeekView extends AppCompatActivity implements BottomBarCommunicatio
                         transaction.replace(bottomBar.getId(), editTask);
                         transaction.commitAllowingStateLoss();
                         //bottomBar.setTag(editTaskBarTag);
-                        editTask.defineMe(EditTaskBottomBar.EditTaskState.editTask, objectEdited, eventEdited, self, bottomBar.getWidth());
+                        editTask.displayEditTask(EditTaskBottomBar.EditTaskState.editTask, objectEdited, eventEdited, self, bottomBar.getWidth());
                     }
                 } else if (intent.getAction().equals(Constants.INTENT_FILTER_NEW_TASK)) {
                     // So click occurred to create new task... We need to initiate the edit of it
@@ -108,7 +108,7 @@ public class WeekView extends AppCompatActivity implements BottomBarCommunicatio
                         EditTaskBottomBar taskEditor = new EditTaskBottomBar();
                         transaction.replace(bottomBar.getId(), taskEditor);
                         transaction.commit();
-                        taskEditor.defineMe(EditTaskBottomBar.EditTaskState.editTask, newTask, null, self, bottomBar.getWidth());
+                        taskEditor.displayEditTask(EditTaskBottomBar.EditTaskState.editTask, newTask, null, self, bottomBar.getWidth());
                     }
                 } else if (intent.getAction().equals(Constants.INTENT_FILTER_RECOMMENDATION)) {
                     provideRecommendationFetcher();

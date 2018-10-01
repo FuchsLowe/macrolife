@@ -88,49 +88,49 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/frameLayout">
 
-        <com.fuchsundlowe.macrolife.BottomBar.SideButton_RepeatEditor
+        <com.fuchsundlowe.macrolife.BottomBar.RepeatEventSystem.SideButton_RepeatEditor
             android:id="@+id/sideButton_1"
             android:layout_width="match_parent"
             android:layout_height="0dp"
             android:layout_weight="1"
             android:text="com.fuchsundlowe.macrolife.BottomBar.SideButton_RepeatEditor" />
 
-        <com.fuchsundlowe.macrolife.BottomBar.SideButton_RepeatEditor
+        <com.fuchsundlowe.macrolife.BottomBar.RepeatEventSystem.SideButton_RepeatEditor
             android:id="@+id/sideButton_2"
             android:layout_width="match_parent"
             android:layout_height="0dp"
             android:layout_weight="1"
             android:text="com.fuchsundlowe.macrolife.BottomBar.SideButton_RepeatEditor" />
 
-        <com.fuchsundlowe.macrolife.BottomBar.SideButton_RepeatEditor
+        <com.fuchsundlowe.macrolife.BottomBar.RepeatEventSystem.SideButton_RepeatEditor
             android:id="@+id/sideButton_3"
             android:layout_width="match_parent"
             android:layout_height="0dp"
             android:layout_weight="1"
             android:text="com.fuchsundlowe.macrolife.BottomBar.SideButton_RepeatEditor" />
 
-        <com.fuchsundlowe.macrolife.BottomBar.SideButton_RepeatEditor
+        <com.fuchsundlowe.macrolife.BottomBar.RepeatEventSystem.SideButton_RepeatEditor
             android:id="@+id/sideButton_4"
             android:layout_width="match_parent"
             android:layout_height="0dp"
             android:layout_weight="1"
             android:text="com.fuchsundlowe.macrolife.BottomBar.SideButton_RepeatEditor" />
 
-        <com.fuchsundlowe.macrolife.BottomBar.SideButton_RepeatEditor
+        <com.fuchsundlowe.macrolife.BottomBar.RepeatEventSystem.SideButton_RepeatEditor
             android:id="@+id/sideButton_5"
             android:layout_width="match_parent"
             android:layout_height="0dp"
             android:layout_weight="1"
             android:text="com.fuchsundlowe.macrolife.BottomBar.SideButton_RepeatEditor" />
 
-        <com.fuchsundlowe.macrolife.BottomBar.SideButton_RepeatEditor
+        <com.fuchsundlowe.macrolife.BottomBar.RepeatEventSystem.SideButton_RepeatEditor
             android:id="@+id/sideButton_6"
             android:layout_width="match_parent"
             android:layout_height="0dp"
             android:layout_weight="1"
             android:text="com.fuchsundlowe.macrolife.BottomBar.SideButton_RepeatEditor" />
 
-        <com.fuchsundlowe.macrolife.BottomBar.SideButton_RepeatEditor
+        <com.fuchsundlowe.macrolife.BottomBar.RepeatEventSystem.SideButton_RepeatEditor
             android:id="@+id/sideButton_7"
             android:layout_width="match_parent"
             android:layout_height="0dp"

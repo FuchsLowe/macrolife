@@ -2,6 +2,7 @@ package com.fuchsundlowe.macrolife.ListView;
 
 import android.content.Intent;
 import android.os.AsyncTask;
+import android.os.MemoryFile;
 import android.os.Process;
 
 import com.fuchsundlowe.macrolife.DataObjects.TaskEventHolder;
@@ -23,7 +24,9 @@ public class AsyncSorter extends AsyncTask<Transporter, Void, Void> {
     private Calendar currentTime;
     private Transporter work;
     private Map<Integer, TaskEventHolder> newCompleted, newOverdue, newUpcoming, newUndefined;
-    private Map<Integer, Integer> completedMasterTasks, incompleteMasterTasks;
+    private Map<Integer, Integer> completedMasterTasks, incompleteMasterTasks; // TODO This might need to change if I am setting the
+    // next task...
+    private Map<Integer, TaskEventHolder> nextTask;
 
     @Override
     protected void onPreExecute() {
@@ -224,7 +227,7 @@ public class AsyncSorter extends AsyncTask<Transporter, Void, Void> {
             } else { return null; }
             /*
             * Last thing is to count the number of Holders that have master tasks... We are doing this
-            * now because until the end we didn't know if lists have chnaged or not, thus wanna remove
+            * now because until the end we didn't know if lists have changed or not, thus wanna remove
             * any inconsistency that would occurred otherwise.
             */
             for (TaskEventHolder completedHolder :work.mCompleted) {
@@ -243,12 +246,28 @@ public class AsyncSorter extends AsyncTask<Transporter, Void, Void> {
                 Integer complexGoalID = incompleteHolder.getComplexGoalID();
                 if (complexGoalID != null && complexGoalID > 0) {
                     incompleteMasterTasks.put(complexGoalID, incompleteMasterTasks.get(complexGoalID) +1);
+                    TaskEventHolder mNextTask = nextTask.get(complexGoalID);
+                    if (nextTask != null) {
+                        if (mNextTask.getStartTime().after(incompleteHolder.getStartTime())) {
+                            nextTask.put(complexGoalID, incompleteHolder);
+                        }
+                    } else {
+                        nextTask.put(complexGoalID, incompleteHolder);
+                    }
                 }
             }
             for (TaskEventHolder incompleteHolder: work.mOverdue) {
                 Integer complexGoalID = incompleteHolder.getComplexGoalID();
                 if (complexGoalID != null && complexGoalID > 0) {
                     incompleteMasterTasks.put(complexGoalID, incompleteMasterTasks.get(complexGoalID) +1);
+                    TaskEventHolder mNextTask = nextTask.get(complexGoalID);
+                    if (mNextTask != null) {
+                        if (mNextTask.getStartTime().after(incompleteHolder.getStartTime())) {
+                            nextTask.put(complexGoalID, incompleteHolder);
+                        }
+                    } else {
+                        nextTask.put(complexGoalID, incompleteHolder);
+                    }
                 }
             }
         } else { return null; }
@@ -285,7 +304,7 @@ public class AsyncSorter extends AsyncTask<Transporter, Void, Void> {
                 reportToParent.markEventsReady();
             }
 
-            reportToParent.deliverNewComplexTotals(completedMasterTasks, incompleteMasterTasks);
+            reportToParent.deliverNewComplexTotals(completedMasterTasks, incompleteMasterTasks, nextTask);
 
             reportToParent.flushChanges();
         }

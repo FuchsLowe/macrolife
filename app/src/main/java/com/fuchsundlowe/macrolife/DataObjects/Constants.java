@@ -17,6 +17,8 @@ public class Constants {
     public static String TASK_OBJECT = "TaskObject";
     public static String REPEATING_EVENT = "RepeatingEvent";
     public static String DATA_BASE_NAME = "MK1";
+    public static String INTENT_FILTER_COMPLEXGOAL_ID = "The ID of complex goal with which to open you";
+    public static String INTENT_FILTER_COMPLEXGOAL_EDIT = "Editing the complex goal Sire";
     public static String INTENT_FILTER_GLOBAL_EDIT = "Global Edit Signaling";
     public static String INTENT_FILTER_NEW_TASK = "This is new task";
     public static String INTENT_FILTER_TASK_ID = "Get me the hash ID";

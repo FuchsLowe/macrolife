@@ -21,9 +21,9 @@ public abstract class LDCToFragmentListView {
     public void deliverUpcoming(List<TaskEventHolder> newHolders) {
 
     }
-
     public void deliverComplexTasksStatistics(Map<Integer, Integer> newCompleted,
-                                              Map<Integer, Integer> newIncomplete) {
+                                              Map<Integer, Integer> newIncomplete,
+                                              Map<Integer, TaskEventHolder> nextTasks) {
 
     }
 }

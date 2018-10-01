@@ -1,8 +1,7 @@
-package com.fuchsundlowe.macrolife.BottomBar;
+package com.fuchsundlowe.macrolife.BottomBar.Mods;
 
 import android.content.Context;
 import android.support.annotation.NonNull;
-import android.support.constraint.ConstraintLayout;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;

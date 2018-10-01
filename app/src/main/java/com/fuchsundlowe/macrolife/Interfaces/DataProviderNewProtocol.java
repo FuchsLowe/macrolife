@@ -48,9 +48,11 @@ public interface DataProviderNewProtocol {
 
 
     // Complex Goals:
+    void saveComplexGoal(ComplexGoal goalToSave);
     LiveData<List<ComplexGoal>>getAllComplexGoals();
     ComplexGoal getComplexGoalBy(int masterID);
     ComplexGoal findComplexGoal(int byID);
+    void deleteComplexGoal(ComplexGoal goal);
 
 
     // Methods:

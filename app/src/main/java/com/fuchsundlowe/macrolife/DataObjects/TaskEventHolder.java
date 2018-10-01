@@ -1,6 +1,7 @@
 package com.fuchsundlowe.macrolife.DataObjects;
 
 import android.support.annotation.Nullable;
+import android.support.v4.content.LocalBroadcastManager;
 
 import com.fuchsundlowe.macrolife.EngineClasses.LocalStorage;
 
@@ -144,7 +145,11 @@ public class TaskEventHolder {
     }
     @Nullable
     public TaskObject getTask() {
-        return task;
+        if (task == null) {
+            return LocalStorage.getInstance(null).findTaskObjectBy(event.getParentID());
+        } else {
+            return task;
+        }
     }
     @Nullable
     public RepeatingEvent getEvent() {

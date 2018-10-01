@@ -5,6 +5,7 @@ import android.arch.lifecycle.Observer;
 import android.content.Context;
 import android.support.annotation.Nullable;
 
+import com.fuchsundlowe.macrolife.DataObjects.ComplexGoal;
 import com.fuchsundlowe.macrolife.DataObjects.TaskEventHolder;
 import com.fuchsundlowe.macrolife.DataObjects.RepeatingEvent;
 import com.fuchsundlowe.macrolife.DataObjects.TaskObject;
@@ -73,6 +74,7 @@ class ListDataController implements LDCProtocol, AsyncSorterCommunication {
     private AsyncSorter tasksSorter, eventsSorter;
 
     private Map<bracketType, Boolean> toFlush;
+    private Map<Integer, TaskEventHolder> nextTask;
 
     private AsyncSorterCommunication self;
 
@@ -104,6 +106,8 @@ class ListDataController implements LDCProtocol, AsyncSorterCommunication {
         completedSet = new ArrayList<>();
         upcomingSet = new ArrayList<>();
         overdueSet = new ArrayList<>();
+
+        nextTask = new HashMap<>();
 
         tasksStatus = currentStatus.notDefined;
         eventsStatus = currentStatus.notDefined;
@@ -210,12 +214,16 @@ class ListDataController implements LDCProtocol, AsyncSorterCommunication {
             protocol.deliverUpcoming(upcoming);
         }
     }
-    public void subscribeToComplexGoals(LDCToFragmentListView protocol) {
+    public void subscribeToComplexGoalsStatistics(LDCToFragmentListView protocol) {
         complexStatisticsSet.add(protocol);
         if (tasksStatus == currentStatus.ready && eventsStatus == currentStatus.ready) {
-            protocol.deliverComplexTasksStatistics(completedStatistics, incompleteStatistics);
+            protocol.deliverComplexTasksStatistics(completedStatistics, incompleteStatistics, nextTask);
         }
     }
+    public LiveData<List<ComplexGoal>> subscribeToComplexLiveData(ComplexLiveDataProtocol protocol) {
+        return dataMaster.getAllComplexGoals();
+    }
+
 
     // Protocol AsyncSorterCommunication implementations:
     @Override
@@ -243,9 +251,10 @@ class ListDataController implements LDCProtocol, AsyncSorterCommunication {
         toFlush.put(bracketType.undefined, Boolean.TRUE);
     }
     @Override
-    public void deliverNewComplexTotals(Map<Integer, Integer> completed, Map<Integer, Integer> incomplete) {
+    public void deliverNewComplexTotals(Map<Integer, Integer> completed, Map<Integer, Integer> incomplete, Map<Integer, TaskEventHolder> nextTask) {
         completedStatistics = completed;
         incompleteStatistics = incomplete;
+        this.nextTask = nextTask;
     }
     @Override
     public void flushChanges() {
@@ -275,9 +284,28 @@ class ListDataController implements LDCProtocol, AsyncSorterCommunication {
                 toFlush.put(bracketType.undefined, Boolean.FALSE);
             }
             for (LDCToFragmentListView fragment : complexStatisticsSet) {
-                fragment.deliverComplexTasksStatistics(completedStatistics, incompleteStatistics);
+                fragment.deliverComplexTasksStatistics(completedStatistics, incompleteStatistics, nextTask);
             }
         }
+    }
+
+        // Standard calls to database serviced by this protocol
+
+    public TaskEventHolder searchForTask(int taskID) {
+        // TODO Implement
+        return null;
+    }
+    public TaskEventHolder searchForEvent(int eventID) {
+        // TODO: Implement
+        return null;
+    }
+    @Override
+    public void deleteTask(TaskObject taskToDelete) {
+        dataMaster.deleteTask(taskToDelete);
+    }
+    @Override
+    public void deleteEvent(RepeatingEvent eventToDelete) {
+        dataMaster.deleteRepeatingEvent(eventToDelete);
     }
 
     private enum currentStatus {

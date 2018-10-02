@@ -36,6 +36,14 @@ import java.util.List;
  * specifically it worked on Samsung Galaxy S8 but noted it didn't work on Emulators ( used different
  * Android Software, 22 & 27 but same device, Google Pixel XL )
  */
+
+// TODO Implement; maybe after you have red a little about search systems.
+/*
+ * For now, my ideas was that I can sort the results before they arrive via Live data by
+ * Decreasing HashID... < reasons for decreasing hash id is that you will always be more int
+ * eresetd in most recent data you have, and less about latter inserted data>
+ * Then for search system I would use binary search to find the hashID
+ */
 public class LocalStorage implements DataProviderNewProtocol {
 
     private static LocalStorage self;

@@ -12,13 +12,16 @@ import android.support.constraint.ConstraintLayout;
 import android.support.v4.app.Fragment;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.DisplayMetrics;
+import android.util.Log;
 import android.view.Gravity;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.inputmethod.EditorInfo;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.PopupWindow;
 import android.widget.Space;
@@ -121,18 +124,21 @@ public class EditTaskBottomBar extends Fragment implements EditTaskProtocol {
 
         switch (newState) {
             case createTask:
-                baseView.removeAllViews();
-                // define TextView and wait
-                TextView justTextView = new TextView(getContext());
-                dynamicArea.addView(justTextView);
                 dynamicArea.setVisibility(View.VISIBLE);
+                // define TextView and wait
+                final EditText justTextView = new EditText(getContext());
+                justTextView.setSingleLine();
+                justTextView.setHint(R.string.hint_newTask);
+                justTextView.setImeOptions(EditorInfo.IME_ACTION_DONE);
+                dynamicArea.addView(justTextView);
                 justTextView.setOnEditorActionListener(new TextView.OnEditorActionListener() {
                     @Override
                     public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
                         if (actionId == EditorInfo.IME_ACTION_DONE) {
                             if (v.getText().length() > 0) {
-                                TaskObject newTaskCreated = createNewTask(v.getText().toString());
+                                taskObject = createNewTask(v.getText().toString());
                                 setState(editTask);
+                                removeSoftKeyboard(justTextView);
                             }
                             baseView.requestLayout();
                             return true;
@@ -267,10 +273,9 @@ public class EditTaskBottomBar extends Fragment implements EditTaskProtocol {
     }
     // A helper method to create a new task where only input is the name. Returns new Task...
     private TaskObject createNewTask(String taskName) {
-        TaskObject newTask = new TaskObject(0, 0, 0, taskName, Calendar.getInstance(),
+        return new TaskObject(dataProvider.findNextFreeHashIDForTask(), 0, 0, taskName, Calendar.getInstance(),
                 null, null, Calendar.getInstance(), TaskObject.CheckableStatus.notCheckable,
-                null, 0, 0, null, TaskObject.TimeDefined.noTime, "");
-        return newTask;
+                null, 0, 0, "", TaskObject.TimeDefined.noTime, "");
     }
     private int dpToPixConverter(float dp) {
         float scale = getContext().getResources().getDisplayMetrics().density;
@@ -389,6 +394,17 @@ public class EditTaskBottomBar extends Fragment implements EditTaskProtocol {
     }
     private boolean isTask() {
         return eventObject == null;
+    }
+    private void removeSoftKeyboard(EditText taskName) {
+        InputMethodManager imm = (InputMethodManager)
+                context.getSystemService(Context.INPUT_METHOD_SERVICE);
+        try {
+            imm.hideSoftInputFromWindow(this.baseView.getWindowToken(), 0);
+            taskName.clearFocus();
+        } catch (NullPointerException e) {
+            Log.e("Keyboard Error", "Null pointer error -> " + e.getMessage());
+        }
+
     }
 
     //EditTaskProtocol implementation:
@@ -564,7 +580,7 @@ public class EditTaskBottomBar extends Fragment implements EditTaskProtocol {
                 presentDeleteWarning();
                 break;
             case dateAndTime:
-                /* NOTE: Don't think this is teh right way, since you can edit repeating event values normally...
+                /* NOTE: Don't think this is the right way, since you can edit repeating event values normally...
                 if (taskObject.isThisRepeatingEvent()) {
                     // Make a Toast indicating that this is not doable since its repeating event:
                     Toast actionNotDoable = Toast.makeText(getContext(),R.string.go_to_editing_options, Toast.LENGTH_SHORT);

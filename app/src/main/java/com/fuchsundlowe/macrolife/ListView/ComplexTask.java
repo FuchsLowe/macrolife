@@ -57,7 +57,10 @@ public class ComplexTask extends FrameLayout {
     public void defineMe(ComplexGoal goal, Point taskCount, @Nullable TaskEventHolder nextGoal) {
         this.goal = goal;
         taskName.setText(goal.getTaskName());
+        updateStats(taskCount, nextGoal);
+    }
 
+    public void updateStats(Point taskCount, TaskEventHolder nextGoal) {
         // Define the progress Bar: Assuming for taskCount that first it completed, second is incomplete
         int total = taskCount.x + taskCount.y;
         StringBuilder textToDisplay = new StringBuilder();

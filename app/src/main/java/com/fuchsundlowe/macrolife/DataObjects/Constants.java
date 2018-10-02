@@ -17,6 +17,7 @@ public class Constants {
     public static String TASK_OBJECT = "TaskObject";
     public static String REPEATING_EVENT = "RepeatingEvent";
     public static String DATA_BASE_NAME = "MK1";
+
     public static String INTENT_FILTER_COMPLEXGOAL_ID = "The ID of complex goal with which to open you";
     public static String INTENT_FILTER_COMPLEXGOAL_EDIT = "Editing the complex goal Sire";
     public static String INTENT_FILTER_GLOBAL_EDIT = "Global Edit Signaling";
@@ -28,6 +29,8 @@ public class Constants {
     public static String INTENT_FILTER_RECOMMENDATION = "Get the recommendation engine";
     public static String INTENT_FILTER_CHANGE_IN_MOD = "Mod has been changed, update the ChronoView";
     public static String INTENT_FILTER_EVENT_DELETED = "Event has been deleted";
+    public static String INTENT_FILTER_STOP_EDITING = "We are done editing the bottom bar sire";
+
     public static DayOfWeek[] AMERICAN_WEEK_DAYS = {DayOfWeek.sunday, DayOfWeek.monday,
             DayOfWeek.tuesday, DayOfWeek.wednesday, DayOfWeek.thursday, DayOfWeek.friday,
     DayOfWeek.saturday};
@@ -39,4 +42,8 @@ public class Constants {
     public static String END_VALUE_DONE = "Report that endValue is initiated";
     public static String TYPE_DEFINED = "Reporting that type is defined";
     public static String TYPE_NOT_DEFINED = "Reporting that type is not defined sir";
+    // Fragment Tags:
+    public static String EDIT_TASK_BOTTOM_BAR = "Editing the Task Bottom Bar";
+    public static String EDIT_GOAL_BOTTOM_BAR = "Editing Complex Goals";
+    public static String RECOMMENDATION_BOTTOM_BAR = "I just recommend ideas sire";
 }

@@ -79,7 +79,7 @@ class ListDataController implements LDCProtocol, AsyncSorterCommunication {
     private AsyncSorterCommunication self;
 
 
-    protected ListDataController(Context context) {
+    ListDataController(Context context) {
         // Initialization phase:
         this.mContext = context;
         dataMaster = LocalStorage.getInstance(mContext);
@@ -292,12 +292,25 @@ class ListDataController implements LDCProtocol, AsyncSorterCommunication {
         // Standard calls to database serviced by this protocol
 
     public TaskEventHolder searchForTask(int taskID) {
-        // TODO Implement
+        TaskObject object = dataMaster.findTaskObjectBy(taskID);
+        if (object != null) {
+            return new TaskEventHolder(object, null);
+        }
         return null;
     }
     public TaskEventHolder searchForEvent(int eventID) {
-        // TODO: Implement
+        RepeatingEvent event = dataMaster.getEventWith(eventID);
+        if (event != null) {
+          return new TaskEventHolder(null, event);
+        }
         return null;
+    }
+    public void saveTaskEventHolder(TaskEventHolder toSave) {
+        if (toSave.isTask()) {
+            dataMaster.saveTaskObject(toSave.getTask());
+        } else {
+            dataMaster.saveRepeatingEvent(toSave.getEvent());
+        }
     }
     @Override
     public void deleteTask(TaskObject taskToDelete) {

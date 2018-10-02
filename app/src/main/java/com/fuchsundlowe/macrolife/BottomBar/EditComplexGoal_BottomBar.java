@@ -10,12 +10,14 @@ import android.support.annotation.NonNull;
 import android.support.v4.app.Fragment;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.DisplayMetrics;
+import android.util.Log;
 import android.view.Gravity;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.inputmethod.EditorInfo;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
@@ -65,6 +67,7 @@ public class EditComplexGoal_BottomBar extends Fragment {
         this.inflater = inflater;
 
         defineEditTextListeners();
+        defineOnClickListeners();
         defineBroadcastReceiver();
 
         return baseView;
@@ -135,6 +138,8 @@ public class EditComplexGoal_BottomBar extends Fragment {
                         goal = new ComplexGoal(0, name.getText().toString(), now, now, null);
                         // execute save:
                         dataMaster.saveComplexGoal(goal);
+                        // Remove Keyboard:
+                        removeSoftKeyboard(name);
                     }
                     // reload self with new task in mind.
                     editGoal(goal);
@@ -144,74 +149,95 @@ public class EditComplexGoal_BottomBar extends Fragment {
             }
         });
 
-        purpose.setOnEditorActionListener(new TextView.OnEditorActionListener() {
+        purpose.setOnFocusChangeListener(new View.OnFocusChangeListener() {
             @Override
-            public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
-                if (actionId == EditorInfo.IME_ACTION_DONE) {
+            public void onFocusChange(View v, boolean hasFocus) {
+                if (!hasFocus) {
                     goal.setPurpose(purpose.getText().toString());
                     dataMaster.saveComplexGoal(goal);
-                    return true;
                 }
-                return false;
             }
         });
+
     }
-
-    // Button on click implementations:
-    public void onClear(View view) {
-        deadline.setText(R.string.setDeadline);
-        goal.setDeadline(null);
-    }
-    public void onDelete(View view) {
-        // Produce the pop up box for warning...
-        View warningBox = inflater.inflate(R.layout.delete_warrning, null, false);
-        float WIDTH_BY_SCREEN_PERCENTAGE = 0.8f;
-        float HEIGHT_BY_SCREEN_PERCENTAGE = 0.25f;
-
-        DisplayMetrics displayMetrics = baseView.getContext().getResources().getDisplayMetrics();
-        int calculatedWidth = (int) (displayMetrics.widthPixels * WIDTH_BY_SCREEN_PERCENTAGE);
-        int calculatedHeight = (int) (displayMetrics.heightPixels * HEIGHT_BY_SCREEN_PERCENTAGE);
-
-        TextView tittle = warningBox.findViewById(R.id.tittle_deleteWarning);
-        tittle.setText(R.string.Toast_Tittle_WARNING);
-        TextView subtitle = warningBox.findViewById(R.id.subtitle_deleteWarning);
-        subtitle.setText(R.string.Toast_Subtitle);
-
-        final PopupWindow popupWindow = new PopupWindow(warningBox, calculatedWidth, calculatedHeight);
-        popupWindow.setFocusable(true);        // TODO: Define animation
-        popupWindow.showAtLocation(baseView, Gravity.CENTER,0,0);
-
-        Button deleteButton = warningBox.findViewById(R.id.deleteButton_deleteWarning);
-        deleteButton.setText("DELETE");
-        deleteButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                // We report back to DayView to complete the deletion Progress and decide what to do
-                // whith this view
-                popupWindow.dismiss();
-                dataMaster.deleteComplexGoal(goal);
-                displayCreateGoalMode();
-            }
-        });
-        Button cancelButton = warningBox.findViewById(R.id.cancelButton_deleteWarning);
-        cancelButton.setText("CANCEL");
-        cancelButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                // Dismiss the whole Charade
-                popupWindow.dismiss();
-            }
-        });
-    }
-    public void onSetDeadline(View view) {
-        EventDatePicker datePicker = new EventDatePicker();
-        valueToEditForDeadline = goal.getDeadline();
-        Calendar now = Calendar.getInstance();
-        if (valueToEditForDeadline == null) {
-            valueToEditForDeadline = (Calendar) now.clone();
+    private void removeSoftKeyboard(EditText taskName) {
+        InputMethodManager imm = (InputMethodManager)
+                baseView.getContext().getSystemService(Context.INPUT_METHOD_SERVICE);
+        try {
+            imm.hideSoftInputFromWindow(this.baseView.getWindowToken(), 0);
+            taskName.clearFocus();
+        } catch (NullPointerException e) {
+            Log.e("Keyboard Error", "Null pointer error -> " + e.getMessage());
         }
-        datePicker.defineMe(valueToEditForDeadline, now, baseView.getContext());
-        datePicker.show(this.requireFragmentManager(), "DatePicker");
+
+    }
+    // Button on click implementations:
+    private void defineOnClickListeners() {
+        clear.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                deadline.setText(R.string.setDeadline);
+                goal.setDeadline(null);
+                clear.setVisibility(View.GONE);
+            }
+        });
+        delete.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                // Produce the pop up box for warning...
+                View warningBox = inflater.inflate(R.layout.delete_warrning, null, false);
+                float WIDTH_BY_SCREEN_PERCENTAGE = 0.8f;
+                float HEIGHT_BY_SCREEN_PERCENTAGE = 0.25f;
+
+                DisplayMetrics displayMetrics = baseView.getContext().getResources().getDisplayMetrics();
+                int calculatedWidth = (int) (displayMetrics.widthPixels * WIDTH_BY_SCREEN_PERCENTAGE);
+                int calculatedHeight = (int) (displayMetrics.heightPixels * HEIGHT_BY_SCREEN_PERCENTAGE);
+
+                TextView tittle = warningBox.findViewById(R.id.tittle_deleteWarning);
+                tittle.setText(R.string.Toast_Tittle_WARNING);
+                TextView subtitle = warningBox.findViewById(R.id.subtitle_deleteWarning);
+                subtitle.setText(R.string.Toast_Subtitle);
+
+                final PopupWindow popupWindow = new PopupWindow(warningBox, calculatedWidth, calculatedHeight);
+                popupWindow.setFocusable(true);        // TODO: Define animation
+                popupWindow.showAtLocation(baseView, Gravity.CENTER,0,0);
+
+                Button deleteButton = warningBox.findViewById(R.id.deleteButton_deleteWarning);
+                deleteButton.setText("DELETE");
+                deleteButton.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        // We report back to DayView to complete the deletion Progress and decide what to do
+                        // whith this view
+                        popupWindow.dismiss();
+                        dataMaster.deleteComplexGoal(goal);
+                        displayCreateGoalMode();
+                    }
+                });
+                Button cancelButton = warningBox.findViewById(R.id.cancelButton_deleteWarning);
+                cancelButton.setText("CANCEL");
+                cancelButton.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        // Dismiss the whole Charade
+                        popupWindow.dismiss();
+                    }
+                });
+            }
+        });
+        deadline.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                EventDatePicker datePicker = new EventDatePicker();
+                valueToEditForDeadline = goal.getDeadline();
+                Calendar now = Calendar.getInstance();
+                if (valueToEditForDeadline == null) {
+                    valueToEditForDeadline = (Calendar) now.clone();
+                }
+                datePicker.defineMe(valueToEditForDeadline, now, baseView.getContext());
+                datePicker.show(requireFragmentManager(), "DatePicker");
+            }
+        });
     }
 
     private void defineBroadcastReceiver() {

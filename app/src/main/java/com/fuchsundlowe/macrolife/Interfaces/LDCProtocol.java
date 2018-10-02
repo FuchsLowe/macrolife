@@ -25,6 +25,9 @@ public interface LDCProtocol {
     // Standard calls to DB:
     TaskEventHolder searchForTask(int taskID);
     TaskEventHolder searchForEvent(int eventID);
+
+    void saveTaskEventHolder(TaskEventHolder toSave);
+
     void deleteTask(TaskObject taskToDelete);
     void deleteEvent(RepeatingEvent eventToDelete);
 }

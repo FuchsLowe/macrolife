@@ -41,7 +41,9 @@
     <!--Fragment Descriptions-->
     <string name="CompletedList_title">Completed Tasks</string>
     <string name="ComplexList_title">Complex Tasks</string>
-    <string name="UpcomingList_title">Current Task</string>
+    <string name="UpcomingList_title">Current Tasks</string>
+    <string name="OverdueList_title">Overdue Tasks</string>
+    <string name="UnassignedList_title">Unassigned Tasks</string>
 
     <!--This is used for representing the repeat type in repeatEventEditor, for use in bottom Adapter-->
     <string name="daily">Daily</string>
@@ -83,6 +85,7 @@
     <string name="listView_complexGoal_completedComplexGoal">This goal is accomplished!</string>
 
     <!-- Bottom Bar Complex View -->
+    <string name="hint_newTask">Type to create new Task</string>
     <string name="hint_newGoal">Type to create new Complex Goal</string>
     <string name="hint_purpose">(Optional) what is the reason you are committing to this goal?</string>
     <string name="setDeadline">Set Deadline</string>

@@ -1,9 +1,11 @@
 package com.fuchsundlowe.macrolife.ListView;
 
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v4.app.Fragment;
+import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
@@ -11,6 +13,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
+import com.fuchsundlowe.macrolife.DataObjects.Constants;
 import com.fuchsundlowe.macrolife.DataObjects.TaskEventHolder;
 import com.fuchsundlowe.macrolife.Interfaces.LDCProtocol;
 import com.fuchsundlowe.macrolife.Interfaces.LDCToFragmentListView;
@@ -40,9 +43,11 @@ public class CompletedList extends Fragment {
          title = baseView.findViewById(R.id.description_simpleListView);
          title.setText(R.string.CompletedList_title);
 
-         recyclerView = baseView.findViewById(R.id.recyclerView_completedList);
+         recyclerView = baseView.findViewById(R.id.recyclerView_simpleListView);
          recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
-         recyclerView.setAdapter(new CompleteListAdapter());
+         recyclerView.setAdapter(new RegularTaskListAdapter(dataToDisplay, ListView.bracketType.completed));
+
+         defineOnClick();
 
          return baseView;
     }
@@ -57,41 +62,23 @@ public class CompletedList extends Fragment {
         public void deliverCompleted(List<TaskEventHolder> newHolders) {
             super.deliverCompleted(newHolders);
             dataToDisplay = newHolders;
-            recyclerView.getAdapter().notifyDataSetChanged();
-        }
-    }
-
-    // Adapter for Recycler View:
-    private class CompleteListAdapter extends RecyclerView.Adapter<CompleteListAdapter.TaskHolder> {
-
-        @NonNull
-        @Override
-        public TaskHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-           return new TaskHolder(new RegularTask(parent.getContext()));
-        }
-
-        @Override
-        public void onBindViewHolder(@NonNull TaskHolder holder, int position) {
-            holder.task.defineMe(dataToDisplay.get(position), ListView.bracketType.completed);
-        }
-
-        @Override
-        public int getItemCount() {
-            if (dataToDisplay!= null) {
-                return dataToDisplay.size();
-            } else { return 0; }
-        }
-
-        class TaskHolder extends RecyclerView.ViewHolder {
-            RegularTask task;
-            public TaskHolder(View itemView) {
-                super(itemView);
-                if (itemView instanceof RegularTask) {
-                    task = (RegularTask) itemView;
-                }
+            if (recyclerView != null) {
+                recyclerView.getAdapter().notifyDataSetChanged();
             }
         }
     }
 
+    private void defineOnClick() {
+        // Used to dismiss bottom Bar edit if its active:
+        baseView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                LocalBroadcastManager manager = LocalBroadcastManager.getInstance(baseView.getContext());
+                Intent removeBottomBar = new Intent();
+                removeBottomBar.setAction(Constants.INTENT_FILTER_STOP_EDITING);
+                manager.sendBroadcast(removeBottomBar);
+            }
+        });
+    }
 
 }

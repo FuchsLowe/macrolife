@@ -1,13 +1,13 @@
 package com.fuchsundlowe.macrolife.Interfaces;
 
 
-import android.arch.lifecycle.LiveData;
+import android.arch.lifecycle.Observer;
 
 import com.fuchsundlowe.macrolife.DataObjects.ComplexGoal;
 import com.fuchsundlowe.macrolife.DataObjects.RepeatingEvent;
 import com.fuchsundlowe.macrolife.DataObjects.TaskEventHolder;
 import com.fuchsundlowe.macrolife.DataObjects.TaskObject;
-import com.fuchsundlowe.macrolife.ListView.ComplexLiveDataProtocol;
+import com.fuchsundlowe.macrolife.ListView.ComplexDataProtocol;
 
 import java.util.List;
 
@@ -19,8 +19,13 @@ public interface LDCProtocol {
     void subscribeToUnassigned(LDCToFragmentListView protocol);
     void subscribeToUpcoming(LDCToFragmentListView protocol);
     void subscribeToComplexGoalsStatistics(LDCToFragmentListView protocol);
-    LiveData<List<ComplexGoal>> subscribeToComplexLiveData(ComplexLiveDataProtocol protocol);
+    void subscribeToComplexLiveData(ComplexDataProtocol protocol);
     void destroy();
+
+    // Used to connect Observers from LDC with life-cycle aware observables
+    Observer<List<TaskObject>> getTaskObserver();
+    Observer<List<RepeatingEvent>> getEventObserver();
+    Observer<List<ComplexGoal>> getGoalObserver();
 
     // Standard calls to DB:
     TaskEventHolder searchForTask(int taskID);

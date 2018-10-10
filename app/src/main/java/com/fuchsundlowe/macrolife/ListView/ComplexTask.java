@@ -61,7 +61,7 @@ public class ComplexTask extends FrameLayout {
     }
 
     public void updateStats(Point taskCount, TaskEventHolder nextGoal) {
-        // Define the progress Bar: Assuming for taskCount that first it completed, second is incomplete
+        // Define the progress Bar: Assuming for taskCount that first it oldCompletedMap, second is incomplete
         int total = taskCount.x + taskCount.y;
         StringBuilder textToDisplay = new StringBuilder();
         textToDisplay.append(taskCount.x);

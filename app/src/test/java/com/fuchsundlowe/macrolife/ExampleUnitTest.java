@@ -34,21 +34,14 @@ public class ExampleUnitTest {
 
     @Test
     public void myTest() {
+        String text = "Here is me satan _ ";
+        String myName = "Hercules";
 
-        Calendar one = Calendar.getInstance();
-        Calendar two = Calendar.getInstance();
-        two.add(Calendar.MONTH, 2);
+        boolean rez = text.contains("_");
 
-        long positive = distanceInDays(one,two);
-        long negative = distanceInDays(two, one);
+        String hero = text.replaceFirst("_", myName);
 
-        String hint = "Where is the wisdom now Satan?";
     }
 
-    private long distanceInDays(Calendar start, Calendar end) {
-        DateTime mk1 = new DateTime(start.getTimeInMillis());
-        DateTime mk2 = new DateTime(end.getTimeInMillis());
 
-        return Days.daysBetween(mk1, mk2).getDays();
-    }
 }

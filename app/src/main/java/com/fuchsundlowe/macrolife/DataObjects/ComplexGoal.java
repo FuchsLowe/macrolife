@@ -17,7 +17,7 @@ import java.util.Calendar;
 public class ComplexGoal {
 
     // Variables list;
-    @PrimaryKey
+    @PrimaryKey(autoGenerate = true)
     protected int hashID;
     protected String taskName;
     @Ignore

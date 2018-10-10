@@ -153,7 +153,7 @@ public class EditTaskBottomBar extends Fragment implements EditTaskProtocol {
             case editTask:
                 dynamicArea.removeAllViews();
                 dynamicArea.setVisibility(View.VISIBLE);
-                editView = new EditingView_BottomBar(getContext());
+                editView = new EditingView_BottomBar(baseView.getContext());
                 dynamicArea.addView(editView);
                 editView.insertData(taskObject, eventObject, this);
                 defineModButtons();

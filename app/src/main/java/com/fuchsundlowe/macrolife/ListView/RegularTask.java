@@ -12,6 +12,7 @@ import android.support.v4.view.PagerAdapter;
 import android.support.v7.widget.RecyclerView;
 import android.util.AttributeSet;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.CheckBox;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
@@ -69,8 +70,9 @@ public class RegularTask extends FrameLayout {
 
     // Default initiator:
     private void init() {
+        setLayoutParams(new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
+
         baseView = inflate(this.getContext(), R.layout.regular_task_list_view, this);
-        this.addView(baseView);
         baseView.setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -100,7 +102,8 @@ public class RegularTask extends FrameLayout {
                 commitChangesOnHolder();
             }
         });
-        preferences = mContext.getSharedPreferences(Constants.SHARED_PREFERENCES_KEY, Context.MODE_PRIVATE);;
+        preferences = mContext.getSharedPreferences(Constants.SHARED_PREFERENCES_KEY, Context.MODE_PRIVATE);
+
     }
     // The task is defined by values specified by the Task
     public void defineMe(TaskEventHolder holder, bracketType type) {
@@ -174,7 +177,6 @@ public class RegularTask extends FrameLayout {
     private String defineTimeToShow(TaskEventHolder holder, bracketType taskType) {
         Calendar currentTime =  Calendar.getInstance();
         String valueToReturn = "";
-
         /*
             Completed: * Task Completed on <date>
             Undefined:
@@ -190,12 +192,12 @@ public class RegularTask extends FrameLayout {
             Due today at <time>
             Due tomorrow at 12PM
             # if due tomorrow then say tomorrow. If is 7 days away then say the day of the week. If its more than 7 days, we display the date, not time then…
-            How should I treat the completed?
+            How should I treat the oldCompletedMap?
          */
         switch (taskType) {
             case completed:
                 valueToReturn += (mContext.getString(R.string.listView_textForCompletedTask));
-                valueToReturn.replaceFirst(regexBreak, provideDate(holder.getEndTime()));
+                valueToReturn = valueToReturn.replaceFirst(regexBreak, provideDate(holder.getEndTime()));
                 break;
             case overdue:
                 Calendar timeUnit; // used to reference the Calendar object used as timeReference
@@ -246,7 +248,7 @@ public class RegularTask extends FrameLayout {
                             valueToReturn = valueToReturn.replace(regexBreak, provideTime(holder.getStartTime()));
                         } else {
                             // show minutes till
-                            long distanceInMinutes = distanceInMinutes(holder.getStartTime(), currentTime);
+                            long distanceInMinutes = distanceInMinutes(currentTime, holder.getStartTime());
                             if (distanceInMinutes > 0) {
                                 valueToReturn += mContext.getString(R.string.listView_textForUpcomingTask_underHour);
                                 valueToReturn = valueToReturn.replace(regexBreak, String.valueOf(distanceInMinutes));
@@ -307,7 +309,7 @@ public class RegularTask extends FrameLayout {
     }
     private String provideDate(Calendar dateObject) {
         SimpleDateFormat formatter = new SimpleDateFormat("MM, dd yyyy");
-        return formatter.format(dateObject);
+        return formatter.format(dateObject.getTime());
     }
     // Returns distance in days between start and end values
     private long distanceInDays(Calendar start, Calendar end) {

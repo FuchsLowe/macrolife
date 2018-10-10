@@ -1,8 +1,6 @@
 package com.fuchsundlowe.macrolife.ListView;
 
-import android.content.Intent;
 import android.os.AsyncTask;
-import android.os.MemoryFile;
 import android.os.Process;
 
 import com.fuchsundlowe.macrolife.DataObjects.TaskEventHolder;
@@ -48,7 +46,7 @@ public class AsyncSorter extends AsyncTask<Transporter, Void, Void> {
         if (!isCancelled() && work != null) {
             // I need to create the list of maps...
             work.initiateMaps();
-
+            //  TODO: Why these EXIST?
             List<TaskEventHolder> completedToRemove = new ArrayList<>();
             List<TaskEventHolder> overdueToRemove = new ArrayList<>();
             List<TaskEventHolder> upcomingToRemove = new ArrayList<>();
@@ -56,29 +54,29 @@ public class AsyncSorter extends AsyncTask<Transporter, Void, Void> {
             for (int i = 0; i< work.sizeOfList(); i++) {
                 if (!isCancelled()) {
                     // Wrapping:
-                    TaskEventHolder holder;
+                    TaskEventHolder mHolder;
                     if (work.areTasks()) {
-                        holder = new TaskEventHolder(work.tasksToConvert.get(i), null);
+                        mHolder = new TaskEventHolder(work.virginTasks.get(i), null);
                     } else {
-                        holder = new TaskEventHolder(null, work.eventsToConvert.get(i));
+                        mHolder = new TaskEventHolder(null, work.virginEvents.get(i));
                     }
                     // Sorting:
-                    int key = holder.getActiveID();
-                    if (!holder.isTask()) {
-                        key *= -1;
+                    int mHoldersKey = mHolder.getActiveID();
+                    if (!mHolder.isTask()) {
+                        mHoldersKey *= -1;
                     }
-                    switch (evaluate(holder)) {
+                    switch (evaluate(mHolder)) {
                         case completed:
-                            newCompleted.put(key, holder);
-                            completedToRemove.add(holder);
+                            newCompleted.put(mHoldersKey, mHolder);
+                            completedToRemove.add(mHolder);
                             // If we already established that whole set needs to change, then no need
                             // to re-check it again...
                             if (!work.editedCompleted) {
                                 // Evaluate if there are changes made or if it even exists in previous List:
-                                if (work.completed.containsKey(key)) {
+                                if (work.oldCompletedMap.containsKey(mHoldersKey)) {
                                     // Establish if the values have been changed:
-                                    if (!holdersEquals(holder, work.completed.get(key))) {
-                                        // means they are the same
+                                    if (!holdersEquals(mHolder, work.oldCompletedMap.get(mHoldersKey))) {
+                                        // means they are not the same
                                         work.editedCompleted = true;
                                     }
                                 } else {
@@ -88,11 +86,11 @@ public class AsyncSorter extends AsyncTask<Transporter, Void, Void> {
                             }
                             break;
                         case overdue:
-                            newOverdue.put(key, holder);
-                            overdueToRemove.add(holder);
+                            newOverdue.put(mHoldersKey, mHolder);
+                            overdueToRemove.add(mHolder);
                             if (!work.editedOverdue) {
-                                if (work.overdue.containsKey(key)) {
-                                    if (!holdersEquals(holder, work.overdue.get(key))) {
+                                if (work.oldOverdueMap.containsKey(mHoldersKey)) {
+                                    if (!holdersEquals(mHolder, work.oldOverdueMap.get(mHoldersKey))) {
                                         work.editedOverdue = true;
                                     }
                                 } else {
@@ -101,11 +99,11 @@ public class AsyncSorter extends AsyncTask<Transporter, Void, Void> {
                             }
                             break;
                         case upcoming:
-                            newUpcoming.put(key, holder);
-                            upcomingToRemove.add(holder);
+                            newUpcoming.put(mHoldersKey, mHolder);
+                            upcomingToRemove.add(mHolder);
                             if (!work.editedUpcoming) {
-                                if (work.upcoming.containsKey(key)) {
-                                    if (!holdersEquals(holder, work.upcoming.get(key))) {
+                                if (work.oldUpcomingMap.containsKey(mHoldersKey)) {
+                                    if (!holdersEquals(mHolder, work.oldUpcomingMap.get(mHoldersKey))) {
                                         work.editedUpcoming = true;
                                     }
                                 } else {
@@ -114,11 +112,11 @@ public class AsyncSorter extends AsyncTask<Transporter, Void, Void> {
                             }
                             break;
                         case undefined:
-                            newUndefined.put(key, holder);
-                            undefinedToRemove.add(holder);
+                            newUndefined.put(mHoldersKey, mHolder);
+                            undefinedToRemove.add(mHolder);
                             if (!work.editedUnassigned) {
-                                if (work.unassigned.containsKey(key)) {
-                                    if (!holdersEquals(holder, work.unassigned.get(key))) {
+                                if (work.oldUnassignedMap.containsKey(mHoldersKey)) {
+                                    if (!holdersEquals(mHolder, work.oldUnassignedMap.get(mHoldersKey))) {
                                         work.editedUnassigned = true;
                                     }
                                 } else {
@@ -132,7 +130,7 @@ public class AsyncSorter extends AsyncTask<Transporter, Void, Void> {
             // Evaluate if all of previous Array are the same as ones in this array:
             if (!isCancelled()) {
                 if (!work.editedCompleted) {
-                    for (TaskEventHolder oldHolder: work.mCompleted) {
+                    for (TaskEventHolder oldHolder: work.oldCompleted) {
                         int oldKey = oldHolder.getActiveID();
                         if (!oldHolder.isTask()) {
                             oldKey *= -1;
@@ -150,7 +148,7 @@ public class AsyncSorter extends AsyncTask<Transporter, Void, Void> {
                     }
                 }
                 if (!work.editedUnassigned) {
-                    for (TaskEventHolder oldHolder: work.mUnassigned) {
+                    for (TaskEventHolder oldHolder: work.oldUnassigned) {
                         int oldKey = oldHolder.getActiveID();
                         if (!oldHolder.isTask()) {
                             oldKey *= -1;
@@ -167,7 +165,7 @@ public class AsyncSorter extends AsyncTask<Transporter, Void, Void> {
                     }
                 }
                 if (!work.editedUpcoming) {
-                    for (TaskEventHolder oldHolder: work.mUpcoming) {
+                    for (TaskEventHolder oldHolder: work.oldUpcoming) {
                         int oldKey = oldHolder.getActiveID();
                         if (!oldHolder.isTask()) {
                             oldKey *= -1;
@@ -184,7 +182,7 @@ public class AsyncSorter extends AsyncTask<Transporter, Void, Void> {
                     }
                 }
                 if (!work.editedOverdue) {
-                    for (TaskEventHolder oldHolder: work.mOverdue) {
+                    for (TaskEventHolder oldHolder: work.oldOverdue) {
                         int oldKey = oldHolder.getActiveID();
                         if (!oldHolder.isTask()) {
                             oldKey *= -1;
@@ -205,23 +203,22 @@ public class AsyncSorter extends AsyncTask<Transporter, Void, Void> {
             if (!isCancelled()) {
                 if (work.editedCompleted) {
                     // Remove old ones and put new ones...
-                    work.mCompleted.removeAll(completedToRemove);
-                    work.mCompleted.addAll(newCompleted.values());
+                    work.oldCompleted = newCompleted.values();
                     sortCompleted();
                 }
                 if (work.editedOverdue) {
-                    work.mOverdue.removeAll(overdueToRemove);
-                    work.mOverdue.addAll(newOverdue.values());
+                    work.oldOverdue.removeAll(overdueToRemove);
+                    work.oldOverdue.addAll(newOverdue.values());
                     sortOverdue();
                 }
                 if (work.editedUpcoming) {
-                    work.mUpcoming.removeAll(upcomingToRemove);
-                    work.mUpcoming.addAll(newUpcoming.values());
+                    work.oldUpcoming.removeAll(upcomingToRemove);
+                    work.oldUpcoming.addAll(newUpcoming.values());
                     sortUpcoming();
                 }
                 if (work.editedUnassigned) {
-                    work.mUnassigned.removeAll(undefinedToRemove);
-                    work.mUnassigned.addAll(newUndefined.values());
+                    work.oldUnassigned.removeAll(undefinedToRemove);
+                    work.oldUnassigned.addAll(newUndefined.values());
                     sortUnassigned();
                 }
             } else { return null; }
@@ -230,19 +227,19 @@ public class AsyncSorter extends AsyncTask<Transporter, Void, Void> {
             * now because until the end we didn't know if lists have changed or not, thus wanna remove
             * any inconsistency that would occurred otherwise.
             */
-            for (TaskEventHolder completedHolder :work.mCompleted) {
+            for (TaskEventHolder completedHolder :work.oldCompleted) {
                 Integer complexGoalID = completedHolder.getComplexGoalID();
                 if (complexGoalID != null && complexGoalID > 0) {
                     completedMasterTasks.put(complexGoalID, completedMasterTasks.get(complexGoalID) +1);
                 }
             }
-            for (TaskEventHolder incompleteHolder: work.mUnassigned) {
+            for (TaskEventHolder incompleteHolder: work.oldUnassigned) {
                 Integer complexGoalID = incompleteHolder.getComplexGoalID();
                 if (complexGoalID != null && complexGoalID > 0) {
                     incompleteMasterTasks.put(complexGoalID, incompleteMasterTasks.get(complexGoalID) +1);
                 }
             }
-            for (TaskEventHolder incompleteHolder: work.mUpcoming) {
+            for (TaskEventHolder incompleteHolder: work.oldUpcoming) {
                 Integer complexGoalID = incompleteHolder.getComplexGoalID();
                 if (complexGoalID != null && complexGoalID > 0) {
                     incompleteMasterTasks.put(complexGoalID, incompleteMasterTasks.get(complexGoalID) +1);
@@ -256,7 +253,7 @@ public class AsyncSorter extends AsyncTask<Transporter, Void, Void> {
                     }
                 }
             }
-            for (TaskEventHolder incompleteHolder: work.mOverdue) {
+            for (TaskEventHolder incompleteHolder: work.oldOverdue) {
                 Integer complexGoalID = incompleteHolder.getComplexGoalID();
                 if (complexGoalID != null && complexGoalID > 0) {
                     incompleteMasterTasks.put(complexGoalID, incompleteMasterTasks.get(complexGoalID) +1);
@@ -408,7 +405,7 @@ public class AsyncSorter extends AsyncTask<Transporter, Void, Void> {
          * For now I think that N should be ~1000
          */
         // Insertion Sort System
-        List<TaskEventHolder> listToWorkWith = work.mCompleted;
+        List<TaskEventHolder> listToWorkWith = work.oldCompleted;
         int n = listToWorkWith.size();
         for (int i=1; i<n; ++i)
         {
@@ -430,7 +427,7 @@ public class AsyncSorter extends AsyncTask<Transporter, Void, Void> {
     }
     private void sortOverdue() {
         // Insertion Sort System
-        List<TaskEventHolder> listToWorkWith = work.mOverdue;
+        List<TaskEventHolder> listToWorkWith = work.oldOverdue;
         int n = listToWorkWith.size();
         for (int i=1; i<n; ++i)
         {
@@ -448,7 +445,7 @@ public class AsyncSorter extends AsyncTask<Transporter, Void, Void> {
     }
     private void sortUpcoming() {
 // Insertion Sort System
-        List<TaskEventHolder> listToWorkWith = work.mUpcoming;
+        List<TaskEventHolder> listToWorkWith = work.oldUpcoming;
         int n = listToWorkWith.size();
         for (int i=1; i<n; ++i)
         {

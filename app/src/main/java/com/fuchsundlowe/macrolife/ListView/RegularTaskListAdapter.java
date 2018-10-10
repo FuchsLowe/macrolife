@@ -2,6 +2,7 @@ package com.fuchsundlowe.macrolife.ListView;
 
 import android.support.annotation.NonNull;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
 
@@ -19,6 +20,10 @@ public class RegularTaskListAdapter extends RecyclerView.Adapter<RegularTaskList
         this.dataToDisplay = dataToDisplay;
         this.type = type;
     }
+    public void insertNewData(List<TaskEventHolder> newData) {
+        dataToDisplay = newData;
+        notifyDataSetChanged();
+    }
 
     @NonNull
     @Override
@@ -30,10 +35,9 @@ public class RegularTaskListAdapter extends RecyclerView.Adapter<RegularTaskList
     public void onBindViewHolder(@NonNull RegularTaskListAdapter.TaskHolder holder, int position) {
         holder.task.defineMe(dataToDisplay.get(position), type);
     }
-
     @Override
     public int getItemCount() {
-        if (dataToDisplay!= null) {
+        if (dataToDisplay != null) {
             return dataToDisplay.size();
         } else { return 0; }
     }

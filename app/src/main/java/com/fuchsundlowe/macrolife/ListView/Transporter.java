@@ -6,6 +6,7 @@ import com.fuchsundlowe.macrolife.DataObjects.TaskEventHolder;
 import com.fuchsundlowe.macrolife.DataObjects.TaskObject;
 import com.fuchsundlowe.macrolife.Interfaces.AsyncSorterCommunication;
 
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -13,20 +14,20 @@ import java.util.Map;
 // Intended for wrapping several objects to be used by AsyncSorter
 public class Transporter {
 
-    List<TaskObject> tasksToConvert;
-    List<RepeatingEvent> eventsToConvert;
+    List<TaskObject> virginTasks;
+    List<RepeatingEvent> virginEvents;
 
-    List<TaskEventHolder> mUnassigned;
-    List<TaskEventHolder> mCompleted;
-    List<TaskEventHolder> mUpcoming;
-    List<TaskEventHolder> mOverdue;
+    List<TaskEventHolder> oldUnassigned;
+    List<TaskEventHolder> oldCompleted;
+    List<TaskEventHolder> oldUpcoming;
+    List<TaskEventHolder> oldOverdue;
 
-    Map<Integer, TaskEventHolder> unassigned;
-    Map<Integer, TaskEventHolder> completed;
-    Map<Integer, TaskEventHolder> upcoming;
-    Map<Integer, TaskEventHolder> overdue;
+    Map<Integer, TaskEventHolder> oldUnassignedMap;
+    Map<Integer, TaskEventHolder> oldCompletedMap;
+    Map<Integer, TaskEventHolder> oldUpcomingMap;
+    Map<Integer, TaskEventHolder> oldOverdueMap;
 
-    Map<Integer, TaskEventHolder> nextTask;
+    Map<Integer, TaskEventHolder> nextTaskMap;
 
     boolean editedUnassigned, editedCompleted, editedUpcoming, editedOverdue;
 
@@ -39,69 +40,69 @@ public class Transporter {
                        List<TaskEventHolder> overdue,
                        AsyncSorterCommunication parent) {
 
-        this.tasksToConvert = tasksToConvert;
-        this.eventsToConvert = eventsToConvert;
-        this.mUnassigned = unassigned;
-        this.mCompleted = completed;
-        this.mUpcoming = upcoming;
-        this.mOverdue = overdue;
+        this.virginTasks = tasksToConvert;
+        this.virginEvents = eventsToConvert;
+        this.oldUnassigned = unassigned;
+        this.oldCompleted = completed;
+        this.oldUpcoming = upcoming;
+        this.oldOverdue = overdue;
         this.parent = parent;
 
     }
     // We create maps for easier checks of Buckets back in ListDataController
     public void initiateMaps() {
         // Call this from Asynchronous thread
-        unassigned = new HashMap<>();
-        completed = new HashMap<>();
-        upcoming = new HashMap<>();
-        overdue = new HashMap<>();
-        nextTask = new HashMap<>();
+        oldUnassignedMap = new HashMap<>();
+        oldCompletedMap = new HashMap<>();
+        oldUpcomingMap = new HashMap<>();
+        oldOverdueMap = new HashMap<>();
+        nextTaskMap = new HashMap<>();
 
         // Now we fill them up:
-        for (TaskEventHolder holder: mUnassigned) {
+        for (TaskEventHolder holder: oldUnassigned) {
             int key = holder.getActiveID();
             if (!holder.isTask()) {
                 key *= -1;
             }
-            unassigned.put(key, holder);
+            oldUnassignedMap.put(key, holder);
         }
-        for (TaskEventHolder holder: mCompleted) {
+        for (TaskEventHolder holder: oldCompleted) {
             int key = holder.getActiveID();
             if (!holder.isTask()) {
                 key *= -1;
             }
-            completed.put(key, holder);
+            oldCompletedMap.put(key, holder);
         }
-        for (TaskEventHolder holder: mUpcoming) {
+        for (TaskEventHolder holder: oldUpcoming) {
             int key = holder.getActiveID();
             if (!holder.isTask()) {
                 key *= -1;
             }
-            upcoming.put(key, holder);
+            oldUpcomingMap.put(key, holder);
         }
-        for (TaskEventHolder holder: mOverdue) {
+        for (TaskEventHolder holder: oldOverdue) {
             int key = holder.getActiveID();
             if (!holder.isTask()) {
                 key *= -1;
             }
-            overdue.put(key, holder);
+            oldOverdueMap.put(key, holder);
         }
     }
 
     boolean areTasks() {
-        return tasksToConvert != null;
+        return virginTasks != null;
     }
 
     int sizeOfList() {
         if (areTasks()) {
-            if (tasksToConvert != null) {
-                return tasksToConvert.size();
+            if (virginTasks != null) {
+                return virginTasks.size();
             } else {
                 return 0;
             }
         } else{
-            if (eventsToConvert != null) {
-                return eventsToConvert.size();
+            if (virginEvents != null) {
+                return virginEvents.size();
             } else {
                 return 0;
             }

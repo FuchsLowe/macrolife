@@ -20,7 +20,9 @@ import com.fuchsundlowe.macrolife.DataObjects.Constants;
 import com.fuchsundlowe.macrolife.DataObjects.RepeatingEvent;
 import com.fuchsundlowe.macrolife.DataObjects.TaskEventHolder;
 import com.fuchsundlowe.macrolife.DataObjects.TaskObject;
+import com.fuchsundlowe.macrolife.EngineClasses.LocalStorage;
 import com.fuchsundlowe.macrolife.Interfaces.BottomBarCommunicationProtocol;
+import com.fuchsundlowe.macrolife.Interfaces.DataProviderNewProtocol;
 import com.fuchsundlowe.macrolife.Interfaces.LDCProtocol;
 import com.fuchsundlowe.macrolife.R;
 
@@ -47,10 +49,13 @@ public class ListView extends AppCompatActivity implements BottomBarCommunicatio
         bottomBarHolder = findViewById(R.id.bottomBar_listView);
 
         dataProvider = new ListDataController(this);
+        defineLiveDataCalls();
         bottomBarProtocol = this;
 
         defineBroadcastReceiver();
         definePagerListeners();
+        // Used as optimization to reduce the CPU drain since I will have only 3 ListViews to deal with
+        centerBar.setOffscreenPageLimit(2);
     }
 
     @Override
@@ -72,8 +77,12 @@ public class ListView extends AppCompatActivity implements BottomBarCommunicatio
             @Override
             public void onReceive(Context context, Intent intent) {
                 if (intent.getAction().equals(Constants.INTENT_FILTER_GLOBAL_EDIT)) {
+                    boolean requestModeDone = false;
                     if (editTaskBottomBar == null) {
                         editTaskBottomBar = new EditTaskBottomBar();
+                    } else {
+                        // This ensures that we reload new data
+                        requestModeDone = true;
                     }
                     int taskID = intent.getIntExtra(Constants.INTENT_FILTER_TASK_ID, -1);
                     int eventID = intent.getIntExtra(Constants.INTENT_FILTER_EVENT_ID, -1);
@@ -90,6 +99,9 @@ public class ListView extends AppCompatActivity implements BottomBarCommunicatio
                     transaction.replace(bottomBarHolder.getId(), editTaskBottomBar, Constants.EDIT_TASK_BOTTOM_BAR);
                     transaction.commit();
                     editTaskBottomBar.displayEditTask(EditTaskBottomBar.EditTaskState.editTask, task, event, bottomBarProtocol, bottomBarHolder.getWidth());
+                    if (requestModeDone) {
+                        editTaskBottomBar.modDone();
+                    }
                 } else if (intent.getAction().equals(Constants.INTENT_FILTER_COMPLEXGOAL_EDIT)) {
                     // TODO What to do in case of complex goal...
                 } else if (intent.getAction().equals(Constants.INTENT_FILTER_STOP_EDITING)) {
@@ -153,7 +165,12 @@ public class ListView extends AppCompatActivity implements BottomBarCommunicatio
             }
         });
     }
-
+    private void defineLiveDataCalls() {
+        DataProviderNewProtocol dataMaster = LocalStorage.getInstance(this);
+        dataMaster.getAllTaskObjects().observe(this, dataProvider.getTaskObserver());
+        dataMaster.getAllRepeatingEvents().observe(this, dataProvider.getEventObserver());
+        dataMaster.getAllComplexGoals().observe(this, dataProvider.getGoalObserver());
+    }
     // List View Page adapter:
     private class ListViewAdapter extends FragmentStatePagerAdapter {
 
@@ -175,6 +192,7 @@ public class ListView extends AppCompatActivity implements BottomBarCommunicatio
                     upcoming.defineMe(dataProvider);
                     return upcoming;
             }
+
         }
 
         @Override

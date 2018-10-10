@@ -7,7 +7,7 @@ import com.fuchsundlowe.macrolife.DataObjects.ComplexGoal;
 import java.util.List;
 
 // Simple protocol used to subscribe to live data for ComplexGoals
-public interface ComplexLiveDataProtocol {
+public interface ComplexDataProtocol {
 
-    void complexGoalLiveData(LiveData<List<ComplexGoal>> data);
+    void complexGoalLiveData(List<ComplexGoal> newData);
 }

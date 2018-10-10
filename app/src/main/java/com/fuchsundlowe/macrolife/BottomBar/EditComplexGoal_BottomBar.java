@@ -135,7 +135,9 @@ public class EditComplexGoal_BottomBar extends Fragment {
                     if (goal == null) {
                         // means we create a new task
                         Calendar now = Calendar.getInstance();
-                        goal = new ComplexGoal(0, name.getText().toString(), now, now, null);
+
+                        goal = new ComplexGoal(dataMaster.findNextFreeHashIDForGoal(),
+                                name.getText().toString(), now, now, null);
                         // execute save:
                         dataMaster.saveComplexGoal(goal);
                         // Remove Keyboard:
@@ -148,7 +150,8 @@ public class EditComplexGoal_BottomBar extends Fragment {
                 return false;
             }
         });
-
+        // TODO: This doesn't make sense, it does not work
+        /*
         purpose.setOnFocusChangeListener(new View.OnFocusChangeListener() {
             @Override
             public void onFocusChange(View v, boolean hasFocus) {
@@ -158,7 +161,7 @@ public class EditComplexGoal_BottomBar extends Fragment {
                 }
             }
         });
-
+        */
     }
     private void removeSoftKeyboard(EditText taskName) {
         InputMethodManager imm = (InputMethodManager)

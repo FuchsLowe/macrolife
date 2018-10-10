@@ -786,8 +786,19 @@ public class LocalStorage implements DataProviderNewProtocol {
             return 0;
         }
     }
+    @Override
+    public int findNextFreeHashIDForGoal() {
+        if (complexGoalHolder.getValue() !=null && complexGoalHolder.getValue().size() > 0) {
+            int biggestID = 0;
+            for (ComplexGoal goal: complexGoalHolder.getValue()) {
+                biggestID = Math.max(biggestID, goal.getHashID());
+            }
+            return biggestID +1;
+        }
+        return 0;
+    }
 
-   /* TODO: Consistency manager implementation:
+    /* TODO: Consistency manager implementation:
     * The goal of this implementation is to in background do consistency check on relationships and
     * logic of the DataBase. The relationships between objects, cleanup and other things would be
     * evaluated and changes would be committed.

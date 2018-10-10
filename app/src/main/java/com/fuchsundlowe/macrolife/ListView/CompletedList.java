@@ -22,14 +22,13 @@ import com.fuchsundlowe.macrolife.R;
 import java.util.List;
 
 /**
- * Holder for listViews tasks that are completed!
+ * Holder for listViews tasks that are oldCompletedMap!
  */
 public class CompletedList extends Fragment {
 
     private View baseView;
     private RecyclerView recyclerView;
     private List<TaskEventHolder> dataToDisplay;
-    private TextView title;
 
     public CompletedList() {
         // Required empty public constructor
@@ -40,7 +39,9 @@ public class CompletedList extends Fragment {
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
          baseView =  inflater.inflate(R.layout.simple_list_list_view_fragments, container, false);
-         title = baseView.findViewById(R.id.description_simpleListView);
+
+         TextView title = baseView.findViewById(R.id.description_simpleListView);
+
          title.setText(R.string.CompletedList_title);
 
          recyclerView = baseView.findViewById(R.id.recyclerView_simpleListView);
@@ -48,7 +49,6 @@ public class CompletedList extends Fragment {
          recyclerView.setAdapter(new RegularTaskListAdapter(dataToDisplay, ListView.bracketType.completed));
 
          defineOnClick();
-
          return baseView;
     }
 
@@ -62,13 +62,15 @@ public class CompletedList extends Fragment {
         public void deliverCompleted(List<TaskEventHolder> newHolders) {
             super.deliverCompleted(newHolders);
             dataToDisplay = newHolders;
-            if (recyclerView != null) {
-                recyclerView.getAdapter().notifyDataSetChanged();
+                if (recyclerView != null) {
+                    if (recyclerView.getAdapter() instanceof RegularTaskListAdapter) {
+                        ((RegularTaskListAdapter) recyclerView.getAdapter()).insertNewData(newHolders);
+                    }
             }
         }
     }
 
-    private void defineOnClick() {
+    private void  defineOnClick() {
         // Used to dismiss bottom Bar edit if its active:
         baseView.setOnClickListener(new View.OnClickListener() {
             @Override

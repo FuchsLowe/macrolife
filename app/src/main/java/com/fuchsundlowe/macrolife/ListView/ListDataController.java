@@ -1,5 +1,6 @@
 package com.fuchsundlowe.macrolife.ListView;
 
+import android.annotation.SuppressLint;
 import android.arch.lifecycle.LiveData;
 import android.arch.lifecycle.Observer;
 import android.content.Context;
@@ -37,14 +38,6 @@ import java.util.concurrent.ConcurrentHashMap;
  * Whoever is interested in receiving the Lists subscribes to specific list. They will receive either
  * immediately a list if LDC is done sorting or ASAP. Whenever new set is received from DP, LDC
  * sorts it and dispatches it to subscribed ones.
- *
- * Any changes made to the list by subscribers are reported back to LDC to inform subscribers to that
- * list that things have changed. Goal is to avoid unnecessary whole data calls, but to allow the
-  * system to just make changes to one element, like insert it or remove it from view and not
-  * deal with whole data set and then figuring out which ones are being removed and which ones are
-  * staying. Per say, completed task is changed to upcoming so, subscriber removes it from list, reports
-  * the change to LDC and then LDC reports this change to all subscribers who should insert the task
-  * in upcoming by updating their views.
  */
 class ListDataController implements LDCProtocol, AsyncSorterCommunication {
 
@@ -57,19 +50,24 @@ class ListDataController implements LDCProtocol, AsyncSorterCommunication {
     private LiveData<List<RepeatingEvent>> allRepeatingEvents;
     private Observer<List<RepeatingEvent>> observerForEvents;
 
+    private Observer<List<ComplexGoal>> observerForGoals;
+
     private Map<Integer, Integer> completedStatistics, incompleteStatistics;
     private List<TaskEventHolder> unassigned;
     private List<TaskEventHolder> completed;
     private List<TaskEventHolder>  upcoming;
     private List<TaskEventHolder>  overdue;
+    private List<ComplexGoal> complex;
 
     private currentStatus tasksStatus, eventsStatus;
 
+    // Holders for subscribers to data for referred categories
     private List<LDCToFragmentListView> complexStatisticsSet;
     private List<LDCToFragmentListView> unassignedSet;
     private List<LDCToFragmentListView> completedSet;
     private List<LDCToFragmentListView> upcomingSet;
     private List<LDCToFragmentListView> overdueSet;
+    private List<ComplexDataProtocol> complexSet;
 
     private AsyncSorter tasksSorter, eventsSorter;
 
@@ -88,12 +86,11 @@ class ListDataController implements LDCProtocol, AsyncSorterCommunication {
         initiateData();
         // Binding observers to LiveDataObjects
         allTaskObjects = dataMaster.getAllTaskObjects();
-        allTaskObjects.observeForever(observerForTasks);
 
         allRepeatingEvents = dataMaster.getAllRepeatingEvents();
-        allRepeatingEvents.observeForever(observerForEvents);
 
     }
+    @SuppressLint("UseSparseArrays")
     private void initiateData() {
 
         unassigned = Collections.synchronizedList(new ArrayList<TaskEventHolder>());
@@ -106,6 +103,7 @@ class ListDataController implements LDCProtocol, AsyncSorterCommunication {
         completedSet = new ArrayList<>();
         upcomingSet = new ArrayList<>();
         overdueSet = new ArrayList<>();
+        complexSet = new ArrayList<>();
 
         nextTask = new HashMap<>();
 
@@ -147,6 +145,16 @@ class ListDataController implements LDCProtocol, AsyncSorterCommunication {
                 Transporter event = new Transporter(null, events, unassigned,
                         completed, upcoming, overdue, self);
                 eventsSorter.execute(event);
+            }
+        };
+        // Goals:
+        observerForGoals = new Observer<List<ComplexGoal>>() {
+            @Override
+            public void onChanged(@Nullable List<ComplexGoal> complexGoals) {
+                complex = complexGoals;
+                for (ComplexDataProtocol protocol: complexSet) {
+                    protocol.complexGoalLiveData(complexGoals);
+                }
             }
         };
     }
@@ -210,6 +218,7 @@ class ListDataController implements LDCProtocol, AsyncSorterCommunication {
         }
     }
     public void subscribeToUpcoming(LDCToFragmentListView protocol) {
+        upcomingSet.add(protocol);
         if (tasksStatus == currentStatus.ready && eventsStatus == currentStatus.ready) {
             protocol.deliverUpcoming(upcoming);
         }
@@ -220,8 +229,11 @@ class ListDataController implements LDCProtocol, AsyncSorterCommunication {
             protocol.deliverComplexTasksStatistics(completedStatistics, incompleteStatistics, nextTask);
         }
     }
-    public LiveData<List<ComplexGoal>> subscribeToComplexLiveData(ComplexLiveDataProtocol protocol) {
-        return dataMaster.getAllComplexGoals();
+    public void subscribeToComplexLiveData(ComplexDataProtocol protocol) {
+        complexSet.add(protocol);
+        if (complex != null) {
+            protocol.complexGoalLiveData(complex);
+        }
     }
 
 
@@ -289,7 +301,20 @@ class ListDataController implements LDCProtocol, AsyncSorterCommunication {
         }
     }
 
-        // Standard calls to database serviced by this protocol
+    @Override
+    public Observer<List<TaskObject>> getTaskObserver() {
+        return observerForTasks;
+    }
+    @Override
+    public Observer<List<RepeatingEvent>> getEventObserver() {
+        return observerForEvents;
+    }
+    public Observer<List<ComplexGoal>> getGoalObserver() {
+        return observerForGoals;
+    }
+
+
+    // Standard calls to database serviced by this protocol
 
     public TaskEventHolder searchForTask(int taskID) {
         TaskObject object = dataMaster.findTaskObjectBy(taskID);

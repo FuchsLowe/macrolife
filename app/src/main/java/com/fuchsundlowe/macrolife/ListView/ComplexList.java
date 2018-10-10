@@ -1,13 +1,11 @@
 package com.fuchsundlowe.macrolife.ListView;
 
 
-import android.arch.lifecycle.LiveData;
 import android.arch.lifecycle.Observer;
 import android.content.Intent;
 import android.graphics.Point;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.widget.LinearLayoutManager;
@@ -30,7 +28,7 @@ import java.util.Map;
 /**
  * A simple {@link Fragment} subclass.
  */
-public class ComplexList extends Fragment implements ComplexLiveDataProtocol{
+public class ComplexList extends Fragment implements ComplexDataProtocol {
 
     private View baseView;
     private TextView title;
@@ -68,20 +66,14 @@ public class ComplexList extends Fragment implements ComplexLiveDataProtocol{
     }
 
     public void defineMe(LDCProtocol dataProviderProtocol) {
-        dataProviderProtocol.subscribeToCompleted(new DataInterface());
+        dataProviderProtocol.subscribeToComplexGoalsStatistics(new DataInterface());
         dataProviderProtocol.subscribeToComplexLiveData(this);
     }
 
-    // ComplexLiveDataProtocol implementation:
-    public void complexGoalLiveData(LiveData<List<ComplexGoal>> data) {
-        liveDataObserver = new Observer<List<ComplexGoal>>() {
-            @Override
-            public void onChanged(@Nullable List<ComplexGoal> complexGoals) {
-                goals = complexGoals;
-                recyclerView.getAdapter().notifyDataSetChanged();
-            }
-        };
-        data.observeForever(liveDataObserver);
+    // ComplexDataProtocol implementation:
+    public void complexGoalLiveData(List<ComplexGoal> newData) {
+        goals = newData;
+        recyclerView.getAdapter().notifyDataSetChanged();
     }
 
     // Subscribes to receive new statistics that belong to ComplexGoals...
@@ -102,19 +94,29 @@ public class ComplexList extends Fragment implements ComplexLiveDataProtocol{
         @NonNull
         @Override
         public GoalHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-            GoalHolder holder = new GoalHolder(new ComplexTask(parent.getContext()));
-            return holder;
+            return new GoalHolder(new ComplexTask(parent.getContext()));
         }
 
         @Override
         public void onBindViewHolder(@NonNull GoalHolder holder, int position) {
             Point stats = new Point();
             ComplexGoal goal = goals.get(position);
+            TaskEventHolder myHolder = null;
             if (statsCompleted != null && statsIncomplete != null) {
-                stats.x = statsCompleted.get(goal.getHashID());
-                stats.y = statsIncomplete.get(goal.getHashID());
+                Integer x, y;
+                x = statsCompleted.get(goal.getHashID());
+                y = statsIncomplete.get(goal.getHashID());
+                if (x != null) {
+                    stats.x = x;
+                }
+                if (y != null) {
+                    stats.y = y;
+                }
             }
-            holder.task.defineMe(goal, stats, nextTask.get(goal.getHashID()));
+            if (nextTask != null) {
+                myHolder = nextTask.get(goal.getHashID());
+            }
+            holder.task.defineMe(goal, stats, myHolder);
         }
 
         @Override

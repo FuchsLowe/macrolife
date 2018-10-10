@@ -61,4 +61,5 @@ public interface DataProviderNewProtocol {
     int findNextFreeHashIDForTask();
     int findNextFreeHashIDForList();
     int findNextFreeHashIDForEvent();
+    int findNextFreeHashIDForGoal();
 }

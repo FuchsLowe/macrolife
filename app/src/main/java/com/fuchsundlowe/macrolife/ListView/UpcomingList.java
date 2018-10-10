@@ -10,8 +10,10 @@ import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.inputmethod.EditorInfo;
 import android.widget.ImageButton;
 import android.widget.ScrollView;
 import android.widget.TextView;
@@ -36,7 +38,6 @@ public class UpcomingList extends Fragment {
 
     private ScrollView base;
     private ViewGroup listBase, oneHolder, twoHolder, threeHolder;
-    private TextView containerNameOne,containerNameTwo, containerNameThree;
     private ImageButton expandOne, expandTwo, expandThree;
     private RecyclerView recyclerOne, recyclerTwo, recyclerThree;
     private LDCProtocol dataProtocol;
@@ -53,20 +54,20 @@ public class UpcomingList extends Fragment {
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
         base = (ScrollView) inflater.inflate(R.layout.fragment_upcoming_list, container, false);
-        /*
+
         listBase = (ViewGroup) inflater.inflate(R.layout.upcomming_list_base_view, base, true);
 
         oneHolder = listBase.findViewById(R.id.rowOneHolder_listBase);
         twoHolder = listBase.findViewById(R.id.rowTwoHolder_listBase);
         threeHolder = listBase.findViewById(R.id.rowThreeHolder_listBase);
 
-        containerNameOne = listBase.findViewById(R.id.text_rowOne_listBase);
+        TextView containerNameOne = listBase.findViewById(R.id.text_rowOne_listBase);
         containerNameOne.setText(R.string.OverdueList_title);
 
-        containerNameTwo = listBase.findViewById(R.id.text_rowTwo_listBase);
+        TextView containerNameTwo = listBase.findViewById(R.id.text_rowTwo_listBase);
         containerNameTwo.setText(R.string.UpcomingList_title);
 
-        containerNameThree = listBase.findViewById(R.id.text_rowThree_listBase);
+        TextView containerNameThree = listBase.findViewById(R.id.text_rowThree_listBase);
         containerNameThree.setText(R.string.UnassignedList_title);
 
         expandOne = listBase.findViewById(R.id.button_rowOne_listBase);
@@ -79,7 +80,6 @@ public class UpcomingList extends Fragment {
 
         defineOnClick();
         defineAdapters();
-        */
         return base;
     }
 
@@ -96,47 +96,47 @@ public class UpcomingList extends Fragment {
     }
 
     public void defineMe(LDCProtocol protocol) {
-        /*
+
         DataInterface dataProvider = new DataInterface();
         protocol.subscribeToOverdue(dataProvider);
         protocol.subscribeToUpcoming(dataProvider);
         protocol.subscribeToUnassigned(dataProvider);
         dataProtocol = protocol;
-        */
     }
 
     private void defineOnClick() {
         expandOne.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (oneHolder.getVisibility() == View.VISIBLE) {
-                    oneHolder.setVisibility(View.GONE);
+                if (recyclerOne.getVisibility() == View.VISIBLE) {
+                    recyclerOne.setVisibility(View.GONE);
                 } else {
-                    oneHolder.setVisibility(View.VISIBLE);
+                    recyclerOne.setVisibility(View.VISIBLE);
                 }
             }
         });
         expandTwo.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (twoHolder.getVisibility() == View.VISIBLE) {
-                    twoHolder.setVisibility(View.GONE);
+                if (recyclerTwo.getVisibility() == View.VISIBLE) {
+                    recyclerTwo.setVisibility(View.GONE);
                 } else {
-                    twoHolder.setVisibility(View.VISIBLE);
+                    recyclerTwo.setVisibility(View.VISIBLE);
                 }
             }
         });
         expandThree.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (threeHolder.getVisibility() == View.VISIBLE) {
-                    threeHolder.setVisibility(View.GONE);
+                if (recyclerThree.getVisibility() == View.VISIBLE) {
+                    recyclerThree.setVisibility(View.GONE);
                 } else {
-                    threeHolder.setVisibility(View.VISIBLE);
+                    recyclerThree.setVisibility(View.VISIBLE);
                 }
             }
         });
-        listBase.setOnClickListener(new View.OnClickListener() {
+        // TODO: Where should I put this click listener?
+        View.OnClickListener universalListener = new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 LocalBroadcastManager manager = LocalBroadcastManager.getInstance(base.getContext());
@@ -144,7 +144,7 @@ public class UpcomingList extends Fragment {
                 removeBottomBar.setAction(Constants.INTENT_FILTER_STOP_EDITING);
                 manager.sendBroadcast(removeBottomBar);
             }
-        });
+        };
     }
     private void defineAdapters() {
         recyclerOne.setLayoutManager(new LinearLayoutManager(base.getContext()));
@@ -161,7 +161,9 @@ public class UpcomingList extends Fragment {
 
         public void deliverOverdue(List<TaskEventHolder> newHolders) {
             overdue = newHolders;
-            recyclerOne.getAdapter().notifyDataSetChanged();
+            if (recyclerOne.getAdapter() instanceof RegularTaskListAdapter) {
+                ((RegularTaskListAdapter) recyclerOne.getAdapter()).insertNewData(newHolders);
+            }
             if (newHolders.size() == 0) {
                 oneHolder.setVisibility(View.GONE);
             } else {
@@ -170,7 +172,9 @@ public class UpcomingList extends Fragment {
         }
         public void deliverUnassigned(List<TaskEventHolder> newHolders) {
             unassigned = newHolders;
-            recyclerThree.getAdapter().notifyDataSetChanged();
+            if (recyclerThree.getAdapter() instanceof RegularTaskListAdapter) {
+                ((RegularTaskListAdapter) recyclerThree.getAdapter()).insertNewData(newHolders);
+            }
             if (newHolders.size() == 0) {
                 twoHolder.setVisibility(View.GONE);
             } else {
@@ -179,18 +183,18 @@ public class UpcomingList extends Fragment {
         }
         public void deliverUpcoming(List<TaskEventHolder> newHolders) {
             upcoming = newHolders;
-            recyclerTwo.getAdapter().notifyDataSetChanged();
+            if (recyclerTwo.getAdapter() instanceof RegularTaskListAdapter) {
+                ((RegularTaskListAdapter) recyclerTwo.getAdapter()).insertNewData(newHolders);
+            }
             if (newHolders.size() == 0) {
                 threeHolder.setVisibility(View.GONE);
             } else {
-                threeHolder.setVisibility(View.VISIBLE);
-            }
-            if (newHolders.size() > 0) {
                 initiateUpdateTimer(newHolders.get(0));
+                threeHolder.setVisibility(View.VISIBLE);
             }
         }
         /*
-         * This method keeps track of next upcoming task and the moment it becomes ____ it triggers
+         * This method keeps track of next oldUpcomingMap task and the moment it becomes ____ it triggers
          * auto save so the task would be re-distributed to different bracket...
          */
         private void initiateUpdateTimer(final TaskEventHolder holder) {

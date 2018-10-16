@@ -2,6 +2,7 @@ package com.fuchsundlowe.macrolife.ListView;
 
 import android.os.AsyncTask;
 import android.os.Process;
+import android.util.SparseArray;
 
 import com.fuchsundlowe.macrolife.DataObjects.TaskEventHolder;
 import com.fuchsundlowe.macrolife.Interfaces.AsyncSorterCommunication;
@@ -10,6 +11,7 @@ import com.fuchsundlowe.macrolife.ListView.ListView.bracketType;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
@@ -37,6 +39,8 @@ public class AsyncSorter extends AsyncTask<Transporter, Void, Void> {
         newUpcoming = new HashMap<>();
         newUndefined = new HashMap<>();
 
+        nextTask = new HashMap<>();
+
         completedMasterTasks = new HashMap<>();
         incompleteMasterTasks = new HashMap<>();
     }
@@ -46,11 +50,6 @@ public class AsyncSorter extends AsyncTask<Transporter, Void, Void> {
         if (!isCancelled() && work != null) {
             // I need to create the list of maps...
             work.initiateMaps();
-            //  TODO: Why these EXIST?
-            List<TaskEventHolder> completedToRemove = new ArrayList<>();
-            List<TaskEventHolder> overdueToRemove = new ArrayList<>();
-            List<TaskEventHolder> upcomingToRemove = new ArrayList<>();
-            List<TaskEventHolder> undefinedToRemove = new ArrayList<>();
             for (int i = 0; i< work.sizeOfList(); i++) {
                 if (!isCancelled()) {
                     // Wrapping:
@@ -68,7 +67,6 @@ public class AsyncSorter extends AsyncTask<Transporter, Void, Void> {
                     switch (evaluate(mHolder)) {
                         case completed:
                             newCompleted.put(mHoldersKey, mHolder);
-                            completedToRemove.add(mHolder);
                             // If we already established that whole set needs to change, then no need
                             // to re-check it again...
                             if (!work.editedCompleted) {
@@ -87,7 +85,6 @@ public class AsyncSorter extends AsyncTask<Transporter, Void, Void> {
                             break;
                         case overdue:
                             newOverdue.put(mHoldersKey, mHolder);
-                            overdueToRemove.add(mHolder);
                             if (!work.editedOverdue) {
                                 if (work.oldOverdueMap.containsKey(mHoldersKey)) {
                                     if (!holdersEquals(mHolder, work.oldOverdueMap.get(mHoldersKey))) {
@@ -100,7 +97,6 @@ public class AsyncSorter extends AsyncTask<Transporter, Void, Void> {
                             break;
                         case upcoming:
                             newUpcoming.put(mHoldersKey, mHolder);
-                            upcomingToRemove.add(mHolder);
                             if (!work.editedUpcoming) {
                                 if (work.oldUpcomingMap.containsKey(mHoldersKey)) {
                                     if (!holdersEquals(mHolder, work.oldUpcomingMap.get(mHoldersKey))) {
@@ -113,7 +109,6 @@ public class AsyncSorter extends AsyncTask<Transporter, Void, Void> {
                             break;
                         case undefined:
                             newUndefined.put(mHoldersKey, mHolder);
-                            undefinedToRemove.add(mHolder);
                             if (!work.editedUnassigned) {
                                 if (work.oldUnassignedMap.containsKey(mHoldersKey)) {
                                     if (!holdersEquals(mHolder, work.oldUnassignedMap.get(mHoldersKey))) {
@@ -202,22 +197,22 @@ public class AsyncSorter extends AsyncTask<Transporter, Void, Void> {
             // Done sorting, now we need to determine which ones have been changed...
             if (!isCancelled()) {
                 if (work.editedCompleted) {
-                    // Remove old ones and put new ones...
-                    work.oldCompleted = newCompleted.values();
+                    deleteCompleted(work.areTasks());
+                    work.oldCompleted.addAll(newCompleted.values());
                     sortCompleted();
                 }
                 if (work.editedOverdue) {
-                    work.oldOverdue.removeAll(overdueToRemove);
+                    deleteOverdue(work.areTasks());
                     work.oldOverdue.addAll(newOverdue.values());
                     sortOverdue();
                 }
                 if (work.editedUpcoming) {
-                    work.oldUpcoming.removeAll(upcomingToRemove);
+                    deleteUpcoming(work.areTasks());
                     work.oldUpcoming.addAll(newUpcoming.values());
                     sortUpcoming();
                 }
                 if (work.editedUnassigned) {
-                    work.oldUnassigned.removeAll(undefinedToRemove);
+                    deleteUnassigned(work.areTasks());
                     work.oldUnassigned.addAll(newUndefined.values());
                     sortUnassigned();
                 }
@@ -397,6 +392,7 @@ public class AsyncSorter extends AsyncTask<Transporter, Void, Void> {
     private boolean holdersEquals(TaskEventHolder first, TaskEventHolder second) {
        return first.getLastTimeModified().getTimeInMillis() == second.getLastTimeModified().getTimeInMillis();
     }
+
     // Sorting Systems:
     private void sortCompleted() {
         /*
@@ -406,18 +402,14 @@ public class AsyncSorter extends AsyncTask<Transporter, Void, Void> {
          */
         // Insertion Sort System
         List<TaskEventHolder> listToWorkWith = work.oldCompleted;
-        int n = listToWorkWith.size();
-        for (int i=1; i<n; ++i)
-        {
-            TaskEventHolder value = listToWorkWith.get(i);
-            int j = i-1;
-
-            while (j>=0 && compareByStartTime(listToWorkWith.get(j), value))
-            {
-                listToWorkWith.add(j+1, value);
-                j = j-1;
+        for (int i = 1; i<listToWorkWith.size(); i++) {
+            TaskEventHolder mark = listToWorkWith.get(i);
+            int toEvalPos = i -1;
+            while (toEvalPos > 0 && compareByStartTime(listToWorkWith.get(toEvalPos), mark)) {
+                listToWorkWith.set(toEvalPos +1, listToWorkWith.get(toEvalPos));
+                toEvalPos --;
             }
-            listToWorkWith.add(j+1, value);
+            listToWorkWith.set(toEvalPos + 1, mark);
         }
     }
     private void sortUnassigned() {
@@ -428,37 +420,91 @@ public class AsyncSorter extends AsyncTask<Transporter, Void, Void> {
     private void sortOverdue() {
         // Insertion Sort System
         List<TaskEventHolder> listToWorkWith = work.oldOverdue;
-        int n = listToWorkWith.size();
-        for (int i=1; i<n; ++i)
-        {
-            TaskEventHolder value = listToWorkWith.get(i);
-            int j = i-1;
-
-            while (j>=0 && compareForOverdue(listToWorkWith.get(j), value))
-            {
-                listToWorkWith.add(j+1, value);
-                j = j-1;
+        for (int i = 1; i< listToWorkWith.size(); i++) {
+            TaskEventHolder mark = listToWorkWith.get(i);
+            int toEvalPos = i -1;
+            while (toEvalPos > 0 && compareForOverdue(listToWorkWith.get(toEvalPos), mark)) {
+                listToWorkWith.set(toEvalPos +1, listToWorkWith.get(toEvalPos));
+                toEvalPos --;
             }
-            listToWorkWith.add(j+1, value);
+            listToWorkWith.set(toEvalPos +1, mark);
         }
-
     }
     private void sortUpcoming() {
-// Insertion Sort System
+        // Insertion Sort System
         List<TaskEventHolder> listToWorkWith = work.oldUpcoming;
-        int n = listToWorkWith.size();
-        for (int i=1; i<n; ++i)
-        {
-            TaskEventHolder value = listToWorkWith.get(i);
-            int j = i-1;
-
-            while (j>=0 && compareByStartTime(listToWorkWith.get(j), value))
-            {
-                listToWorkWith.add(j+1, value);
-                j = j-1;
+        for (int i = 1; i< listToWorkWith.size(); i++) {
+            TaskEventHolder mark = listToWorkWith.get(i);
+            int toEvalPos = i -1;
+            while (toEvalPos > 0 && compareByStartTime(listToWorkWith.get(toEvalPos), mark)) {
+                listToWorkWith.set(toEvalPos +1, listToWorkWith.get(toEvalPos));
+                toEvalPos --;
             }
-            listToWorkWith.add(j+1, value);
-        }    }
+            listToWorkWith.set(toEvalPos +1, mark);
+        }
+    }
+
+    // Removal Systems:
+    private void deleteCompleted(boolean deleteTasks) {
+        LinkedList<TaskEventHolder> toDelete = new LinkedList<>();
+        for (TaskEventHolder holder : work.oldCompleted) {
+            if (deleteTasks) {
+                if (holder.isTask()) {
+                    toDelete.add(holder);
+                }
+            } else {
+                if (!holder.isTask()) {
+                    toDelete.add(holder);
+                }
+            }
+        }
+        work.oldCompleted.removeAll(toDelete);
+    }
+    private void deleteUnassigned(boolean deleteTasks) {
+        LinkedList<TaskEventHolder> toDelete = new LinkedList<>();
+        for (TaskEventHolder holder : work.oldUnassigned) {
+            if (deleteTasks) {
+                if (holder.isTask()) {
+                    toDelete.add(holder);
+                }
+            } else {
+                if (!holder.isTask()) {
+                    toDelete.add(holder);
+                }
+            }
+        }
+        work.oldUnassigned.removeAll(toDelete);
+    }
+    private void deleteOverdue(boolean deleteTasks) {
+        LinkedList<TaskEventHolder> toDelete = new LinkedList<>();
+        for (TaskEventHolder holder : work.oldOverdue) {
+            if (deleteTasks) {
+                if (holder.isTask()) {
+                    toDelete.add(holder);
+                }
+            } else {
+                if (!holder.isTask()) {
+                    toDelete.add(holder);
+                }
+            }
+        }
+        work.oldOverdue.removeAll(toDelete);
+    }
+    private void deleteUpcoming(boolean deleteTasks) {
+        LinkedList<TaskEventHolder> toDelete = new LinkedList<>();
+        for (TaskEventHolder holder : work.oldUpcoming) {
+            if (deleteTasks) {
+                if (holder.isTask()) {
+                    toDelete.add(holder);
+                }
+            } else {
+                if (!holder.isTask()) {
+                    toDelete.add(holder);
+                }
+            }
+        }
+        work.oldUpcoming.removeAll(toDelete);
+    }
 
     // returns true if one should be after two
     private boolean compareByStartTime(TaskEventHolder one, TaskEventHolder two) {

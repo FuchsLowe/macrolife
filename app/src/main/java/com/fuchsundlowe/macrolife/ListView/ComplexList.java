@@ -73,7 +73,9 @@ public class ComplexList extends Fragment implements ComplexDataProtocol {
     // ComplexDataProtocol implementation:
     public void complexGoalLiveData(List<ComplexGoal> newData) {
         goals = newData;
-        recyclerView.getAdapter().notifyDataSetChanged();
+        if (recyclerView != null && recyclerView.getAdapter() != null) {
+            recyclerView.getAdapter().notifyDataSetChanged();
+        }
     }
 
     // Subscribes to receive new statistics that belong to ComplexGoals...

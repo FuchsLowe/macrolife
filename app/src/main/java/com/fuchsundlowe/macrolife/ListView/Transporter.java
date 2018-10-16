@@ -10,6 +10,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Vector;
 
 // Intended for wrapping several objects to be used by AsyncSorter
 public class Transporter {
@@ -17,10 +18,10 @@ public class Transporter {
     List<TaskObject> virginTasks;
     List<RepeatingEvent> virginEvents;
 
-    List<TaskEventHolder> oldUnassigned;
-    List<TaskEventHolder> oldCompleted;
-    List<TaskEventHolder> oldUpcoming;
-    List<TaskEventHolder> oldOverdue;
+    Vector<TaskEventHolder> oldUnassigned;
+    Vector<TaskEventHolder> oldCompleted;
+    Vector<TaskEventHolder> oldUpcoming;
+    Vector<TaskEventHolder> oldOverdue;
 
     Map<Integer, TaskEventHolder> oldUnassignedMap;
     Map<Integer, TaskEventHolder> oldCompletedMap;
@@ -34,10 +35,10 @@ public class Transporter {
     AsyncSorterCommunication parent;
 
     public Transporter(List<TaskObject> tasksToConvert, List<RepeatingEvent> eventsToConvert,
-                       List<TaskEventHolder> unassigned,
-                       List<TaskEventHolder> completed,
-                       List<TaskEventHolder> upcoming,
-                       List<TaskEventHolder> overdue,
+                       Vector<TaskEventHolder> unassigned,
+                       Vector<TaskEventHolder> completed,
+                       Vector<TaskEventHolder> upcoming,
+                       Vector<TaskEventHolder> overdue,
                        AsyncSorterCommunication parent) {
 
         this.virginTasks = tasksToConvert;

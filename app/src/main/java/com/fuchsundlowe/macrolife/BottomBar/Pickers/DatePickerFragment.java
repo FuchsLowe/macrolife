@@ -88,16 +88,26 @@ public class DatePickerFragment extends DialogFragment
                 valueEdited = eventObject.getStartTime();
             }
         } else {
-            // Establish if end time comes before Start time
             if (isTask()) {
                 valueEdited = taskObject.getTaskEndTime();
             } else {
                 valueEdited = eventObject.getEndTime();
             }
         }
+        if (valueEdited == null) {
+            valueEdited = Calendar.getInstance();
+        }
         valueEdited.set(Calendar.YEAR, year);
         valueEdited.set(Calendar.MONTH, month);
         valueEdited.set(Calendar.DAY_OF_MONTH, day);
+        // This is done so the values in time defined will get updates as well...
+        if (isTask()) {
+            if (isEditingStartValue) {
+                taskObject.setTaskStartTime(valueEdited);
+            } else {
+                taskObject.setTaskEndTime(valueEdited);
+            }
+        }
         protocol.saveTask(taskObject, eventObject);
 
     }

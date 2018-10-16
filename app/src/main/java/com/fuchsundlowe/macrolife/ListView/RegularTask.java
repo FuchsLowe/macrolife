@@ -35,6 +35,8 @@ import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.HashMap;
 
+import static java.util.Calendar.YEAR;
+
 // A class that manages the regular task representation in listView...
 public class RegularTask extends FrameLayout {
 
@@ -93,11 +95,9 @@ public class RegularTask extends FrameLayout {
                  * Change the state and report change on self to whoever is in charge...
                  */
                 if (box.isChecked()) {
-                    box.setChecked(false);
-                    holder.setCompletionStatus(TaskObject.CheckableStatus.incomplete);
-                } else {
-                    box.setChecked(true);
                     holder.setCompletionStatus(TaskObject.CheckableStatus.completed);
+                } else {
+                    holder.setCompletionStatus(TaskObject.CheckableStatus.incomplete);
                 }
                 commitChangesOnHolder();
             }
@@ -196,20 +196,37 @@ public class RegularTask extends FrameLayout {
          */
         switch (taskType) {
             case completed:
+                long distanceInDays;
+                Calendar timeUnit; // used to reference the Calendar object used as timeReference
                 valueToReturn += (mContext.getString(R.string.listView_textForCompletedTask));
-                valueToReturn = valueToReturn.replaceFirst(regexBreak, provideDate(holder.getEndTime()));
+                if (holder.getTimeDefined() == TaskObject.TimeDefined.dateAndTime) {
+                    timeUnit = holder.getEndTime();
+                    distanceInDays = distanceInDays(timeUnit, currentTime);
+                } else {
+                    timeUnit = holder.getStartTime();
+                    distanceInDays = distanceInDays(timeUnit, currentTime);
+
+                }
+                switch ((int) distanceInDays) {
+                    case 0:
+                        valueToReturn = mContext.getString(R.string.listVIew_textForCompletedTask_today);
+                        break;
+                    case -1:
+                        valueToReturn = mContext.getString(R.string.listView_textForCompletedTask_yesterday);
+                        break;
+                    default:
+                        valueToReturn = valueToReturn.replaceFirst(regexBreak, provideDate(timeUnit));
+                }
                 break;
             case overdue:
-                Calendar timeUnit; // used to reference the Calendar object used as timeReference
-
                 if (holder.getTimeDefined() == TaskObject.TimeDefined.dateAndTime) {
                     timeUnit = holder.getEndTime();
                 } else {
                     timeUnit = holder.getStartTime();
                 }
-                long distanceInDays = distanceInDays(timeUnit, currentTime);
-                if (distanceInDays > 0) {
-                    if (distanceInDays == 1) {
+                distanceInDays = distanceInDays(timeUnit, currentTime);
+                if (distanceInDays < 0) {
+                    if (distanceInDays == -1) {
                         // display yesterday type
                         valueToReturn += mContext.getString(R.string.listView_textForOverdueTask_yesterday);
                         resetValuesAtDaysEnd(currentTime);
@@ -241,8 +258,8 @@ public class RegularTask extends FrameLayout {
                 if (distanceInDays == 0) { // means its today
                     if (holder.getTimeDefined() == TaskObject.TimeDefined.dateAndTime) {
                         resetValuesInMinute();
-                        long distanceInHours = distanceInHours(holder.getStartTime(), currentTime);
-                        if (distanceInHours > 1) {
+                        long distanceInHours = distanceInHours(currentTime, holder.getStartTime());
+                        if (distanceInHours > 0) {
                             // show hours
                             valueToReturn += mContext.getString(R.string.listView_textForUpcomingTask_today);
                             valueToReturn = valueToReturn.replace(regexBreak, provideTime(holder.getStartTime()));
@@ -305,22 +322,63 @@ public class RegularTask extends FrameLayout {
             pattern = "K:mm:a";
         }
         SimpleDateFormat formatter = new SimpleDateFormat(pattern);
-        return formatter.format(dateObject);
+        return formatter.format(dateObject.getTime());
     }
     private String provideDate(Calendar dateObject) {
         SimpleDateFormat formatter = new SimpleDateFormat("MM, dd yyyy");
         return formatter.format(dateObject.getTime());
     }
-    // Returns distance in days between start and end values
-    private long distanceInDays(Calendar start, Calendar end) {
-        DateTime mk1 = new DateTime(start.getTimeInMillis());
-        DateTime mk2 = new DateTime(end.getTimeInMillis());
+    /* Returns distance in days between start and end values, but its not perfect.
+     * if two dates are the in same year, it will show accurate distance, but if
+     * they are in different years, it shows values from -2 to 2.
+     * This is sufficient implementation for this program.
+     */
+    private long distanceInDays(Calendar one, Calendar two) {
+        // Might need to create a better time evaluation system...
+        /* old Joda Time implementation:
+        DateTime mk1 = new DateTime(start.getTime());
+        DateTime mk2 = new DateTime(end.getTime());
         return Days.daysBetween(mk1, mk2).getDays();
+        */
+        if (one.get(YEAR) == two.get(YEAR)) {
+            return one.get(Calendar.DAY_OF_YEAR ) - two.get(Calendar.DAY_OF_YEAR);
+        } else if (one.before(two)) {
+            if (one.get(YEAR) +1 == two.get(YEAR)) {
+                // Consider if this year has 365 or 366 days
+                if (one.get(Calendar.DAY_OF_YEAR) == one.getActualMaximum(Calendar.DAY_OF_YEAR)) {
+                    if (two.get(Calendar.DAY_OF_YEAR) == 1) {
+                        return 1;
+                    } else {
+                        return 2;
+                    }
+                } else {
+                    return  2;
+                }
+            } else {
+                // more than a year diff
+                return 2;
+            }
+        } else {
+            if (one.get(YEAR) -1 ==two.get(YEAR)) {
+                if (two.get(Calendar.DAY_OF_YEAR) == two.getActualMaximum(Calendar.DAY_OF_YEAR)) {
+                    if (one.get(Calendar.DAY_OF_YEAR)== 1) {
+                        return -1;
+                    } else {
+                        return -2;
+                    }
+                } else {
+                    return -2;
+                }
+            } else {
+                // More than a year diff
+                return -2;
+            }
+        }
     }
     // Returns distance in hours between two values
     private long distanceInHours(Calendar start, Calendar end) {
-        DateTime mk1 = new DateTime(start.getTimeInMillis());
-        DateTime mk2 = new DateTime(end.getTimeInMillis());
+        DateTime mk1 = new DateTime(start.getTime());
+        DateTime mk2 = new DateTime(end.getTime());
 
         return Hours.hoursBetween(mk1,mk2).getHours();
     }
@@ -381,5 +439,4 @@ public class RegularTask extends FrameLayout {
             dataMaster.saveRepeatingEvent(holder.getEvent());
         }
     }
-
 }

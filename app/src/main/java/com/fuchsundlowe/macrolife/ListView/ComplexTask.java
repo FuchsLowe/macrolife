@@ -44,6 +44,7 @@ public class ComplexTask extends FrameLayout {
     }
 
     private void universalInit() {
+        setLayoutParams(new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
         baseView = (ViewGroup) inflate(this.getContext(), R.layout.complex_task_list_view, this);
         taskName = baseView.findViewById(R.id.name_complexTask);
         progressReport = baseView.findViewById(R.id.progress_complexTask);
@@ -85,7 +86,7 @@ public class ComplexTask extends FrameLayout {
     }
 
     private void defineOnClickListenerAndActions() {
-        baseView.setOnClickListener(new OnClickListener() {
+        this.setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(View v) {
                 // On short click, we go to complex activity
@@ -94,7 +95,7 @@ public class ComplexTask extends FrameLayout {
                 mContext.startActivity(toComplexView);
             }
         });
-        baseView.setOnLongClickListener(new OnLongClickListener() {
+        this.setOnLongClickListener(new OnLongClickListener() {
             @Override
             public boolean onLongClick(View v) {
                 // On Long click, we provide the editing of the complex task

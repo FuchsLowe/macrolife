@@ -79,11 +79,9 @@ public class EditTaskBottomBar extends Fragment implements EditTaskProtocol {
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         this.inflater = inflater;
-        context = getContext();
         self = this;
-
         baseView = (ViewGroup) inflater.inflate(R.layout.edit_task_bottom_bar, container, false);
-
+        context = getContext();
         dataProvider = LocalStorage.getInstance(getContext());
 
         MAX_BUTTON_SIZE = dpToPixConverter(MAX_BUTTON_SIZE);
@@ -137,8 +135,9 @@ public class EditTaskBottomBar extends Fragment implements EditTaskProtocol {
                         if (actionId == EditorInfo.IME_ACTION_DONE) {
                             if (v.getText().length() > 0) {
                                 taskObject = createNewTask(v.getText().toString());
-                                setState(editTask);
+                                dataProvider.saveTaskObject(taskObject);
                                 removeSoftKeyboard(justTextView);
+                                setState(editTask);
                             }
                             baseView.requestLayout();
                             return true;
@@ -207,7 +206,7 @@ public class EditTaskBottomBar extends Fragment implements EditTaskProtocol {
 
         int[] buttonAndPaddingResults = calculatePaddingAndButtonHeight(NUMBER_OF_MODS_FIRST_ROW,
                 NUMBER_OF_MODS_SECOND_ROW);
-        Space space = new Space(getContext());
+        Space space = new Space(baseView.getContext());
         LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, 5);
         lp.weight = 1;
         space.setLayoutParams(lp);
@@ -216,7 +215,7 @@ public class EditTaskBottomBar extends Fragment implements EditTaskProtocol {
             ModButton mod;
             switch (i) {
                 case 1:
-                    mod = new ModButton(getContext(), TaskObject.Mods.dateAndTime, this);
+                    mod = new ModButton(baseView.getContext(), TaskObject.Mods.dateAndTime, this);
                     modButtons.put(TaskObject.Mods.dateAndTime, mod);
                     if (taskObject.isThisRepeatingEvent()) {
                         // We might wanna disable this
@@ -224,15 +223,15 @@ public class EditTaskBottomBar extends Fragment implements EditTaskProtocol {
                     }
                     break;
                 case 2:
-                    mod = new ModButton(getContext(), TaskObject.Mods.repeating, this);
+                    mod = new ModButton(baseView.getContext(), TaskObject.Mods.repeating, this);
                     modButtons.put(TaskObject.Mods.repeating, mod);
                     break;
                 case 3:
-                    mod = new ModButton(getContext(), TaskObject.Mods.list, this);
+                    mod = new ModButton(baseView.getContext(), TaskObject.Mods.list, this);
                     modButtons.put(TaskObject.Mods.list, mod);
                     break;
                 default:
-                    mod = new ModButton(getContext(), TaskObject.Mods.delete, this);
+                    mod = new ModButton(baseView.getContext(), TaskObject.Mods.delete, this);
                     modButtons.put(TaskObject.Mods.delete, mod);
                     break;
             }
@@ -241,23 +240,23 @@ public class EditTaskBottomBar extends Fragment implements EditTaskProtocol {
             mod.setLayoutParams(layoutParams);
             modAreaOne.addView(mod);
 
-            Space padding = new Space(getContext());
+            Space padding = new Space(baseView.getContext());
             padding.setLayoutParams(lp);
             modAreaOne.addView(padding);
 
         }
-        Space lowerPart = new Space(getContext());
+        Space lowerPart = new Space(baseView.getContext());
         lowerPart.setLayoutParams(lp);
         modAreaTwo.addView(lowerPart);
         for (int i = 1; i<= NUMBER_OF_MODS_SECOND_ROW; i++) {
             ModButton mod;
             switch (i) {
                 case 1:
-                    mod = new ModButton(getContext(), TaskObject.Mods.note, this);
+                    mod = new ModButton(baseView.getContext(), TaskObject.Mods.note, this);
                     modButtons.put(TaskObject.Mods.note, mod);
                     break;
                 default:
-                    mod = new ModButton(getContext(), TaskObject.Mods.checkable, this);
+                    mod = new ModButton(baseView.getContext(), TaskObject.Mods.checkable, this);
                     modButtons.put(TaskObject.Mods.checkable, mod);
                     break;
             }
@@ -266,7 +265,7 @@ public class EditTaskBottomBar extends Fragment implements EditTaskProtocol {
             mod.setLayoutParams(layoutParams);
             modAreaTwo.addView(mod);
 
-            Space padding = new Space(getContext());
+            Space padding = new Space(baseView.getContext());
             padding.setLayoutParams(lp);
             modAreaTwo.addView(padding);
         }
@@ -278,7 +277,7 @@ public class EditTaskBottomBar extends Fragment implements EditTaskProtocol {
                 null, 0, 0, "", TaskObject.TimeDefined.noTime, "");
     }
     private int dpToPixConverter(float dp) {
-        float scale = getContext().getResources().getDisplayMetrics().density;
+        float scale = baseView.getContext().getResources().getDisplayMetrics().density;
         return (int) (dp * scale * 0.5f);
     }
     private void presentDeleteWarning() {
@@ -354,6 +353,7 @@ public class EditTaskBottomBar extends Fragment implements EditTaskProtocol {
                         // We select it to indicate that we have defined that value
                         bottomBarButtons.get(ModButton.SpecialtyButton.startValues).setSpecialtyState(true);
                         bottomBarButtons.get(ModButton.SpecialtyButton.endValues).setAvailability(true);
+
                     }
                 } else if (intent.getAction().equals(Constants.END_VALUE_DONE)) {
                     // the endValue is defined:
@@ -449,7 +449,7 @@ public class EditTaskBottomBar extends Fragment implements EditTaskProtocol {
                                     // Present the date
                                     EventDatePicker dateFragment = new EventDatePicker();
                                     startValue = (Calendar) taskObject.getTaskStartTime().clone();
-                                    dateFragment.defineMe(startValue, null, getContext());
+                                    dateFragment.defineMe(startValue, null, baseView.getContext());
                                     dateFragment.show(self.requireFragmentManager(), "DateFragment");
                                     break;
                                 case endValues:
@@ -609,9 +609,19 @@ public class EditTaskBottomBar extends Fragment implements EditTaskProtocol {
                                     modSelected = ModButton.SpecialtyButton.endValues;
                                     break;
                                 case clear:
+                                    /*
+                                     * TODO:
+                                     * How Should this operate on EditTask?
+                                     * Since you may need to clear the edit time (which is ok, you
+                                     * make it reminder) but when you clear start time we can't allow it,
+                                     * since then it will be unassigned edit task... Or can we?
+                                     *
+                                     * Analyze and produce right course of action.
+                                     */
                                     // Detect which value to delete
                                     if (modSelected == ModButton.SpecialtyButton.startValues) {
                                         taskObject.setTimeDefined(TaskObject.TimeDefined.noTime);
+                                        taskObject.setTaskStartTime(null);
                                     } else {
                                         taskObject.setTimeDefined(TaskObject.TimeDefined.onlyDate);
                                         taskObject.setTaskEndTime(null);
@@ -711,5 +721,15 @@ public class EditTaskBottomBar extends Fragment implements EditTaskProtocol {
     // Place for Enums:
     public enum EditTaskState {
         createTask, editTask;
+    }
+
+    @Nullable
+    @Override
+    public Context getContext() {
+        if (context == null) {
+            return baseView.getContext();
+        } else {
+            return context;
+        }
     }
 }

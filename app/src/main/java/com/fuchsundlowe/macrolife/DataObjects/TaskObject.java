@@ -181,7 +181,7 @@ public class TaskObject implements Serializable {
         this.taskStartTime = taskStartTime;
         if (taskStartTime != null) {
             // If We don't have end time then we can at max have only date as variable defined in TimeDef.
-            if (taskEndTime != null) {
+            if (taskEndTime != null && taskEndTime.getTimeInMillis() > 1) {
                 if (taskEndTime.before(taskStartTime) ||
                         taskEndTime.getTimeInMillis() == taskStartTime.getTimeInMillis()) {
                     // we can't have end time appearing before start time or happening at same time
@@ -189,6 +189,7 @@ public class TaskObject implements Serializable {
                     // We will add 15 min to differentiate the two
                     this.taskEndTime.add(Calendar.MINUTE, 15);
                 }
+                setTimeDefined(TimeDefined.dateAndTime);
             } else {
                 setTimeDefined(TimeDefined.onlyDate);
             }
@@ -203,7 +204,7 @@ public class TaskObject implements Serializable {
     }
     public void setTaskEndTime(Calendar taskEndTime) {
         // Must prevent start and end time collision and inconsistency
-        if (taskStartTime != null && taskEndTime != null) {
+        if (this.taskStartTime != null && taskEndTime != null) {
             if (taskEndTime.before(taskStartTime)) {
                 // we can't accept this value...  we
                 this.taskEndTime = (Calendar) taskStartTime.clone();
@@ -217,6 +218,11 @@ public class TaskObject implements Serializable {
         } else {
             // We can't set the time, because we don't have start time
             this.taskEndTime = null;
+            if (taskStartTime == null) {
+                timeDefined = TimeDefined.noTime;
+            } else {
+                timeDefined = TimeDefined.onlyDate;
+            }
         }
     }
 

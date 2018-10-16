@@ -46,4 +46,6 @@ public class Constants {
     public static String EDIT_TASK_BOTTOM_BAR = "Editing the Task Bottom Bar";
     public static String EDIT_GOAL_BOTTOM_BAR = "Editing Complex Goals";
     public static String RECOMMENDATION_BOTTOM_BAR = "I just recommend ideas sire";
+    // Magic Numbers:
+    public static long millisInADay= 86400000;
 }

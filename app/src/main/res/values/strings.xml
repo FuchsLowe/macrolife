@@ -65,6 +65,8 @@
 
     <!-- Tags for List View Time Field -->
     <string name="listView_textForCompletedTask">Task completed on _</string>
+    <string name="listView_textForCompletedTask_yesterday">Task was completed yesterday </string>
+    <string name="listVIew_textForCompletedTask_today">Task was completed today</string>
 
     <string name="listView_textForOverdueTask_minutes">Task was due _ minutes ago</string>
     <string name="listView_textForOverdueTask_hours">Task was due _ hours ago</string>

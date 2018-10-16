@@ -106,7 +106,7 @@ public class EditComplexGoal_BottomBar extends Fragment {
 
     }
 
-    public void editGoal(ComplexGoal goalToEdit) {
+    private void editGoal(ComplexGoal goalToEdit) {
         this.goal = goalToEdit;
         name.setText(goal.getTaskName());
 

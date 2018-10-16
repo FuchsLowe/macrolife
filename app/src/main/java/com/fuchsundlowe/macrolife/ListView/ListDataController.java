@@ -22,6 +22,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Vector;
 import java.util.concurrent.ConcurrentHashMap;
 
 /*
@@ -53,10 +54,10 @@ class ListDataController implements LDCProtocol, AsyncSorterCommunication {
     private Observer<List<ComplexGoal>> observerForGoals;
 
     private Map<Integer, Integer> completedStatistics, incompleteStatistics;
-    private List<TaskEventHolder> unassigned;
-    private List<TaskEventHolder> completed;
-    private List<TaskEventHolder>  upcoming;
-    private List<TaskEventHolder>  overdue;
+    private Vector<TaskEventHolder> unassigned;
+    private Vector<TaskEventHolder> completed;
+    private Vector<TaskEventHolder>  upcoming;
+    private Vector<TaskEventHolder>  overdue;
     private List<ComplexGoal> complex;
 
     private currentStatus tasksStatus, eventsStatus;
@@ -93,10 +94,10 @@ class ListDataController implements LDCProtocol, AsyncSorterCommunication {
     @SuppressLint("UseSparseArrays")
     private void initiateData() {
 
-        unassigned = Collections.synchronizedList(new ArrayList<TaskEventHolder>());
-        completed = Collections.synchronizedList(new ArrayList<TaskEventHolder>());
-        upcoming = Collections.synchronizedList(new ArrayList<TaskEventHolder>());
-        overdue = Collections.synchronizedList(new ArrayList<TaskEventHolder>());
+        unassigned = new Vector<>();
+        completed = new Vector<>();
+        upcoming = new Vector<>();
+        overdue = new Vector<>();
 
         complexStatisticsSet = new ArrayList<>();
         unassignedSet = new ArrayList<>();
@@ -270,6 +271,7 @@ class ListDataController implements LDCProtocol, AsyncSorterCommunication {
     }
     @Override
     public void flushChanges() {
+
         if (tasksStatus == currentStatus.ready && eventsStatus == currentStatus.ready) {
             if (toFlush.get(bracketType.overdue)) {
                 for (LDCToFragmentListView fragment: overdueSet) {
@@ -329,6 +331,9 @@ class ListDataController implements LDCProtocol, AsyncSorterCommunication {
           return new TaskEventHolder(null, event);
         }
         return null;
+    }
+    public ComplexGoal searchForComplexGoal(int goalID) {
+        return dataMaster.findComplexGoal(goalID);
     }
     public void saveTaskEventHolder(TaskEventHolder toSave) {
         if (toSave.isTask()) {

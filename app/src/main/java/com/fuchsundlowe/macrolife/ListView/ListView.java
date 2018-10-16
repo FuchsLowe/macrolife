@@ -16,6 +16,7 @@ import android.widget.FrameLayout;
 
 import com.fuchsundlowe.macrolife.BottomBar.EditComplexGoal_BottomBar;
 import com.fuchsundlowe.macrolife.BottomBar.EditTaskBottomBar;
+import com.fuchsundlowe.macrolife.DataObjects.ComplexGoal;
 import com.fuchsundlowe.macrolife.DataObjects.Constants;
 import com.fuchsundlowe.macrolife.DataObjects.RepeatingEvent;
 import com.fuchsundlowe.macrolife.DataObjects.TaskEventHolder;
@@ -103,7 +104,16 @@ public class ListView extends AppCompatActivity implements BottomBarCommunicatio
                         editTaskBottomBar.modDone();
                     }
                 } else if (intent.getAction().equals(Constants.INTENT_FILTER_COMPLEXGOAL_EDIT)) {
-                    // TODO What to do in case of complex goal...
+                    FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
+                    editComplexGoal = new EditComplexGoal_BottomBar();
+                    transaction.replace(bottomBarHolder.getId(), editComplexGoal, Constants.EDIT_GOAL_BOTTOM_BAR);
+                    ComplexGoal goal = dataProvider.searchForComplexGoal(intent.getIntExtra(
+                            Constants.INTENT_FILTER_COMPLEXGOAL_ID, -1));
+                    if (goal != null) {
+                        editComplexGoal.defineMe(goal);
+                    }
+                    transaction.commit();
+
                 } else if (intent.getAction().equals(Constants.INTENT_FILTER_STOP_EDITING)) {
                     // We have been asked to remove the bottom bar editing
                     switch (currentPage) {
@@ -208,9 +218,7 @@ public class ListView extends AppCompatActivity implements BottomBarCommunicatio
     //Bottom Bar implementation:
     private void produceCreateNewTask() {
         FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
-        if (editTaskBottomBar == null) {
-            editTaskBottomBar = new EditTaskBottomBar();
-        }
+        editTaskBottomBar = new EditTaskBottomBar();
         transaction.replace(bottomBarHolder.getId(), editTaskBottomBar, Constants.EDIT_TASK_BOTTOM_BAR);
         transaction.commit();
         editTaskBottomBar.displayEditTask(EditTaskBottomBar.EditTaskState.createTask,
@@ -220,9 +228,7 @@ public class ListView extends AppCompatActivity implements BottomBarCommunicatio
     }
     private void produceCreateNewGoal() {
         FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
-        if (editComplexGoal == null) {
-            editComplexGoal = new EditComplexGoal_BottomBar();
-        }
+        editComplexGoal = new EditComplexGoal_BottomBar();
         transaction.replace(bottomBarHolder.getId(), editComplexGoal, Constants.EDIT_GOAL_BOTTOM_BAR);
         transaction.commit();
     }
@@ -237,13 +243,12 @@ public class ListView extends AppCompatActivity implements BottomBarCommunicatio
     @Override
     public void reportDeleteTask(TaskObject objectToDelete) {
         dataProvider.deleteTask(objectToDelete);
-        // TODO Not done
+        produceCreateNewTask();
     }
 
     @Override
     public void reportDeleteEvent(RepeatingEvent eventToDelete) {
         dataProvider.deleteEvent(eventToDelete);
-        // TODO Not done
+        produceCreateNewTask();
     }
-
 }

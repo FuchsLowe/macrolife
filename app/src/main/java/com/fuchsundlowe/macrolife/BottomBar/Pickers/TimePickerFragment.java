@@ -94,6 +94,8 @@ public class TimePickerFragment extends android.support.v4.app.DialogFragment
         if (!isEditingStartValue) {
             // We will let default taskObject implementation deal with this inconsistency if any
             taskObject.setTaskEndTime(valueEdited);
+        } else {
+            taskObject.setTaskStartTime(valueEdited);
         }
         protocol.saveTask(taskObject, eventObject);
     }

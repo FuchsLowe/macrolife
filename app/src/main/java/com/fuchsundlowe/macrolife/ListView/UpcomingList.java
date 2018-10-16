@@ -145,6 +145,9 @@ public class UpcomingList extends Fragment {
                 manager.sendBroadcast(removeBottomBar);
             }
         };
+        oneHolder.setOnClickListener(universalListener);
+        twoHolder.setOnClickListener(universalListener);
+        threeHolder.setOnClickListener(universalListener);
     }
     private void defineAdapters() {
         recyclerOne.setLayoutManager(new LinearLayoutManager(base.getContext()));
@@ -165,7 +168,7 @@ public class UpcomingList extends Fragment {
                 ((RegularTaskListAdapter) recyclerOne.getAdapter()).insertNewData(newHolders);
             }
             if (newHolders.size() == 0) {
-                oneHolder.setVisibility(View.GONE);
+      //          oneHolder.setVisibility(View.GONE);
             } else {
                 oneHolder.setVisibility(View.VISIBLE);
             }
@@ -176,7 +179,7 @@ public class UpcomingList extends Fragment {
                 ((RegularTaskListAdapter) recyclerThree.getAdapter()).insertNewData(newHolders);
             }
             if (newHolders.size() == 0) {
-                twoHolder.setVisibility(View.GONE);
+                //twoHolder.setVisibility(View.GONE);
             } else {
                 twoHolder.setVisibility(View.VISIBLE);
             }
@@ -187,7 +190,7 @@ public class UpcomingList extends Fragment {
                 ((RegularTaskListAdapter) recyclerTwo.getAdapter()).insertNewData(newHolders);
             }
             if (newHolders.size() == 0) {
-                threeHolder.setVisibility(View.GONE);
+                //threeHolder.setVisibility(View.GONE);
             } else {
                 initiateUpdateTimer(newHolders.get(0));
                 threeHolder.setVisibility(View.VISIBLE);

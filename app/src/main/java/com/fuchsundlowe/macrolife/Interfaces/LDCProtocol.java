@@ -30,6 +30,7 @@ public interface LDCProtocol {
     // Standard calls to DB:
     TaskEventHolder searchForTask(int taskID);
     TaskEventHolder searchForEvent(int eventID);
+    ComplexGoal searchForComplexGoal(int goalID);
 
     void saveTaskEventHolder(TaskEventHolder toSave);
 

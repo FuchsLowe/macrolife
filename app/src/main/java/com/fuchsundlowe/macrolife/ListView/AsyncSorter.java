@@ -405,7 +405,7 @@ public class AsyncSorter extends AsyncTask<Transporter, Void, Void> {
         for (int i = 1; i<listToWorkWith.size(); i++) {
             TaskEventHolder mark = listToWorkWith.get(i);
             int toEvalPos = i -1;
-            while (toEvalPos > 0 && compareByStartTime(listToWorkWith.get(toEvalPos), mark)) {
+            while (toEvalPos >= 0 && compareByStartTime(mark, listToWorkWith.get(toEvalPos))) {
                 listToWorkWith.set(toEvalPos +1, listToWorkWith.get(toEvalPos));
                 toEvalPos --;
             }
@@ -420,10 +420,10 @@ public class AsyncSorter extends AsyncTask<Transporter, Void, Void> {
     private void sortOverdue() {
         // Insertion Sort System
         List<TaskEventHolder> listToWorkWith = work.oldOverdue;
-        for (int i = 1; i< listToWorkWith.size(); i++) {
+        for (int i = 1; i < listToWorkWith.size(); i++) {
             TaskEventHolder mark = listToWorkWith.get(i);
             int toEvalPos = i -1;
-            while (toEvalPos > 0 && compareForOverdue(listToWorkWith.get(toEvalPos), mark)) {
+            while (toEvalPos >= 0 && compareForOverdue(listToWorkWith.get(toEvalPos), mark)) {
                 listToWorkWith.set(toEvalPos +1, listToWorkWith.get(toEvalPos));
                 toEvalPos --;
             }
@@ -436,7 +436,7 @@ public class AsyncSorter extends AsyncTask<Transporter, Void, Void> {
         for (int i = 1; i< listToWorkWith.size(); i++) {
             TaskEventHolder mark = listToWorkWith.get(i);
             int toEvalPos = i -1;
-            while (toEvalPos > 0 && compareByStartTime(listToWorkWith.get(toEvalPos), mark)) {
+            while (toEvalPos >= 0 && compareByStartTime(listToWorkWith.get(toEvalPos), mark)) {
                 listToWorkWith.set(toEvalPos +1, listToWorkWith.get(toEvalPos));
                 toEvalPos --;
             }
@@ -506,12 +506,13 @@ public class AsyncSorter extends AsyncTask<Transporter, Void, Void> {
         work.oldUpcoming.removeAll(toDelete);
     }
 
-    // returns true if one should be after two
+    // returns true if two is before one
     private boolean compareByStartTime(TaskEventHolder one, TaskEventHolder two) {
         // We evaluate the Start time, since some don't have end time
         return one.getStartTime().getTimeInMillis() > two.getStartTime().getTimeInMillis();
     }
     /*
+     * returns true if one is after two.
      * Uses end time as comparison argument, but if there is no end time uses end of day
      * from start time as argument...
      */

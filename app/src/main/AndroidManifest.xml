@@ -44,7 +44,8 @@
         <activity android:name=".TestCases.Test5" />
         <activity android:name=".WeekView.WeekView" />
         <activity android:name=".ListView.ListView" />
-        <activity android:name=".TestCases.WholeDB"></activity>
+        <activity android:name=".TestCases.WholeDB" />
+        <activity android:name=".MonthView.MonthView"></activity>
     </application>
 
 </manifest>

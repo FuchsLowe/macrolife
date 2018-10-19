@@ -106,6 +106,11 @@ public class EditTaskBottomBar extends Fragment implements EditTaskProtocol {
         setState(state);
         registerEventPickerBroadcastReceiver();
     }
+    /*
+     * TODO: VERY IMPORTANT:
+     * How about setting the ability to swipe the bottom bar off the screen in a sense that it should
+     * be dismissed in such a way?
+     */
 
     // Editing of object appearance:
     public void displayEditTask(final EditTaskState setState, @Nullable TaskObject taskManipulated,

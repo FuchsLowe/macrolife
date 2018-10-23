@@ -7,6 +7,7 @@
     <string name="OrdinaryTasksText">Ordinary Tasks</string>
     <string name="ListTaskText">List Tasks</string>
     <string name="NewTask">New Task</string>
+    <string name="Empty_String"> </string>
 
     <string name="animation_end">M50 95, C 10 95 10 50 10 50, H 95, C 95 50 95 95 50 95</string>
     <string name="animation_start">M50 95, C 50 95, 50 95, 50 95, H50, C 50 95, 50 95, 50 95</string>
@@ -37,6 +38,20 @@
 
     <string name="week">Week number</string>
     <string name="to">to</string>
+
+    <!-- Months -->
+    <string name="January_Short">Jan</string>
+    <string name="February_Short">Feb</string>
+    <string name="March_Short">Mar</string>
+    <string name="April_Short">Apr</string>
+    <string name="May_Short">May</string>
+    <string name="June_Short">Jun</string>
+    <string name="July_Short">Jul</string>
+    <string name="August_Short">Aug</string>
+    <string name="September_Short">Sep</string>
+    <string name="October_Short">Oct</string>
+    <string name="November_Short">Nov</string>
+    <string name="December_Short">Dec</string>
 
     <!--Fragment Descriptions-->
     <string name="CompletedList_title">Completed Tasks</string>

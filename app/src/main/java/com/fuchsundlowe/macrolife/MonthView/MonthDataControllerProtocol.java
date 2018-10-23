@@ -2,6 +2,8 @@ package com.fuchsundlowe.macrolife.MonthView;
 
 import com.fuchsundlowe.macrolife.DataObjects.TaskEventHolder;
 
+import java.util.List;
+
 interface MonthDataControllerProtocol {
 
     // For providing the single holder. Used for Edit Bottom Bar
@@ -13,7 +15,7 @@ interface MonthDataControllerProtocol {
     short[] timeTablesFor(short year);
 
     // List of tasks for specific day...
-     TaskEventHolder[] holdersFor(int dayOfYear, int year);
+    List<TaskEventHolder> holdersFor(int dayOfYear, short year);
 
     /*
      * Called on start of the list and every time user changes year. So if year that opened the
@@ -22,4 +24,6 @@ interface MonthDataControllerProtocol {
      * get rid of previous year.
      */
     void newYearSet(int year);
+    int getFreeHashIDForTask();
+    void saveTaskEventHolder(TaskEventHolder toSave);
 }

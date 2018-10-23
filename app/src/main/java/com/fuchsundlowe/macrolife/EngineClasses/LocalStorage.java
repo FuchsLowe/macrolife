@@ -14,10 +14,13 @@ import com.fuchsundlowe.macrolife.DataObjects.RepeatingEvent;
 import com.fuchsundlowe.macrolife.DataObjects.RoomDataBaseObject;
 import com.fuchsundlowe.macrolife.DataObjects.TaskObject;
 import com.fuchsundlowe.macrolife.Interfaces.DataProviderNewProtocol;
+import com.fuchsundlowe.macrolife.MonthView.MonthViewDataProvider;
 
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
+
+import static java.util.Calendar.YEAR;
 /*
  * Known Issue: The Observe Forever for live data used to produce in memory holding of Tasks ( via
  * function call defineInMemoryDataBaseCalls ) used for
@@ -44,7 +47,7 @@ import java.util.List;
  * eresetd in most recent data you have, and less about latter inserted data>
  * Then for search system I would use binary search to find the hashID
  */
-public class LocalStorage implements DataProviderNewProtocol {
+public class LocalStorage implements DataProviderNewProtocol, MonthViewDataProvider {
 
     private static LocalStorage self;
     public RoomDataBaseObject dataBase;
@@ -218,7 +221,7 @@ public class LocalStorage implements DataProviderNewProtocol {
                             case 2: // custom Week
                                 Calendar workValue = Calendar.getInstance();
                                 workValue.setTimeInMillis(Long.valueOf(timeResult[0]));
-                                workValue.set(Calendar.YEAR, start.get(Calendar.YEAR));
+                                workValue.set(YEAR, start.get(YEAR));
                                 workValue.set(Calendar.WEEK_OF_YEAR, start.get(Calendar.WEEK_OF_YEAR));
                                 // Create event:
                                 // if checkable status is assigned to a time before now, we will mark it completed.
@@ -287,7 +290,7 @@ public class LocalStorage implements DataProviderNewProtocol {
                                 event = new RepeatingEvent(object.getHashID(), (Calendar) start.clone(), null, 0, Calendar.getInstance(), eventsCheckableStatus);
                                 toReturn.add(event);
                                 // increment start
-                                start.add(Calendar.YEAR, 1);
+                                start.add(YEAR, 1);
                                 break;
                         }
                     }
@@ -302,7 +305,7 @@ public class LocalStorage implements DataProviderNewProtocol {
                         diff = Long.valueOf(timeResult[1]) - Long.valueOf(timeResult[0]);
                         switch (type) {
                             case 1:
-                                eventStartTime.set(start.get(Calendar.YEAR), start.get(Calendar.MONTH), start.get(Calendar.DAY_OF_MONTH));
+                                eventStartTime.set(start.get(YEAR), start.get(Calendar.MONTH), start.get(Calendar.DAY_OF_MONTH));
                                 eventEndTime = (Calendar) eventStartTime.clone();
                                 eventEndTime.add(Calendar.MILLISECOND, (int) diff);
                                 // Create RepEvent
@@ -324,7 +327,7 @@ public class LocalStorage implements DataProviderNewProtocol {
                             case 2:
                                 // Implementation is different as it has specific requirements...
                                 eventStartTime.setTimeInMillis(Long.valueOf(timeResult[0]));
-                                eventStartTime.set(Calendar.YEAR, start.get(Calendar.YEAR));
+                                eventStartTime.set(YEAR, start.get(YEAR));
                                 eventStartTime.set(Calendar.WEEK_OF_YEAR, start.get(Calendar.WEEK_OF_YEAR));
 
                                 eventEndTime = (Calendar) eventStartTime.clone();
@@ -349,7 +352,7 @@ public class LocalStorage implements DataProviderNewProtocol {
                                 start.add(Calendar.WEEK_OF_YEAR, 1);
                                 break;
                             case 3:
-                                eventStartTime.set(start.get(Calendar.YEAR), start.get(Calendar.MONTH), start.get(Calendar.DAY_OF_MONTH));
+                                eventStartTime.set(start.get(YEAR), start.get(Calendar.MONTH), start.get(Calendar.DAY_OF_MONTH));
                                 eventEndTime = (Calendar) eventStartTime.clone();
                                 eventEndTime.add(Calendar.MILLISECOND, (int) diff);
                                 // Create RepEvent
@@ -369,7 +372,7 @@ public class LocalStorage implements DataProviderNewProtocol {
                                 start.add(Calendar.WEEK_OF_YEAR, 2);
                                 break;
                             case 4:
-                                eventStartTime.set(start.get(Calendar.YEAR), start.get(Calendar.MONTH), start.get(Calendar.DAY_OF_MONTH));
+                                eventStartTime.set(start.get(YEAR), start.get(Calendar.MONTH), start.get(Calendar.DAY_OF_MONTH));
                                 eventEndTime = (Calendar) eventStartTime.clone();
                                 eventEndTime.add(Calendar.MILLISECOND, (int) diff);
                                 // Create RepEvent
@@ -390,7 +393,7 @@ public class LocalStorage implements DataProviderNewProtocol {
                                 start.add(Calendar.MONTH, 1);
                                 break;
                             case 5:
-                                eventStartTime.set(start.get(Calendar.YEAR), start.get(Calendar.MONTH), start.get(Calendar.DAY_OF_MONTH));
+                                eventStartTime.set(start.get(YEAR), start.get(Calendar.MONTH), start.get(Calendar.DAY_OF_MONTH));
                                 eventEndTime = (Calendar) eventStartTime.clone();
                                 eventEndTime.add(Calendar.MILLISECOND, (int) diff);
                                 // Create RepEvent
@@ -408,7 +411,7 @@ public class LocalStorage implements DataProviderNewProtocol {
                                 }
                                 event = new RepeatingEvent(object.getHashID(), eventStartTime, eventEndTime, 0, Calendar.getInstance(), eventsCheckableStatus);
                                 toReturn.add(event);
-                                start.add(Calendar.YEAR, 1);
+                                start.add(YEAR, 1);
                                 break;
                         }
                     }
@@ -689,8 +692,19 @@ public class LocalStorage implements DataProviderNewProtocol {
         }).start();
     }
 
-
-
+    // Month View Data provider additional Calls:
+    public LiveData<List<TaskObject>> tasksForAYear(short year) {
+        Calendar defCal = Calendar.getInstance();
+        defCal.set(YEAR, year);
+        long[] values = returnFirstDayAndLastDayOfYear(defCal);
+        return dataBase.newDAO().getTaskThatIntersects(values[0], values[1]);
+    }
+    public LiveData<List<RepeatingEvent>> eventsForAYear(short year) {
+        Calendar defCal = Calendar.getInstance();
+        defCal.set(YEAR, year);
+        long[] values = returnFirstDayAndLastDayOfYear(defCal);
+        return dataBase.newDAO().getEventThatIntersects(values[0], values[1]);
+    }
     // Method calls:
     private long[] returnStartAndEndTimesForDay(Calendar day) {
        Calendar dayToWorkWith = (Calendar) day.clone();
@@ -708,6 +722,14 @@ public class LocalStorage implements DataProviderNewProtocol {
 
        return new long[]{startTimeStamp, endTimeStamp};
    }
+    private long[] returnFirstDayAndLastDayOfYear(Calendar yearRef) {
+        long[] toReturn = new long[2];
+        yearRef.set(yearRef.get(YEAR),1, 1,0,0,0);
+        toReturn[0] = yearRef.getTimeInMillis();
+        yearRef.set(yearRef.get(YEAR), 12, 31,23,59,59);
+        toReturn[1] = yearRef.getTimeInMillis();
+        return toReturn;
+    }
     private void defineInMemoryDatabaseCalls() {
         taskObjectHolder = dataBase.newDAO().getAllTaskObjects();
         taskObjectHolder.observeForever(new Observer<List<TaskObject>>() {

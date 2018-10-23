@@ -63,6 +63,15 @@ public class TaskEventHolder {
             return event.getParentID();
         }
     }
+    public @Nullable String getMasterTaskName() {
+        int masterTask = getMasterHashID();
+        if (masterTask > 0) {
+            ComplexGoal temp = LocalStorage.getInstance(null).findComplexGoal(masterTask);
+            return (temp != null) ? temp.taskName : null;
+        } else {
+            return null;
+        }
+    }
     public void setComplexGoalID(int newComplexGoalID) {
         if (isTask()) {
             task.setComplexGoalID(newComplexGoalID);
@@ -112,6 +121,14 @@ public class TaskEventHolder {
             }
         } else {
             return null;
+        }
+    }
+    @Nullable public ComplexGoal getComplexGoal() {
+        Integer complexGoalID = getComplexGoalID();
+        if (complexGoalID == null) {
+            return null;
+        } else {
+            return LocalStorage.getInstance(null).getComplexGoalBy(complexGoalID);
         }
     }
     public TaskObject.TimeDefined getTimeDefined() {

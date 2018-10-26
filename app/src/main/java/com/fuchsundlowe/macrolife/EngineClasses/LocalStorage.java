@@ -28,7 +28,7 @@ import static java.util.Calendar.YEAR;
  * To overcome this issue, whenever a task is saved or deleted, manually the holders are updated.
  *
  * Newest implementation:
- * Data object Holders like taskObjectHolder & etc. are always accessed and transferrd to
+ * Data object Holders like taskObjectHolder & etc. are always accessed and transferred to
  * array in order to do in memory checks of data.
  * For this to work, I need to register at least one observer and observe forever is thus doing
  * that job even if it doesn't report back to in all occasions changes.
@@ -693,13 +693,13 @@ public class LocalStorage implements DataProviderNewProtocol, MonthViewDataProvi
     }
 
     // Month View Data provider additional Calls:
-    public LiveData<List<TaskObject>> tasksForAYear(short year) {
+    public LiveData<List<TaskObject>> tasksForAYear(int year) {
         Calendar defCal = Calendar.getInstance();
         defCal.set(YEAR, year);
         long[] values = returnFirstDayAndLastDayOfYear(defCal);
         return dataBase.newDAO().getTaskThatIntersects(values[0], values[1]);
     }
-    public LiveData<List<RepeatingEvent>> eventsForAYear(short year) {
+    public LiveData<List<RepeatingEvent>> eventsForAYear(int year) {
         Calendar defCal = Calendar.getInstance();
         defCal.set(YEAR, year);
         long[] values = returnFirstDayAndLastDayOfYear(defCal);

@@ -7,7 +7,7 @@ import com.fuchsundlowe.macrolife.R;
  */
 
 public class Constants {
-    public static String DAY_TO_DISPLAY = "DayForFragment";
+    public static String DAY_TO_DISPLAY = "DayForFragment"; // Used to grab date saved in Bundle in various implementations
     public static String LIST_VIEW_TYPE_TO_DISPLAY = "LadyGaga";
     public static String LIST_VIEW_MASTER_ID = "Give me that master key";
     public static String FIRST_DAY_OF_WEEK = "Whats the first day of Week";
@@ -24,12 +24,14 @@ public class Constants {
     public static String INTENT_FILTER_NEW_TASK = "This is new task";
     public static String INTENT_FILTER_TASK_ID = "Get me the hash ID";
     public static String INTENT_FILTER_EVENT_ID = "Give me the events ID boo";
-    public static String INTENT_FILTER_FIELD_MOD_TYPE = "The Mod this task has now";
     public static String INTENT_FILTER_FIELD_START_TIME = "Time of start in Long";
     public static String INTENT_FILTER_RECOMMENDATION = "Get the recommendation engine";
-    public static String INTENT_FILTER_CHANGE_IN_MOD = "Mod has been changed, update the ChronoView";
     public static String INTENT_FILTER_EVENT_DELETED = "Event has been deleted";
     public static String INTENT_FILTER_STOP_EDITING = "We are done editing the bottom bar sire";
+    public static String INTENT_FILTER_DAY_CLICKED = "This is the long description of day Sire";
+    public static String INTENT_FILTER_NEW_DATE_SET = "New date is declared sire"; // Reports new date set
+    public static String INTENT_FILTER_DATE_VALUE = "Give me that long number";// Used to get date as long of some Intent
+    public static String INTENT_FILTER_NEW_MONTH_SELECTED = "New Month has been selected";
 
     public static DayOfWeek[] AMERICAN_WEEK_DAYS = {DayOfWeek.sunday, DayOfWeek.monday,
             DayOfWeek.tuesday, DayOfWeek.wednesday, DayOfWeek.thursday, DayOfWeek.friday,
@@ -45,7 +47,6 @@ public class Constants {
     // Fragment Tags:
     public static String EDIT_TASK_BOTTOM_BAR = "Editing the Task Bottom Bar";
     public static String EDIT_GOAL_BOTTOM_BAR = "Editing Complex Goals";
-    public static String RECOMMENDATION_BOTTOM_BAR = "I just recommend ideas sire";
     // Magic Numbers:
     public static long millisInADay= 86400000;
 }

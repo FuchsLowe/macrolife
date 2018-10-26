@@ -2,21 +2,31 @@ package com.fuchsundlowe.macrolife.MonthView;
 
 
 import android.content.Context;
+import android.content.Intent;
 import android.content.SharedPreferences;
+import android.graphics.Color;
 import android.os.Bundle;
-import android.app.Fragment;
+import android.os.Handler;
+import android.os.Looper;
+import android.support.v4.app.Fragment;
+import android.support.v4.content.LocalBroadcastManager;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.HeaderViewListAdapter;
 import android.widget.TextView;
 
 import com.fuchsundlowe.macrolife.DataObjects.Constants;
 import com.fuchsundlowe.macrolife.R;
 
 import java.util.Calendar;
+import java.util.Timer;
+import java.util.TimerTask;
 
-
+/*
+ *  Fragment used for displaying the Month View Calendar representation
+ */
 public class CentralBarFrag_MonthView extends Fragment {
 
     private View baseView;
@@ -24,11 +34,11 @@ public class CentralBarFrag_MonthView extends Fragment {
     private Button[] dayButtons;
     private Calendar monthDisplayed;
     private static View.OnClickListener calendarButtonAction;
+    SharedPreferences preferences;
 
     public CentralBarFrag_MonthView() {
         // Required empty public constructor
     }
-
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -106,7 +116,7 @@ public class CentralBarFrag_MonthView extends Fragment {
     }
 
     private void setTheCalendar(Calendar monthImpression) {
-        SharedPreferences preferences = baseView.getContext().getSharedPreferences(Constants.SHARED_PREFERENCES_KEY,
+        preferences = baseView.getContext().getSharedPreferences(Constants.SHARED_PREFERENCES_KEY,
                 Context.MODE_PRIVATE);
         int firstDayOfWeek = preferences.getInt(Constants.FIRST_DAY_OF_WEEK, monthImpression.getFirstDayOfWeek());
         switch (firstDayOfWeek) {
@@ -164,6 +174,7 @@ public class CentralBarFrag_MonthView extends Fragment {
         }
         // Try and select today if found in this month
         selectCurrentDay(monthImpression, firstDayOfWeek);
+        dateChanger();
     }
     private Button getButton(int row, int dayOfWeek, int firstDayOfWeek) {
         switch (firstDayOfWeek) {
@@ -202,6 +213,10 @@ public class CentralBarFrag_MonthView extends Fragment {
             Integer number = Integer.valueOf(String.valueOf(m.getText()));
             if (number != day) {
                 // TODO Implement the deselect...
+                m.setBackgroundColor(Color.LTGRAY);
+            } else {
+                // Selection:
+                m.setBackgroundColor(Color.GREEN);
             }
         }
     }
@@ -217,10 +232,13 @@ public class CentralBarFrag_MonthView extends Fragment {
     }
     private void reportButtonClick(int number) {
         deselectButtonsOtherThan(number);
-        // TODO: How should we report the click on button?
         Calendar dateToSend = (Calendar) monthDisplayed.clone();
         dateToSend.set(Calendar.DAY_OF_MONTH, number);
-
+        // Reports back to Activity that click occurred for this day.
+        LocalBroadcastManager manager = LocalBroadcastManager.getInstance(baseView.getContext());
+        Intent report = new Intent(Constants.INTENT_FILTER_DAY_CLICKED);
+        report.putExtra(Constants.INTENT_FILTER_DATE_VALUE, dateToSend.getTimeInMillis());
+        manager.sendBroadcast(report);
     }
     // If today is found in this month, this will colorize it
     private void selectCurrentDay(Calendar currentMonth, int fistDayOfWeek) {
@@ -229,7 +247,29 @@ public class CentralBarFrag_MonthView extends Fragment {
                 today.get(Calendar.MONTH) == currentMonth.get(Calendar.MONTH)) {
             //TODO: Specify the colorization for this day... Consider how this should change if
             // date is selected / unselected
-                getButton(today.get(Calendar.WEEK_OF_MONTH), today.get(Calendar.DAY_OF_WEEK), fistDayOfWeek);
+                getButton(today.get(Calendar.WEEK_OF_MONTH), today.get(Calendar.DAY_OF_WEEK), fistDayOfWeek).setTextColor(Color.RED);
         }
+    }
+    // A class that waits for a change of day to do the re-selection of new day at midnight.
+    // So if user is in month view and midnight passes the current day should change.
+    private void dateChanger() {
+        TimerTask tTask = new TimerTask() {
+            @Override
+            public void run() {
+                final int firstDayOfWeek = preferences.getInt(Constants.FIRST_DAY_OF_WEEK, monthDisplayed.getFirstDayOfWeek());
+                new Handler(Looper.getMainLooper()).post(new Runnable() {
+                    @Override
+                    public void run() {
+                        selectCurrentDay(monthDisplayed, firstDayOfWeek);
+                    }
+                });
+            }
+        };
+        Calendar nextDay = Calendar.getInstance();
+        nextDay.add(Calendar.DAY_OF_MONTH, 1);
+        nextDay.set(Calendar.HOUR_OF_DAY, 0);
+        nextDay.set(Calendar.MINUTE, 0);
+        nextDay.set(Calendar.SECOND, 5);
+        new Timer().schedule(tTask, nextDay.getTime());
     }
 }

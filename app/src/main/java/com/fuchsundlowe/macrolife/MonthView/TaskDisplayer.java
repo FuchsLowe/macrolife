@@ -4,8 +4,8 @@ package com.fuchsundlowe.macrolife.MonthView;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
-import android.app.Fragment;
 import android.support.annotation.NonNull;
+import android.support.v4.app.Fragment;
 import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -29,6 +29,7 @@ import com.fuchsundlowe.macrolife.R;
 
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.List;
 
 /**
  * A Fragment that displays a recyclerView of tasks for specific day
@@ -37,7 +38,7 @@ public class TaskDisplayer extends Fragment {
 
     private View baseView;
     private RecyclerView recyclerView;
-    private ArrayList<TaskEventHolder> dataToDisplay;
+    private List<TaskEventHolder> dataToDisplay;
     private MonthDataControllerProtocol controller;
 
     public TaskDisplayer() {
@@ -79,7 +80,7 @@ public class TaskDisplayer extends Fragment {
         return baseView;
     }
 
-    public void defineMe(ArrayList<TaskEventHolder> holders, MonthDataControllerProtocol controller) {
+    public void defineMe(List<TaskEventHolder> holders, MonthDataControllerProtocol controller) {
         this.dataToDisplay = holders;
         this.controller = controller;
         recyclerView.getAdapter().notifyDataSetChanged();

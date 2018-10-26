@@ -8,6 +8,9 @@ import com.fuchsundlowe.macrolife.Interfaces.DataProviderNewProtocol;
 
 import java.util.List;
 
+// Month View specific interface that reveals several MonthView unique methods
+// that data provider should provide in addition to Standard interface implemented
+// by data provider.
 public interface MonthViewDataProvider extends DataProviderNewProtocol {
     LiveData<List<TaskObject>> tasksForAYear(int year);
     LiveData<List<RepeatingEvent>> eventsForAYear(int year);

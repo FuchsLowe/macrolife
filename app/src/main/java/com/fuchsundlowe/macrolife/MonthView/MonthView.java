@@ -5,6 +5,7 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.graphics.Color;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentManager;
@@ -44,16 +45,21 @@ public class MonthView extends FragmentActivity implements BottomBarCommunicatio
         setContentView(R.layout.activity_month_view);
 
         initialDay = Calendar.getInstance();
-        long tempLong = savedInstanceState.getLong(Constants.DAY_TO_DISPLAY, initialDay.getTimeInMillis());
+        long tempLong;
+        if (savedInstanceState != null) {
+            tempLong = savedInstanceState.getLong(Constants.DAY_TO_DISPLAY, initialDay.getTimeInMillis());
+        } else {
+            tempLong = initialDay.getTimeInMillis();
+        }
         initialDay.setTime(new Date(tempLong));
-
+        currentDateDisplayed = (Calendar) initialDay.clone();
         model = new MonthViewModel(this, this);
 
         topBar = findViewById(R.id.topBar_MonthView);
         topBar.setAdapter( new TopBarAdapter(getSupportFragmentManager()));
         topBar.setCurrentItem(MAX_YEARS /2);
 
-        centralBar = findViewById(R.id.centerBar_listView);
+        centralBar = findViewById(R.id.centerBar_MonthView);
         centralBar.setAdapter(new CentralBarAdapter(getSupportFragmentManager()));
         centralBar.setCurrentItem(MAX_YEARS *6); // since MaxYears * 12 / 2 gets simplified.
 
@@ -65,6 +71,10 @@ public class MonthView extends FragmentActivity implements BottomBarCommunicatio
         provideRecommendationBar();
 
         defineLocalBroadcastReceiver();
+
+        // TEST COLORS:
+        topBar.setBackgroundColor(Color.GREEN);
+        centralBar.setBackgroundColor(Color.DKGRAY);
     }
 
     // TODO: Mod done? Like click on side to provide data?

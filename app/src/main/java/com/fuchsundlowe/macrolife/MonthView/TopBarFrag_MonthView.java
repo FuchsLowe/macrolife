@@ -49,7 +49,7 @@ public class TopBarFrag_MonthView extends Fragment {
         View base = inflater.inflate(R.layout.fragment_top_bar_frag__month_view, container, false);
 
         TextView yearLabel = base.findViewById(R.id.yearLabel_topBar_monthView);
-        yearLabel.setText(yearPresented.get(Calendar.YEAR));
+        yearLabel.setText(String.valueOf(yearPresented.get(Calendar.YEAR)));
 
         buttonMap = new HashMap<>(12);
 

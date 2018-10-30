@@ -14,7 +14,6 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
-import android.widget.HeaderViewListAdapter;
 import android.widget.TextView;
 
 import com.fuchsundlowe.macrolife.DataObjects.Constants;
@@ -107,18 +106,20 @@ public class CentralBarFrag_MonthView extends Fragment {
         dayButtons[40] = baseView.findViewById(R.id.R6_6);
         dayButtons[41] = baseView.findViewById(R.id.R6_7);
 
+        setTheCalendar(monthDisplayed, baseView.getContext());
+
         return baseView;
     }
 
     public void defineMe(Calendar monthToDisplay) {
         this.monthDisplayed = monthToDisplay;
-        setTheCalendar(monthToDisplay);
     }
 
-    private void setTheCalendar(Calendar monthImpression) {
-        preferences = baseView.getContext().getSharedPreferences(Constants.SHARED_PREFERENCES_KEY,
+    private void setTheCalendar(Calendar monthImpression, Context mContext) {
+        preferences = mContext.getSharedPreferences(Constants.SHARED_PREFERENCES_KEY,
                 Context.MODE_PRIVATE);
         int firstDayOfWeek = preferences.getInt(Constants.FIRST_DAY_OF_WEEK, monthImpression.getFirstDayOfWeek());
+        monthImpression.setFirstDayOfWeek(firstDayOfWeek);
         switch (firstDayOfWeek) {
             case 1: // The US System where Sunday is the first dayTittles
                 dayTittles[0].setText(getString(R.string.Sunday_Short));
@@ -153,12 +154,12 @@ public class CentralBarFrag_MonthView extends Fragment {
             };
         }
         // Define the buttons:
+        monthImpression.set(Calendar.DAY_OF_MONTH, 1);
         int month = monthImpression.get(Calendar.MONTH);
         int weekOfMonth;
         do {
-            weekOfMonth = monthImpression.get(Calendar.WEEK_OF_MONTH);
-            Button mButton = getButton(weekOfMonth, monthImpression.get(Calendar.DAY_OF_WEEK), firstDayOfWeek);
-            mButton.setText(monthImpression.get(Calendar.DAY_OF_MONTH));
+            Button mButton = getButton(monthImpression, 2); // replace with firstDayOfWeek
+            mButton.setText(String.valueOf(monthImpression.get(Calendar.DAY_OF_MONTH)));
             mButton.setOnClickListener(calendarButtonAction);
             monthImpression.add(Calendar.DAY_OF_YEAR, 1);
         } while (monthImpression.get(Calendar.MONTH) == month);
@@ -166,20 +167,30 @@ public class CentralBarFrag_MonthView extends Fragment {
         // We have to set the month back to one we started since it was overshot
         monthImpression.add(Calendar.DAY_OF_YEAR, -1);
         // Evaluate if we have some extra rows to remove.
+        /*
         weekOfMonth = monthImpression.get(Calendar.WEEK_OF_MONTH);
         if (weekOfMonth == 4) {
             removeFifthAndSixthRow();
         } else if (weekOfMonth == 5) {
             removeSixthRow();
         }
+        */
+
         // Try and select today if found in this month
         selectCurrentDay(monthImpression, firstDayOfWeek);
         dateChanger();
     }
-    private Button getButton(int row, int dayOfWeek, int firstDayOfWeek) {
+    private Button getButton(Calendar value, int firstDayOfWeek) {
+        value.setFirstDayOfWeek(Calendar.MONDAY);// TODO REVERT TO firstDayOfWeek
+        int row = value.get(Calendar.WEEK_OF_MONTH);
+        int dayOfWeek = value.get(Calendar.DAY_OF_WEEK);
+        int day = value.get(Calendar.DAY_OF_MONTH);
+        value.set(Calendar.DAY_OF_MONTH, 1);
+        int firstDatesDay =  value.get(Calendar.DAY_OF_WEEK);
+        value.set(Calendar.DAY_OF_MONTH, day);
         switch (firstDayOfWeek) {
             case 1: // Sunday is the first day
-                return dayButtons[row * dayOfWeek -1];
+                return dayButtons[firstDatesDay + day - 2];
             default: // Monday is the first day
                 int modifier = 0;
                 switch (dayOfWeek) {
@@ -205,7 +216,8 @@ public class CentralBarFrag_MonthView extends Fragment {
                         modifier = 7;
                         break;
                 }
-                return dayButtons[row * modifier -1];
+                int k = ((row -1) * 7) + modifier -1 + firstDatesDay;
+                return dayButtons[k];
         }
     }
     private void deselectButtonsOtherThan(int day) {
@@ -221,7 +233,7 @@ public class CentralBarFrag_MonthView extends Fragment {
         }
     }
     private void removeSixthRow() {
-        for (int i = 28; i<= 34; i++) {
+        for (int i = 35; i<= 41; i++) {
             dayButtons[i].setVisibility(View.GONE);
         }
     }
@@ -229,6 +241,9 @@ public class CentralBarFrag_MonthView extends Fragment {
         for (int i = 28; i<= 41; i++) {
             dayButtons[i].setVisibility(View.GONE);
         }
+    }
+    private void purgeRows() {
+        // TODO : HOw can I do this?
     }
     private void reportButtonClick(int number) {
         deselectButtonsOtherThan(number);
@@ -247,7 +262,7 @@ public class CentralBarFrag_MonthView extends Fragment {
                 today.get(Calendar.MONTH) == currentMonth.get(Calendar.MONTH)) {
             //TODO: Specify the colorization for this day... Consider how this should change if
             // date is selected / unselected
-                getButton(today.get(Calendar.WEEK_OF_MONTH), today.get(Calendar.DAY_OF_WEEK), fistDayOfWeek).setTextColor(Color.RED);
+                getButton(today, fistDayOfWeek).setTextColor(Color.RED);
         }
     }
     // A class that waits for a change of day to do the re-selection of new day at midnight.

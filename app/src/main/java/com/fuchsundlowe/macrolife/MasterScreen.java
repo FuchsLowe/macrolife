@@ -15,6 +15,7 @@ import com.fuchsundlowe.macrolife.DataObjects.TaskObject;
 import com.fuchsundlowe.macrolife.DayView.DayView;
 import com.fuchsundlowe.macrolife.EngineClasses.LocalStorage;
 import com.fuchsundlowe.macrolife.Interfaces.DataProviderNewProtocol;
+import com.fuchsundlowe.macrolife.MonthView.MonthView;
 import com.fuchsundlowe.macrolife.TestCases.Test4;
 import com.fuchsundlowe.macrolife.TestCases.TestActivity3;
 import com.fuchsundlowe.macrolife.TestCases.WholeDB;
@@ -41,10 +42,10 @@ public class MasterScreen extends AppCompatActivity {
         //test3();
         //toDay(null);
         //toWeekView();
-        toListView(null);
+        //toListView(null);
         //defineDisplay();
         //testFunction();
-
+        toMonthView();
 
     }
 
@@ -106,6 +107,11 @@ public class MasterScreen extends AppCompatActivity {
     public void toListView(View view) {
         Intent list = new Intent(this, com.fuchsundlowe.macrolife.ListView.ListView.class);
         startActivity(list);
+    }
+
+    public void toMonthView() {
+        Intent month = new Intent(this, MonthView.class);
+        startActivity(month);
     }
 
     @Override

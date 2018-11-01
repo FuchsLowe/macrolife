@@ -1,6 +1,5 @@
 package com.fuchsundlowe.macrolife.MonthView;
 
-
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -10,6 +9,7 @@ import android.os.Handler;
 import android.os.Looper;
 import android.support.v4.app.Fragment;
 import android.support.v4.content.LocalBroadcastManager;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -106,7 +106,7 @@ public class CentralBarFrag_MonthView extends Fragment {
         dayButtons[40] = baseView.findViewById(R.id.R6_6);
         dayButtons[41] = baseView.findViewById(R.id.R6_7);
 
-        setTheCalendar(monthDisplayed, baseView.getContext());
+        calendarSetUp(monthDisplayed, baseView.getContext());
 
         return baseView;
     }
@@ -115,7 +115,7 @@ public class CentralBarFrag_MonthView extends Fragment {
         this.monthDisplayed = monthToDisplay;
     }
 
-    private void setTheCalendar(Calendar monthImpression, Context mContext) {
+    private void calendarSetUp(Calendar monthImpression, Context mContext) {
         preferences = mContext.getSharedPreferences(Constants.SHARED_PREFERENCES_KEY,
                 Context.MODE_PRIVATE);
         int firstDayOfWeek = preferences.getInt(Constants.FIRST_DAY_OF_WEEK, monthImpression.getFirstDayOfWeek());
@@ -147,8 +147,18 @@ public class CentralBarFrag_MonthView extends Fragment {
                 @Override
                 public void onClick(View v) {
                     if (v instanceof Button) {
-                        Integer number = Integer.valueOf(String.valueOf(((Button) v).getText()));
-                        reportButtonClick(number);
+                        String date = (String) ((Button) v).getText();
+                        if (date.length() > 0) {
+                            Integer number = Integer.valueOf(date);
+                            deselectButtonsOtherThan(number);
+                            Calendar dateToSend = (Calendar) monthDisplayed.clone();
+                            dateToSend.set(Calendar.DAY_OF_MONTH, number);
+                            // Reports back to Activity that click occurred for this day.
+                            LocalBroadcastManager manager = LocalBroadcastManager.getInstance(baseView.getContext());
+                            Intent report = new Intent(Constants.INTENT_FILTER_DAY_CLICKED);
+                            report.putExtra(Constants.INTENT_FILTER_DATE_VALUE, dateToSend.getTimeInMillis());
+                            manager.sendBroadcast(report);
+                        }
                     }
                 }
             };
@@ -156,9 +166,8 @@ public class CentralBarFrag_MonthView extends Fragment {
         // Define the buttons:
         monthImpression.set(Calendar.DAY_OF_MONTH, 1);
         int month = monthImpression.get(Calendar.MONTH);
-        int weekOfMonth;
         do {
-            Button mButton = getButton(monthImpression, 2); // replace with firstDayOfWeek
+            Button mButton = getButton(monthImpression, firstDayOfWeek);
             mButton.setText(String.valueOf(monthImpression.get(Calendar.DAY_OF_MONTH)));
             mButton.setOnClickListener(calendarButtonAction);
             monthImpression.add(Calendar.DAY_OF_YEAR, 1);
@@ -167,21 +176,19 @@ public class CentralBarFrag_MonthView extends Fragment {
         // We have to set the month back to one we started since it was overshot
         monthImpression.add(Calendar.DAY_OF_YEAR, -1);
         // Evaluate if we have some extra rows to remove.
-        /*
-        weekOfMonth = monthImpression.get(Calendar.WEEK_OF_MONTH);
+
+        int weekOfMonth = monthImpression.get(Calendar.WEEK_OF_MONTH);
         if (weekOfMonth == 4) {
             removeFifthAndSixthRow();
         } else if (weekOfMonth == 5) {
             removeSixthRow();
         }
-        */
 
         // Try and select today if found in this month
         selectCurrentDay(monthImpression, firstDayOfWeek);
         dateChanger();
     }
     private Button getButton(Calendar value, int firstDayOfWeek) {
-        value.setFirstDayOfWeek(Calendar.MONDAY);// TODO REVERT TO firstDayOfWeek
         int row = value.get(Calendar.WEEK_OF_MONTH);
         int dayOfWeek = value.get(Calendar.DAY_OF_WEEK);
         int day = value.get(Calendar.DAY_OF_MONTH);
@@ -216,20 +223,23 @@ public class CentralBarFrag_MonthView extends Fragment {
                         modifier = 7;
                         break;
                 }
-                int k = ((row -1) * 7) + modifier -1 + firstDatesDay;
+                int k = ((row -1) * 7) + modifier -1;
                 return dayButtons[k];
         }
     }
     private void deselectButtonsOtherThan(int day) {
         for (Button m: dayButtons) {
-            Integer number = Integer.valueOf(String.valueOf(m.getText()));
-            if (number != day) {
-                // TODO Implement the deselect...
-                m.setBackgroundColor(Color.LTGRAY);
-            } else {
-                // Selection:
-                m.setBackgroundColor(Color.GREEN);
-            }
+            String sVal = (String) m.getText();
+            if (sVal.length() > 0) {
+                Integer number = Integer.valueOf(sVal);
+                if (!number.equals(day)) {
+                    // TODO Implement the deselect...
+                    m.setBackgroundColor(Color.LTGRAY);
+                } else {
+                    // Selection:
+                    m.setBackgroundColor(Color.GREEN);
+                }
+            } // else its empty button, no text...
         }
     }
     private void removeSixthRow() {
@@ -241,19 +251,6 @@ public class CentralBarFrag_MonthView extends Fragment {
         for (int i = 28; i<= 41; i++) {
             dayButtons[i].setVisibility(View.GONE);
         }
-    }
-    private void purgeRows() {
-        // TODO : HOw can I do this?
-    }
-    private void reportButtonClick(int number) {
-        deselectButtonsOtherThan(number);
-        Calendar dateToSend = (Calendar) monthDisplayed.clone();
-        dateToSend.set(Calendar.DAY_OF_MONTH, number);
-        // Reports back to Activity that click occurred for this day.
-        LocalBroadcastManager manager = LocalBroadcastManager.getInstance(baseView.getContext());
-        Intent report = new Intent(Constants.INTENT_FILTER_DAY_CLICKED);
-        report.putExtra(Constants.INTENT_FILTER_DATE_VALUE, dateToSend.getTimeInMillis());
-        manager.sendBroadcast(report);
     }
     // If today is found in this month, this will colorize it
     private void selectCurrentDay(Calendar currentMonth, int fistDayOfWeek) {

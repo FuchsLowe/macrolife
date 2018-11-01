@@ -83,7 +83,6 @@ public class TaskDisplayer extends Fragment {
     public void defineMe(List<TaskEventHolder> holders, MonthDataControllerProtocol controller) {
         this.dataToDisplay = holders;
         this.controller = controller;
-        recyclerView.getAdapter().notifyDataSetChanged();
     }
     private void removeSoftKeyboard(EditText taskName) {
         InputMethodManager imm = (InputMethodManager)

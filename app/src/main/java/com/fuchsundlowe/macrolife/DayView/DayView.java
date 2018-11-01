@@ -100,6 +100,12 @@ public class DayView extends FragmentActivity implements DayViewTopFragmentCallb
         defineDragAndDrop();
     }
 
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        self = null;
+    }
+
     // Date Manipulation & DayViewCallback interface implementation
     public void setNewSelectedDay(Calendar newSelectedDay) {
         SimpleDateFormat f = new SimpleDateFormat("dd-MM-yyyy");

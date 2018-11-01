@@ -10,6 +10,7 @@ import android.graphics.Color;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.content.LocalBroadcastManager;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -39,7 +40,7 @@ public class TopBarFrag_MonthView extends Fragment {
     }
 
     public void defineMe(Calendar yearToPresent) {
-        this.yearPresented = yearToPresent;
+        this.yearPresented = (Calendar) yearToPresent.clone();
     }
 
     @SuppressLint("UseSparseArrays")
@@ -53,18 +54,18 @@ public class TopBarFrag_MonthView extends Fragment {
 
         buttonMap = new HashMap<>(12);
 
-        buttonMap.put(1, (Button) base.findViewById(R.id.january));
-        buttonMap.put(2, (Button) base.findViewById(R.id.february));
-        buttonMap.put(3, (Button) base.findViewById(R.id.march));
-        buttonMap.put(4, (Button) base.findViewById(R.id.april));
-        buttonMap.put(5, (Button) base.findViewById(R.id.may));
-        buttonMap.put(6, (Button)  base.findViewById(R.id.june));
-        buttonMap.put(7, (Button) base.findViewById(R.id.july));
-        buttonMap.put(8, (Button)  base.findViewById(R.id.august));
-        buttonMap.put(9, (Button)  base.findViewById(R.id.september));
-        buttonMap.put(10, (Button)  base.findViewById(R.id.october));
-        buttonMap.put(11, (Button)  base.findViewById(R.id.november));
-        buttonMap.put(12, (Button)  base.findViewById(R.id.december));
+        buttonMap.put(0, (Button) base.findViewById(R.id.january));
+        buttonMap.put(1, (Button) base.findViewById(R.id.february));
+        buttonMap.put(2, (Button) base.findViewById(R.id.march));
+        buttonMap.put(3, (Button) base.findViewById(R.id.april));
+        buttonMap.put(4, (Button) base.findViewById(R.id.may));
+        buttonMap.put(5, (Button)  base.findViewById(R.id.june));
+        buttonMap.put(6, (Button) base.findViewById(R.id.july));
+        buttonMap.put(7, (Button)  base.findViewById(R.id.august));
+        buttonMap.put(8, (Button)  base.findViewById(R.id.september));
+        buttonMap.put(9, (Button)  base.findViewById(R.id.october));
+        buttonMap.put(10, (Button)  base.findViewById(R.id.november));
+        buttonMap.put(11, (Button)  base.findViewById(R.id.december));
 
         manager = LocalBroadcastManager.getInstance(base.getContext());
 
@@ -83,6 +84,10 @@ public class TopBarFrag_MonthView extends Fragment {
             @Override
             public void onClick(View v) {
                 Integer tagVal = Integer.valueOf(v.getTag().toString());
+                if (v.getTag().toString() == null || v.getTag().toString().length() == 0) {
+                    throw new Error("Could not get value out of day");
+                    // TODO REmove from production...
+                };
                 selectMonth(tagVal);
                 newMonthSelectedBroadcast(yearPresented);
             }
@@ -95,15 +100,15 @@ public class TopBarFrag_MonthView extends Fragment {
     }
     // Deselects the current month and selects new one
     private void selectMonth(int newMonth) {
-        // We do this only if we don't have same month selected...
-        if (newMonth != yearPresented.get(Calendar.MONTH)) {
-            // Deselection: TODO
-            buttonMap.get(yearPresented.get(Calendar.MONTH)).setBackgroundColor(Color.LTGRAY);
-            // Selection: TODO
-            buttonMap.get(newMonth).setBackgroundColor(Color.DKGRAY);
-            // Changing the year:
-            yearPresented.set(Calendar.MONTH, newMonth);
+        for (int i = 0; i<12; i++) {
+            if ((newMonth == i)) {
+                buttonMap.get(i).setBackgroundColor(Color.DKGRAY);
+            } else {
+                buttonMap.get(i).setBackgroundColor(Color.LTGRAY);
+            }
         }
+        // Changing the month:
+        yearPresented.set(Calendar.MONTH, newMonth);
     }
     // Local Broadcast Listener:
     /*

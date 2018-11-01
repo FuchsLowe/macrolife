@@ -29,7 +29,7 @@ import java.util.Map;
 public class MonthViewModel implements MonthDataControllerProtocol {
 
     private MonthViewDataProvider dataMaster;
-    private final Map<Short, DoublyHolder> yearBuckets; // Holds Doubly Holders mapped for year...
+    private final Map<Integer, DoublyHolder> yearBuckets; // Holds Doubly Holders mapped for year...
     private final Map<Short, int[]> taskMinuteCounter; // Holds minutes per day for each task...
     private final Map<Short, int[]> eventMinuteCounter; // -||- but for events
     private int currentYear = -1;
@@ -106,8 +106,11 @@ public class MonthViewModel implements MonthDataControllerProtocol {
     @Override
     public List<TaskEventHolder> holdersFor(int dayOfYear, int year) {
         List<TaskEventHolder> temp = new LinkedList<>();
-        temp.addAll(yearBuckets.get(year).tasks.get(dayOfYear));
-        temp.addAll(yearBuckets.get(year).events.get(dayOfYear));
+        if (yearBuckets.containsKey(year)) {
+
+            temp.addAll(yearBuckets.get(year).tasks.get(dayOfYear));
+            temp.addAll(yearBuckets.get(year).events.get(dayOfYear));
+        }
         return  temp;
     }
     @Override
@@ -145,23 +148,23 @@ public class MonthViewModel implements MonthDataControllerProtocol {
                 liveData.removeObservers(lifecycle);
             }
             tasks.clear();
-            tasks.set(0, dataMaster.tasksForAYear(year -1));
+            tasks.add(dataMaster.tasksForAYear(year -1));
             tasks.get(0).observe(lifecycle, subscribeTaskForYear(year -1));
-            tasks.set(1, dataMaster.tasksForAYear(year));
+            tasks.add(dataMaster.tasksForAYear(year));
             tasks.get(1).observe(lifecycle, subscribeTaskForYear(year));
-            tasks.set(2, dataMaster.tasksForAYear(year +1));
+            tasks.add(dataMaster.tasksForAYear(year +1));
             tasks.get(2).observe(lifecycle, subscribeTaskForYear(year +1));
 
             for (LiveData<List<RepeatingEvent>> liveData: events) {
                 liveData.removeObservers(lifecycle);
             }
             events.clear();
-            events.set(0, dataMaster.eventsForAYear(year -1));
+            events.add(dataMaster.eventsForAYear(year -1));
             events.get(0).observe(lifecycle, subscribeEventForYear(year -1));
-            events.set(1, dataMaster.eventsForAYear(year));
+            events.add(dataMaster.eventsForAYear(year));
             events.get(1).observe(lifecycle, subscribeEventForYear(year));
-            events.set(2, dataMaster.eventsForAYear(year +1));
-            events.get(3).observe(lifecycle, subscribeEventForYear(year +1));
+            events.add(dataMaster.eventsForAYear(year +1));
+            events.get(2).observe(lifecycle, subscribeEventForYear(year +1));
         }
         currentYear = year;
     }
@@ -217,7 +220,13 @@ public class MonthViewModel implements MonthDataControllerProtocol {
                             }
                             synchronized (yearBuckets) {
                                 // Changing the values for tasks for a day
-                                yearBuckets.get(year).tasks = newTaskForYear;
+                                if (yearBuckets.containsKey(year)) {
+                                    yearBuckets.get(year).tasks = newTaskForYear;
+                                } else {
+                                    DoublyHolder doublyHolder  =new DoublyHolder();
+                                    doublyHolder.tasks = newTaskForYear;
+                                    yearBuckets.put(year, doublyHolder);
+                                }
                             }
                             synchronized (taskMinuteCounter) {
                                 // Changing the values for minutes counted
@@ -282,7 +291,13 @@ public class MonthViewModel implements MonthDataControllerProtocol {
                             }
                             synchronized (yearBuckets) {
                                 // Changing the values for tasks for a day
-                                yearBuckets.get(year).tasks = newEventsForYear;
+                                if (yearBuckets.containsKey(year)) {
+                                    yearBuckets.get(year).events = newEventsForYear;
+                                } else {
+                                    DoublyHolder doublyHolder = new DoublyHolder();
+                                    doublyHolder.events = newEventsForYear;
+                                    yearBuckets.put(year, doublyHolder);
+                                }
                             }
                             synchronized (taskMinuteCounter) {
                                 // Changing the values for minutes counted
@@ -313,5 +328,10 @@ public class MonthViewModel implements MonthDataControllerProtocol {
     // A holder class for TaskHolders and Event Holders.
     private class DoublyHolder {
         List<List<TaskEventHolder>> tasks, events;
+
+        DoublyHolder() {
+            tasks = new ArrayList<>(366);
+            events = new ArrayList<>(366);
+        }
     }
 }

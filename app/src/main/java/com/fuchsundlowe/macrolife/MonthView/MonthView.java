@@ -14,6 +14,7 @@ import android.support.v4.app.FragmentTransaction;
 import android.support.v4.content.LocalBroadcastManager;
 import android.support.v4.view.ViewPager;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.ViewGroup;
 
 import com.fuchsundlowe.macrolife.BottomBar.EditTaskBottomBar;
@@ -36,6 +37,9 @@ public class MonthView extends FragmentActivity implements BottomBarCommunicatio
     private ViewGroup bottomBar;
     private Calendar currentDateDisplayed;
     private Calendar initialDay;
+    private final int FRAG_TAG_RECOMENDATION = 0;
+    private final int FRAG_TAG_EDIT = 1; // tag for edit bottom bar
+    private final int FRAG_TAG_DAY_LIST = 2;
 
     private int MAX_YEARS = 20;
 
@@ -53,8 +57,10 @@ public class MonthView extends FragmentActivity implements BottomBarCommunicatio
         }
         initialDay.setTime(new Date(tempLong));
         currentDateDisplayed = (Calendar) initialDay.clone();
+        // Init memory model:
         model = new MonthViewModel(this, this);
-
+        model.newYearSet(currentDateDisplayed.get(Calendar.YEAR));
+        // Set up the Top and Center Bars:
         topBar = findViewById(R.id.topBar_MonthView);
         topBar.setAdapter( new TopBarAdapter(getSupportFragmentManager()));
         topBar.setCurrentItem(MAX_YEARS /2);
@@ -69,7 +75,7 @@ public class MonthView extends FragmentActivity implements BottomBarCommunicatio
 
         // Initiate with default fragment:
         provideRecommendationBar();
-
+        // Start the broadcast receivers and define broadcasts:
         defineLocalBroadcastReceiver();
 
         // TEST COLORS:
@@ -90,17 +96,25 @@ public class MonthView extends FragmentActivity implements BottomBarCommunicatio
             @Override
             public void onPageSelected(int position) {
                 Calendar newDay = (Calendar) initialDay.clone();
-                int newPosition = MAX_YEARS /2 -position;
+                int newPosition = position - MAX_YEARS /2;
                 newDay.add(Calendar.YEAR, newPosition);
                 if (currentDateDisplayed.get(Calendar.YEAR) > newDay.get(Calendar.YEAR)) {
                     // we moved back
+                    currentDateDisplayed = newDay;
+                    reportNewDateSelected(newDay);
                     centralBar.setCurrentItem(centralBar.getCurrentItem() - 12, true);
+                    provideRecommendationBar();
+                    // We need to update our model now...
+                    model.newYearSet(newDay.get(Calendar.YEAR));
                 } else if (currentDateDisplayed.get(Calendar.YEAR) < newDay.get(Calendar.YEAR)) {
                     // we moved forward a year
+                    currentDateDisplayed = newDay;
+                    reportNewDateSelected(newDay);
                     centralBar.setCurrentItem(centralBar.getCurrentItem() + 12, true);
+                    provideRecommendationBar();
+                    // We need to update our model now...
+                    model.newYearSet(newDay.get(Calendar.YEAR));
                 }
-                currentDateDisplayed = newDay;
-                reportNewDateSelected(newDay);
             }
 
             @Override
@@ -117,16 +131,36 @@ public class MonthView extends FragmentActivity implements BottomBarCommunicatio
 
             @Override
             public void onPageSelected(int position) {
+
                 Calendar newDay = (Calendar) initialDay.clone();
-                int newPosition = MAX_YEARS *6 -position;
+                int newPosition = (position - MAX_YEARS *6);
                 newDay.add(Calendar.MONTH, newPosition);
+                int topBarModifier = 0;
                 if (currentDateDisplayed.get(Calendar.YEAR) > newDay.get(Calendar.YEAR)) {
-                    topBar.setCurrentItem(topBar.getCurrentItem() -1, true);
+                    topBarModifier = -1;
                 } else if (currentDateDisplayed.get(Calendar.YEAR) < newDay.get(Calendar.YEAR)) {
-                    topBar.setCurrentItem(topBar.getCurrentItem() +1, true);
+                    topBarModifier = +1;
                 }
+
                 currentDateDisplayed = newDay;
                 reportNewDateSelected(newDay);
+                topBar.setCurrentItem(topBar.getCurrentItem() + topBarModifier, true);
+                if (topBarModifier != 0) {
+                    int tagVal = (int) bottomBar.getTag();
+                    switch (tagVal) {
+                        case FRAG_TAG_DAY_LIST:
+                            // If we have a list and now are moving to new day, we should present a
+                            // list for that day
+                            provideListFor(newDay);
+                            break;
+                        case FRAG_TAG_EDIT:
+                            // IF we are editing, and we move, we should provide recommendation bar
+                            provideRecommendationBar();
+                            break;
+                        case FRAG_TAG_RECOMENDATION:
+                            // do nothing
+                    }
+                }
             }
 
             @Override
@@ -147,6 +181,7 @@ public class MonthView extends FragmentActivity implements BottomBarCommunicatio
             event = holderToEdit.getEvent();
         }
         FragmentTransaction transaction= getSupportFragmentManager().beginTransaction();
+        bottomBar.setTag(FRAG_TAG_EDIT);
         EditTaskBottomBar editTask = new EditTaskBottomBar();
         transaction.replace(bottomBar.getId(), editTask);
         if (!isFinishing()) {
@@ -158,6 +193,7 @@ public class MonthView extends FragmentActivity implements BottomBarCommunicatio
         if (date != null) {
             FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
             TaskDisplayer taskDisplayer = new TaskDisplayer();
+            bottomBar.setTag(FRAG_TAG_DAY_LIST);
             transaction.replace(bottomBar.getId(), taskDisplayer);
             if (!isFinishing()) {
                 transaction.commit();
@@ -170,6 +206,7 @@ public class MonthView extends FragmentActivity implements BottomBarCommunicatio
     private void provideRecommendationBar() {
         FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
         RecommendationBar bar = new RecommendationBar();
+        bottomBar.setTag(FRAG_TAG_RECOMENDATION);
         transaction.replace(bottomBar.getId(), bar);
         if (!isFinishing()) {
             transaction.commit();
@@ -212,7 +249,7 @@ public class MonthView extends FragmentActivity implements BottomBarCommunicatio
                         Calendar date = Calendar.getInstance();
                         date.setTimeInMillis(reportLong);
                         int newPos = date.get(Calendar.MONTH) - currentDateDisplayed.get(Calendar.MONTH);
-                        centralBar.setCurrentItem(newPos, true);
+                        centralBar.setCurrentItem(centralBar.getCurrentItem() + newPos, true);
                         currentDateDisplayed = date;
                     }
                 }
@@ -257,7 +294,7 @@ public class MonthView extends FragmentActivity implements BottomBarCommunicatio
         public Fragment getItem(int position) {
             TopBarFrag_MonthView frag = new TopBarFrag_MonthView();
             Calendar toPass = (Calendar) initialDay.clone();
-            int diff = MAX_YEARS /2 - position;
+            int diff = position - MAX_YEARS /2;
             toPass.add(Calendar.YEAR, diff);
             frag.defineMe(toPass);
             return frag;
@@ -280,7 +317,7 @@ public class MonthView extends FragmentActivity implements BottomBarCommunicatio
         public Fragment getItem(int position) {
             CentralBarFrag_MonthView frag = new CentralBarFrag_MonthView();
             Calendar toPass = (Calendar) initialDay.clone();
-            int diff = MAX_YEARS *6 - position;
+            int diff = position - MAX_YEARS *6;
             toPass.add(Calendar.MONTH, diff);
             frag.defineMe(toPass);
             return frag;

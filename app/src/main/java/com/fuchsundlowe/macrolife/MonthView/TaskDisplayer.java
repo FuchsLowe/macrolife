@@ -40,13 +40,14 @@ public class TaskDisplayer extends Fragment {
     private RecyclerView recyclerView;
     private List<TaskEventHolder> dataToDisplay;
     private MonthDataControllerProtocol controller;
+    private Calendar dayPresented;
 
     public TaskDisplayer() {
         // Required empty public constructor
     }
 
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
+    public View onCreateView(LayoutInflater inflater, final ViewGroup container,
                              Bundle savedInstanceState) {
 
         baseView = inflater.inflate(R.layout.fragment_task_displayer, container, false);
@@ -67,7 +68,9 @@ public class TaskDisplayer extends Fragment {
                 if (actionId == EditorInfo.IME_ACTION_DONE) {
                     // We respond to enter, save the task if there is more than 1 character
                     if (v.getText().length() > 0) {
-                        TaskObject newTask = createNewTask((String) v.getText());
+                        String newTaskName = v.getText() + "";
+                        TaskObject newTask = createNewTask(newTaskName);
+                        controller.saveTaskEventHolder(new TaskEventHolder(newTask, null));
                         removeSoftKeyboard((EditText) v);
                         sendEditTaskBroadcast(newTask.getHashID());
                         return true;
@@ -80,9 +83,10 @@ public class TaskDisplayer extends Fragment {
         return baseView;
     }
 
-    public void defineMe(List<TaskEventHolder> holders, MonthDataControllerProtocol controller) {
+    public void defineMe(List<TaskEventHolder> holders, MonthDataControllerProtocol controller, Calendar dayPresenting) {
         this.dataToDisplay = holders;
         this.controller = controller;
+        this.dayPresented = dayPresenting;
     }
     private void removeSoftKeyboard(EditText taskName) {
         InputMethodManager imm = (InputMethodManager)
@@ -97,21 +101,21 @@ public class TaskDisplayer extends Fragment {
     }
     private TaskObject createNewTask(String taskName) {
         return new TaskObject(controller.getFreeHashIDForTask(), 0, 0, taskName, Calendar.getInstance(),
-                null, null, Calendar.getInstance(), TaskObject.CheckableStatus.notCheckable,
-                null, 0, 0, "", TaskObject.TimeDefined.noTime, "");
+                dayPresented, null, Calendar.getInstance(), TaskObject.CheckableStatus.notCheckable,
+                null, 0, 0, "", TaskObject.TimeDefined.onlyDate, "");
     }
     // Sends local broadcast with ID of the task being edited...
     private void sendEditTaskBroadcast(int hashID) {
         LocalBroadcastManager manager = LocalBroadcastManager.getInstance(baseView.getContext());
         Intent editTask = new Intent();
-        editTask.setAction(Constants.EDIT_TASK_BOTTOM_BAR);
+        editTask.setAction(Constants.INTENT_FILTER_GLOBAL_EDIT);
         editTask.putExtra(Constants.INTENT_FILTER_TASK_ID, hashID);
         manager.sendBroadcast(editTask);
     }
     private void sendEditEventBroadcast(int hashID) {
         LocalBroadcastManager manager = LocalBroadcastManager.getInstance(baseView.getContext());
         Intent editTask = new Intent();
-        editTask.setAction(Constants.EDIT_TASK_BOTTOM_BAR);
+        editTask.setAction(Constants.INTENT_FILTER_GLOBAL_EDIT);
         editTask.putExtra(Constants.INTENT_FILTER_EVENT_ID, hashID);
         manager.sendBroadcast(editTask);
     }

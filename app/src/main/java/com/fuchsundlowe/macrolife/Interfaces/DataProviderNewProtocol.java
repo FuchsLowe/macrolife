@@ -22,7 +22,7 @@ public interface DataProviderNewProtocol {
     ArrayList<TaskObject>getDataForRecommendationBar();
     LiveData<List<TaskObject>>getLiveDataForRecommendationBar();
     LiveData<TaskObject> getTaskObjectWithCreationTime(Calendar creationTime);
-    LiveData<List<TaskObject>>getTasksForWeekView(Calendar forDay);
+    LiveData<List<TaskObject>> getTasksForAnyDateDefined(Calendar forDay);
     void deleteTask(TaskObject objectToDelete);
     LiveData<List<TaskObject>> getTaskThatIntersects(Calendar day);
     LiveData<List<TaskObject>> getTasksForRemindersView(Calendar forDay);

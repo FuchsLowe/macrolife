@@ -103,11 +103,11 @@ public class LocalStorage implements DataProviderNewProtocol, MonthViewDataProvi
         return dataBase.newDAO().getTaskThatIntersects(results[0], results[1]);
     }
     @Override
-    public LiveData<List<TaskObject>>getTasksForWeekView(Calendar forDay) {
+    public LiveData<List<TaskObject>> getTasksForAnyDateDefined(Calendar forDay) {
         // Get the long values of start and end of day...
         long[] results = returnStartAndEndTimesForDay(forDay);
 
-        return dataBase.newDAO().getTaskThatIntersectsDayWithAnyTimeValue(results[0], results[1]);
+        return dataBase.newDAO().getTasksThatIntersectAnyTimeValue(results[0], results[1]);
     }
     @Override
     public ArrayList<TaskObject> getDataForRecommendationBar() {
@@ -697,7 +697,7 @@ public class LocalStorage implements DataProviderNewProtocol, MonthViewDataProvi
         Calendar defCal = Calendar.getInstance();
         defCal.set(YEAR, year);
         long[] values = returnFirstDayAndLastDayOfYear(defCal);
-        return dataBase.newDAO().getTaskThatIntersects(values[0], values[1]);
+        return dataBase.newDAO().getTasksThatIntersectAnyTimeValue(values[0], values[1]);
     }
     public LiveData<List<RepeatingEvent>> eventsForAYear(int year) {
         Calendar defCal = Calendar.getInstance();
@@ -705,6 +705,7 @@ public class LocalStorage implements DataProviderNewProtocol, MonthViewDataProvi
         long[] values = returnFirstDayAndLastDayOfYear(defCal);
         return dataBase.newDAO().getEventThatIntersects(values[0], values[1]);
     }
+
     // Method calls:
     private long[] returnStartAndEndTimesForDay(Calendar day) {
        Calendar dayToWorkWith = (Calendar) day.clone();

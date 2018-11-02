@@ -84,7 +84,7 @@ public class WeekDisplay_WeekView extends Fragment {
             mDay.defineMe(dayToInsert);
             // The real insertion of data, one that gets constant updates...
             final List<TaskEventHolder> dataHolder = new ArrayList<>();
-            dataMaster.getTasksForWeekView(dayToInsert).observe(this, new Observer<List<TaskObject>>() {
+            dataMaster.getTasksForAnyDateDefined(dayToInsert).observe(this, new Observer<List<TaskObject>>() {
                 @Override
                 public void onChanged(@Nullable List<TaskObject> objects) {
                     List<TaskEventHolder> toDelete = new ArrayList<>();

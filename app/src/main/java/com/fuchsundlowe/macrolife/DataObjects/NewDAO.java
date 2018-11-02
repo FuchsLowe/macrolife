@@ -89,17 +89,18 @@ public interface NewDAO {
             "(:dayEnd BETWEEN taskStartTime AND taskEndTime)))" )
     LiveData<List<TaskObject>> getTaskThatIntersects(long dayStart, long dayEnd);
 
-    @Query("SELECT * FROM TaskObject WHERE ((taskStartTime BETWEEN :dayStart AND :dayEnd) OR " +
-            "(taskEndTime BETWEEN :dayStart AND :dayEnd ) OR " +
-            "(:dayStart BETWEEN taskStartTime AND taskEndTime) OR " +
-            "(:dayEnd BETWEEN taskStartTime AND taskEndTime))")
-    LiveData<List<TaskObject>> getTaskThatIntersectsDayWithAnyTimeValue(long dayStart, long dayEnd);
+    @Query("SELECT * FROM TaskObject WHERE ((taskStartTime BETWEEN :timeStart AND :timeEnd) OR " +
+            "(taskEndTime BETWEEN :timeStart AND :timeEnd ) OR " +
+            "(:timeStart BETWEEN taskStartTime AND taskEndTime) OR " +
+            "(:timeEnd BETWEEN taskStartTime AND taskEndTime))")
+    LiveData<List<TaskObject>> getTasksThatIntersectAnyTimeValue(long timeStart, long timeEnd);
 
     @Query("SELECT * FROM RepeatingEvent WHERE (startTime BETWEEN :dayStart AND :dayEnd) OR " +
             "(endTime BETWEEN :dayStart AND :dayEnd ) OR " +
             "(:dayStart BETWEEN startTime AND endTime) OR " +
             "(:dayEnd BETWEEN startTime AND endTime)" )
     LiveData<List<RepeatingEvent>> getEventThatIntersects(long dayStart, long dayEnd);
+
 
     @Query("SELECT * FROM TaskObject WHERE (TimeDefined == 1 AND taskStartTime BETWEEN :dayStart AND :dayEnd)")
     LiveData<List<TaskObject>> getReminderTasksForDay(long dayStart, long dayEnd);
